@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Mercury Control Center
+Comment=A competition scoring and timing software
+Exec=merccc
+Icon=/usr/lib/merccc/appicon.png
+Terminal=false

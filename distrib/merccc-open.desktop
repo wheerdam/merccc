@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Open merccc configuration
+Comment=A competition scoring and timing software
+Exec=merccc --ask-font -c %f
+Icon=/usr/lib/merccc/appicon.png
+Terminal=false
+MimeType=application/x-merccc
