@@ -93,7 +93,7 @@ SectionEnd
 
 Section "Associate Mercury Configuration with the Program"
   ${unregisterExtension} ".merccc" "Mercury Control Center"
-  ;${registerExtension} "$INSTDIR\merccc.bat" ".merccc" "Mercury Control Center" "$INSTDIR\resources\project.ico"
+  ${unregisterExtension} ".merccz" "Mercury Control Center"
   ${registerExtension} "$INSTDIR\merccco.bat" ".merccc" "Mercury Control Center" "$INSTDIR\appicon.ico"
   ${registerExtension} "$INSTDIR\mercccz.bat" ".merccz" "Mercury Control Center" "$INSTDIR\appicon.ico"
 SectionEnd

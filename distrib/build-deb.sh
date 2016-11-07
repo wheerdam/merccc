@@ -25,7 +25,7 @@ cp -v ../web/appicon.png ./deb/usr/lib/merccc
 cp -v ./*.desktop ./deb/usr/share/applications
 echo "- generating run script"
 echo "#!/bin/sh" > ./deb/usr/bin/merccc
-echo "java -jar /usr/lib/merccc/merccc-`cat version`.jar \$@" >> ./deb/usr/bin/merccc
+echo "java -jar /usr/lib/merccc/merccc-`cat version`.jar \"\$@\"" >> ./deb/usr/bin/merccc
 chmod a+x ./deb/usr/bin/merccc
 echo "- building deb"
 fakeroot dpkg --build deb
