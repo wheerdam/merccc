@@ -504,19 +504,7 @@ public class ControlFrame extends JFrame {
         paneDataTop.add(btnDataClear);
 
         tblData = new JTable(Data.getTableModel(competition));
-        tblData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        
-        tblData.addKeyListener(new KeyListener() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                if(e.getKeyCode() == KeyEvent.VK_E) {
-                    editData();
-                }
-            }
-
-            public void keyPressed(KeyEvent e) { }
-            public void keyReleased(KeyEvent e) { }
-        });
+        tblData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);       
 
         paneDataManipulation.setLayout(new BorderLayout());
         paneDataManipulation.add(paneDataTop, BorderLayout.PAGE_START);
