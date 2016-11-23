@@ -127,7 +127,7 @@ public class ControlFrame extends JFrame {
         toggler.start();
         
         setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ")");
-        setSize(900, 600);
+        setSize(1000, 600);
         Container pane = this.getContentPane();
         
         this.addWindowListener(new WindowListener() {
@@ -448,37 +448,11 @@ public class ControlFrame extends JFrame {
         btnDataLoad.setForeground(Color.RED);
 
         btnDataSave.addActionListener((ActionEvent e) -> {
-            JFileChooser fc = new JFileChooser();
-            fc.setCurrentDirectory(new java.io.File("."));
-            fc.setDialogTitle("Save Data as CSV");
-            fc.setFileFilter(
-                    new FileNameExtensionFilter("Saved Mercury Data (.csv)", "csv")
-            );
-            fc.setCurrentDirectory(Data.dataWorkDir);
-            if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                if(fc.getSelectedFile().exists()) {
-                    if(!confirmYesNo(fc.getSelectedFile().getName() + " exists." +
-                            " Overwrite?", "File Exists")) {
-                        return;
-                    }
-                }
-                Data.saveAsCSV(competition, fc.getSelectedFile().getAbsolutePath());
-            }
+            saveData();
         });
 
         btnDataLoad.addActionListener((ActionEvent e) -> {
-            JFileChooser fc = new JFileChooser();
-            fc.setCurrentDirectory(new java.io.File("."));
-            fc.setDialogTitle("Load CSV Data");
-            fc.setFileFilter(
-                    new FileNameExtensionFilter("Saved Mercury Data (.csv)", "csv")
-            );
-            fc.setCurrentDirectory(Data.dataWorkDir);
-            if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                Data.loadCSV(competition, fc.getSelectedFile().getAbsolutePath());
-                triggerEvent(UserEvent.DATA_IMPORTED, Data.getData(competition));
-            }
-            updateDataView();
+            loadData();
         });
 
         btnDataDelete.addActionListener((ActionEvent e) -> {
@@ -518,40 +492,7 @@ public class ControlFrame extends JFrame {
         });
 
         btnDataEdit.addActionListener((ActionEvent e) -> {
-            int col = tblData.getSelectedColumn();
-            if(col-3 < 0 || col-3 >= Score.fields.size()) {
-                return;
-            }
-            Data.lock.writeLock().lock();
-            try {
-                DefaultTableModel m = (DefaultTableModel) tblData.getModel();
-                int row = tblData.getSelectedRow();
-                int column = tblData.getSelectedColumn();
-                double initialValue = Double.parseDouble((String)m.getValueAt(row, column));
-                int teamID = Integer.parseInt((String)m.getValueAt(row, 0));
-                int scoreID = Integer.parseInt((String)m.getValueAt(row, 2));
-                Team t = competition.getTeamByID(teamID);
-                String field = Config.getKeysInOriginalOrder("fields").get(column-3);
-
-                NumberInputDialog dialog = new NumberInputDialog("Edit " + field +
-                        " for " + t.getName(), 
-                        initialValue, NumberInputDialog.FLOAT);
-                dialog.setModal(true);
-                dialog.setLocationRelativeTo(this);
-                dialog.showDialog();
-
-                if(dialog.isApproved()) {
-                    Score s = t.getScores().get(scoreID);
-                    s.setValue(field, dialog.getValueDouble());
-                    m.setValueAt(dialog.getValueDouble() + "", row, column);
-                    m.setValueAt(Score.calculate(s) + "", row, 3+Score.fields.size());
-                    Object[] params = {teamID, scoreID, field, dialog.getValueDouble()};
-                    triggerEvent(UserEvent.DATA_CHANGED, params);
-                    updateDataView();
-                }
-            } finally {
-                Data.lock.writeLock().unlock();
-            }
+            editData();
         });
 
         paneDataTop.add(btnDataSave);
@@ -564,6 +505,18 @@ public class ControlFrame extends JFrame {
 
         tblData = new JTable(Data.getTableModel(competition));
         tblData.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        tblData.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+                if(e.getKeyCode() == KeyEvent.VK_E) {
+                    editData();
+                }
+            }
+
+            public void keyPressed(KeyEvent e) { }
+            public void keyReleased(KeyEvent e) { }
+        });
 
         paneDataManipulation.setLayout(new BorderLayout());
         paneDataManipulation.add(paneDataTop, BorderLayout.PAGE_START);
@@ -644,8 +597,107 @@ public class ControlFrame extends JFrame {
         paneClassification.add(paneDisplayStartingRank, BorderLayout.PAGE_END);
 //</editor-fold>
         
+        //<editor-fold defaultstate="collapsed" desc="Keybindings Init">
+        String keySaveAction = "SAVE_DATA";
+        this.getRootPane().getActionMap().put(keySaveAction, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                saveData();
+            }
+        });
+        
+        String keyLoadAction = "LOAD_DATA";
+        this.getRootPane().getActionMap().put(keyLoadAction, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                loadData();
+            }
+        });
+        
+        String keyTab1Action = "TAB_1";
+        this.getRootPane().getActionMap().put(keyTab1Action, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paneTabbedContainer.setSelectedIndex(0);
+            }
+        });
+        
+        String keyTab2Action = "TAB_2";
+        this.getRootPane().getActionMap().put(keyTab2Action, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paneTabbedContainer.setSelectedIndex(1);
+            }
+        });
+        
+        String keyTab3Action = "TAB_3";
+        this.getRootPane().getActionMap().put(keyTab3Action, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paneTabbedContainer.setSelectedIndex(2);
+            }
+        });
+        
+        String keyTab4Action = "TAB_4";
+        this.getRootPane().getActionMap().put(keyTab4Action, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                paneTabbedContainer.setSelectedIndex(3);
+            }
+        });
+        
+        String keyOutputLogo = "OUTPUT_LOGO";
+        this.getRootPane().getActionMap().put(keyOutputLogo, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cmbDisplayMode.setSelectedIndex(0);
+            }
+        });
+        
+        String keyOutputRunStatus = "OUTPUT_RUNSTATUS";
+        this.getRootPane().getActionMap().put(keyOutputRunStatus, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cmbDisplayMode.setSelectedIndex(1);
+            }
+        });
+        
+        String keyOutputClassification = "OUTPUT_CLASSIFICATION";
+        this.getRootPane().getActionMap().put(keyOutputClassification, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cmbDisplayMode.setSelectedIndex(2);
+            }
+        });
+        
+        String keyToggleSound = "TOGGLE_SOUND";
+        this.getRootPane().getActionMap().put(keyToggleSound, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(chkPlaySounds.isEnabled()) {
+                    chkPlaySounds.setSelected(!chkPlaySounds.isSelected());
+                    SoundPlayer.setEnabled(chkPlaySounds.isSelected());
+                }
+            }
+        });
+        
+        InputMap im = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), keySaveAction);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK), keyLoadAction);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.CTRL_DOWN_MASK), keyTab1Action);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_DOWN_MASK), keyTab2Action);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_DOWN_MASK), keyTab3Action);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_4, InputEvent.CTRL_DOWN_MASK), keyTab4Action);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), keyOutputLogo);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), keyOutputRunStatus);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0), keyOutputClassification);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK), keyToggleSound);
+        //</editor-fold>
+
         validate();
         triggerEvent(UserEvent.GUI_INIT, this);
+        pack();
+        setVisible(true);
     }
     
     private void populateScoreControl(Container pane, JTextField[] scoreFields, boolean editable) {            
@@ -1036,6 +1088,77 @@ public class ControlFrame extends JFrame {
             display.setUndecorated(true);
         }
         display.setVisible(true);
+    }
+    
+    private void saveData() {
+        JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new java.io.File("."));
+        fc.setDialogTitle("Save Data as CSV");
+        fc.setFileFilter(
+                new FileNameExtensionFilter("Saved Mercury Data (.csv)", "csv")
+        );
+        fc.setCurrentDirectory(Data.dataWorkDir);
+        if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            if(fc.getSelectedFile().exists()) {
+                if(!confirmYesNo(fc.getSelectedFile().getName() + " exists." +
+                        " Overwrite?", "File Exists")) {
+                    return;
+                }
+            }
+            Data.saveAsCSV(competition, fc.getSelectedFile().getAbsolutePath());
+        }
+    }
+    
+    private void loadData() {
+        JFileChooser fc = new JFileChooser();
+        fc.setCurrentDirectory(new java.io.File("."));
+        fc.setDialogTitle("Load CSV Data");
+        fc.setFileFilter(
+                new FileNameExtensionFilter("Saved Mercury Data (.csv)", "csv")
+        );
+        fc.setCurrentDirectory(Data.dataWorkDir);
+        if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            Data.loadCSV(competition, fc.getSelectedFile().getAbsolutePath());
+            triggerEvent(UserEvent.DATA_IMPORTED, Data.getData(competition));
+        }
+        updateDataView();
+    }
+    
+    private void editData() {
+        int col = tblData.getSelectedColumn();
+        if(col-3 < 0 || col-3 >= Score.fields.size()) {
+            return;
+        }
+        Data.lock.writeLock().lock();
+        try {
+            DefaultTableModel m = (DefaultTableModel) tblData.getModel();
+            int row = tblData.getSelectedRow();
+            int column = tblData.getSelectedColumn();
+            double initialValue = Double.parseDouble((String)m.getValueAt(row, column));
+            int teamID = Integer.parseInt((String)m.getValueAt(row, 0));
+            int scoreID = Integer.parseInt((String)m.getValueAt(row, 2));
+            Team t = competition.getTeamByID(teamID);
+            String field = Config.getKeysInOriginalOrder("fields").get(column-3);
+
+            NumberInputDialog dialog = new NumberInputDialog("Edit " + field +
+                    " for " + t.getName(), 
+                    initialValue, NumberInputDialog.FLOAT);
+            dialog.setModal(true);
+            dialog.setLocationRelativeTo(this);
+            dialog.showDialog();
+
+            if(dialog.isApproved()) {
+                Score s = t.getScores().get(scoreID);
+                s.setValue(field, dialog.getValueDouble());
+                m.setValueAt(dialog.getValueDouble() + "", row, column);
+                m.setValueAt(Score.calculate(s) + "", row, 3+Score.fields.size());
+                Object[] params = {teamID, scoreID, field, dialog.getValueDouble()};
+                triggerEvent(UserEvent.DATA_CHANGED, params);
+                updateDataView();
+            }
+        } finally {
+            Data.lock.writeLock().unlock();
+        }
     }
     
     private void triggerEvent(int id, Object param) {

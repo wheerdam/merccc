@@ -203,6 +203,37 @@ public class Assets {
                 System.err.println("Assets.theme: " + e.toString());
             }
         }
+        
+        String bgColor = Config.getValue("theme", "bgcolor");
+        if(bgColor != null) {
+            try {
+                String[] tokens = bgColor.trim().split(",");
+                int R = Integer.parseInt(tokens[0].trim());
+                int G = Integer.parseInt(tokens[1].trim());
+                int B = Integer.parseInt(tokens[2].trim());
+                DisplayFrame.BG_RED = R;
+                DisplayFrame.BG_GREEN = G;
+                DisplayFrame.BG_BLUE = B;
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse color information");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
+        String bgImageFile = Config.getValue("theme", "bgimage");
+        if(bgImageFile != null) {
+            DisplayFrame.BG_IMAGE = getAsset(bgImageFile);
+        }
+        
+        String bgAlignment = Config.getValue("theme", "bgalignment");
+        if(bgAlignment != null) {
+            try {
+                DisplayFrame.BG_ALIGNMENT = Integer.parseInt(bgAlignment);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse bg alignment");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
     }
     
     public static BufferedImage getMercuryLogo(int height) {

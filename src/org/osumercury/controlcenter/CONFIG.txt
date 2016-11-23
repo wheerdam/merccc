@@ -6,6 +6,7 @@ Revision History:
 0.9.1  2016/10/14  Added sortorder option
 0.9.2  2016/10/14  Changed resourcedir to be relative to the config file path
 0.9.3  2016/10/15  Added theming support
+0.9.7  2016/11/23  Added more theming options
 
 ========
 OVERVIEW
@@ -42,7 +43,7 @@ display    - options on how to display the score fields in the DISPLAY WINDOW
 test       - some test values and expected result to ensure that the formula is correct
 tournament - default tournament parameters
 teams      - team entries
-theme      - optional section to change the default display fonts and colors
+theme      - optional section to change the DISPLAY WINDOW's appearances
 
 -----------
 FILE FORMAT
@@ -175,7 +176,13 @@ If the specified image file exists in the resource directory, the program will d
 THEME SECTION
 -------------
 
-The bitmap digits and text fonts in the program can be replaced by the user using this OPTIONAL section. The fonts have to be in .PNG format and placed within the resource directory. The font then can be used by using the entries below (it is not necessary to provide both, the user can just replace the digits OR the text if that is what is desired):
+The theme section allows the user to modify how the DISPLAY WINDOW will appear. This section is completely optional.
+
+The clock on the DISPLAY WINDOW during a run (setup and run windows) is aligned to the right by default. The user can change this aligment by adding the following option:
+
+	alignclockleft=1
+
+The bitmap digits and text fonts in the program can be replaced by the user using this section. The fonts have to be in .PNG format and placed within the resource directory. The font then can be used by using the entries below (it is not necessary to provide both, the user can just replace the digits OR the text if that is what is desired):
 
 	digitfont=fontfile1.png
 	font=fontfile2.png
@@ -205,11 +212,23 @@ The following configuration entries will be used to clip each character: runeW, 
 
 The program assumes a monospaced font. runeW and runeH simply define the clipping box for each character. The x-axis position of each character is derived by multiplying runeW with the number of characters to skip to reach the desired position. The row entries define where in y-axis the program should look for the desired row. The y-axis' origin is on the top of the image, e.g. if the first row is aligned to the top of the image, row0 will be zero.
 
+An alternative to using bitmap text fonts is to use system fonts (e.g. to render non-basic Latin characters). This can be specified by using the systemfont option:
+
+	systemfont=Times New Roman
+
+This option overrides bitmap font options. The systemfont option will not be used to render digits, only the text font.
+
 The theme section also allows the user to change the graphic colors used in the DISPLAY WINDOW. The entries are:
 
 	primarycolor=255,255,255 # color in 24-bit RGB
 	secondarycolor=255,255,0
 	altcolor=255,0,255
+	bgcolor=0,0,0 # background color
 
-The background color of the DISPLAY WINDOW is always black and can not be changed by the user.
+merccc can display a background image in the DISPLAY WINDOW. The background image is specified as follows:
+
+	bgimage=file.jpg # must exist in the resources directory
+	bgalignment=0
+
+As with team badge pictures, the background image file must also be placed inside the resources directory. The bgalignment entry specifies where the background image will be located. 0 is top-left, 1 is top-right, 2 is bottom-right, and 3 is bottom-left.
 

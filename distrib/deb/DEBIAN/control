@@ -1,5 +1,5 @@
 Package: merccc
-Version: 0.9.6
+Version: 0.9.7
 Depends: java-runtime-headless (>= 1.8) | openjdk-8-jre (>= 1.8) 
 Section: education
 Priority: optional

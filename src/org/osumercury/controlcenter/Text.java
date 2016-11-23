@@ -28,7 +28,7 @@ public class Text {
     
     public static final int MAJOR_VERSION = 0;
     public static final int MINOR_VERSION = 9;
-    public static final int MINOR_MINOR_VERSION = 6;
+    public static final int MINOR_MINOR_VERSION = 7;
     
     public static String getVersion() {
         return MAJOR_VERSION + "." + MINOR_VERSION + "." + MINOR_MINOR_VERSION;

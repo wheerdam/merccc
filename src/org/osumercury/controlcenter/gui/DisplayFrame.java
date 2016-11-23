@@ -30,7 +30,7 @@ import org.osumercury.controlcenter.SessionState;
 import org.osumercury.controlcenter.Team;
 
 /**
- * A bunch of Swing voodoo.
+ * A bunch of Java Graphics voodoo.
  *
  * @author wira
  */
@@ -78,6 +78,13 @@ public class DisplayFrame extends JFrame {
     
     public static double TEAM_BADGE_HEIGHT_RATIO = 0.55;
     
+    public static int BG_RED = 0;
+    public static int BG_GREEN = 0;
+    public static int BG_BLUE = 0;
+    public static Color BG_COLOR;
+    public static BufferedImage BG_IMAGE;
+    public static int BG_ALIGNMENT = 0;
+    
     public static int PRIMARY_RED = 0x20;
     public static int PRIMARY_GREEN = 0xbb;
     public static int PRIMARY_BLUE = 0xff;
@@ -95,6 +102,9 @@ public class DisplayFrame extends JFrame {
      
     public static final int DISPLAY_REFRESH_RATE_MS = 50;
     public static boolean DRAW_RENDER_TIME = false;
+    public static boolean ALIGN_CLOCK_LEFT = false;
+    public static float POSITION_RIGHT_RECORDED_SCORES = 0.5f;
+    public static float POSITION_LEFT_RECORDED_SCORES = 0.3f;
     private static String NATIVE_FONT;
     
     private static long renderTime = -1;
@@ -110,6 +120,7 @@ public class DisplayFrame extends JFrame {
         PRIMARY_COLOR = new Color(PRIMARY_RED, PRIMARY_GREEN, PRIMARY_BLUE);
         SECONDARY_COLOR = new Color(SECONDARY_RED, SECONDARY_GREEN, SECONDARY_BLUE);
         ALT_COLOR = new Color(ALT_RED, ALT_GREEN, ALT_BLUE);
+        BG_COLOR = new Color(BG_RED, BG_GREEN, BG_BLUE);
         canvas = new DisplayCanvas();
         add(canvas);
         refresh = new RefreshThread(this);
@@ -207,7 +218,7 @@ public class DisplayFrame extends JFrame {
         Graphics2D g = (Graphics2D) canvas.getGraphics();
         String str = "RESCALING DISPLAY UI";
         int strWidth = getTextWidth(str);
-        g.setColor(Color.BLACK);
+        g.setColor(BG_COLOR);
         g.fillRect(0, 0, getWidth(), getHeight());
         g.setColor(SECONDARY_COLOR);
         g.drawRect(canvas.getWidth()/2-strWidth/2-20, 
@@ -328,12 +339,14 @@ public class DisplayFrame extends JFrame {
                 case ' ':
                     x += charW/2;
                     break;
-                default:
+                default:                                        
                     if(((int)c) < 48) {
                         break;
                     }
 
-                    if(((int)c) >= 65) {
+                    if(((int)c) > 127) {
+                        g.drawImage(white ? scaledWhiteNonAlphabet[13] : scaledNonAlphabet[13], x, y, this);                        
+                    } else if(((int)c) >= 65) {
                         g.drawImage(white ? scaledWhiteAlphabet[(int)c-65] : scaledAlphabet[(int)c-65], x, y, this);
                     } else {
                         g.drawImage(white ? scaledWhiteNonAlphabet[(int)c-48] : scaledNonAlphabet[(int)c-48], x, y, this);
@@ -374,8 +387,25 @@ public class DisplayFrame extends JFrame {
             
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setColor(Color.BLACK);
+            g.setColor(BG_COLOR);
             g.fillRect(0, 0, W, H);
+            
+            if(BG_IMAGE != null) {
+                switch(BG_ALIGNMENT) {
+                    case 0:
+                        g.drawImage(BG_IMAGE, 0, 0, null);
+                        break;
+                    case 1:
+                        g.drawImage(BG_IMAGE, W(1)-BG_IMAGE.getWidth(), 0, null);
+                        break;
+                    case 2:
+                        g.drawImage(BG_IMAGE, W(1)-BG_IMAGE.getWidth(), H(1)-BG_IMAGE.getHeight(), null);
+                        break;
+                    case 3:
+                        g.drawImage(BG_IMAGE, 0, H(1)-BG_IMAGE.getHeight(), null);
+                        break;
+                }
+            }
             
             String str, str2;
             g.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 64));
@@ -399,7 +429,7 @@ public class DisplayFrame extends JFrame {
                         } else if(c.redFlagged() && System.currentTimeMillis()/500%2 == 1) {
                             g.setColor(new Color(0xff, 0x00, 0x00));
                         } else {
-                            g.setColor(Color.BLACK);
+                            g.setColor(BG_COLOR);
                         }
                         g.fillRect(0, 0, W, H(0.1));
                         g.fillRect(0, H(0.9), W, H(0.1));
@@ -425,20 +455,36 @@ public class DisplayFrame extends JFrame {
                                     (int)((s.getSecondsLeft()+1)/60),
                                     (int)((s.getSecondsLeft()+1)%60),
                                     s.getMinutesLeft() < 2,
-                                    10+2*digitW+10,
+                                    ALIGN_CLOCK_LEFT ? 10+2*digitW+10 : 
+                                            W(1)-10-2*digitW-10,
                                     H(0.9)-15-charH-20-digitH
                             );
                             g.drawImage(s.getMinutesLeft() < 2 ? scaledRedDigits[COLON] : scaledBlueDigits[COLON],
-                                    10+2*digitW+10-scaledRedDigits[COLON].getWidth()/2,
+                                    ALIGN_CLOCK_LEFT ? 10+2*digitW+10-scaledRedDigits[COLON].getWidth()/2 :
+                                            W(1)-10-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
+                                    H(0.9)-15-charH-20-digitH, this);
+                        } else {
+                            drawClock(g,
+                                    0, 0, true,
+                                    ALIGN_CLOCK_LEFT ? 10+2*digitW+10 : 
+                                            W(1)-10-2*digitW-10,
+                                    H(0.9)-15-charH-20-digitH
+                            );
+                            g.drawImage(scaledRedDigits[COLON],
+                                    ALIGN_CLOCK_LEFT ? 10+2*digitW+10-scaledRedDigits[COLON].getWidth()/2 :
+                                            W(1)-10-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
                                     H(0.9)-15-charH-20-digitH, this);
                         }
                         ArrayList<Score> activeScores;
                         int numScores, scoreWidth;
+                        scoreWidth = 6*smallW+scaledSmallDigits[PERIOD].getWidth();                          
                         switch (c.getState()) {
                             case CompetitionState.SETUP:
                                 str = "SETUP PERIOD";
                                 y = H(0.9)-15-charH;
-                                drawText(g, str, 10, y, false);
+                                drawText(g, str, 
+                                        ALIGN_CLOCK_LEFT ? 10 : W(1)-10-getTextWidth(str),
+                                        y, false);
                                 str = c.getTeamByID(teamID).getLogoFileName();
                                 if(teamBadges[teamID] == null &&
                                         Assets.doesAssetExist(str)) {
@@ -449,12 +495,15 @@ public class DisplayFrame extends JFrame {
                                 } 
                                 if(teamBadges[teamID] != null) {
                                     g.setColor(PRIMARY_COLOR);
-                                    g.drawRect(W(1)-12-teamBadges[teamID].getWidth(), 
+                                    g.drawRect(
+                                            ALIGN_CLOCK_LEFT ? W(1)-12-teamBadges[teamID].getWidth() :
+                                                    8, 
                                             H(0.9)-12-teamBadges[teamID].getHeight(),
                                             teamBadges[teamID].getWidth()+3, 
                                             teamBadges[teamID].getHeight()+3);
                                     g.drawImage(teamBadges[teamID],
-                                            W(1)-10-teamBadges[teamID].getWidth(),
+                                            ALIGN_CLOCK_LEFT ? W(1)-10-teamBadges[teamID].getWidth() :
+                                                    10,
                                             H(0.9)-10-teamBadges[teamID].getHeight(), this);
                                 }
 
@@ -463,24 +512,14 @@ public class DisplayFrame extends JFrame {
                                 str = "RUN ";
                                 str2 = "" + c.getSession().getRunNumber() + " of " + c.getSession().getMaxAttempts();
                                 y = H(0.9)-15-charH;
-                                drawText(g, str, 10, y, false);                                
-                                drawText(g, str2, 10+getTextWidth(str), y, true);
-                                activeScores = c.getSession().getActiveScoreList();
-                                numScores = activeScores.size();
-                                scoreWidth = 6*smallW+scaledSmallDigits[PERIOD].getWidth();
-                                for(i = numScores-1; i >= 0; i--) {
-                                    x = W(0.30) + (numScores-1-i)*(scoreWidth+20);
-                                    str = "" + (i+1);
-                                    drawText(g, str, x+scoreWidth/2-getTextWidth(str)/2,
-                                            H(0.9)-15-charH, i == numScores-1);
-                                    drawScore(g, activeScores.get(i), x, H(0.9)-15-charH-smallH-20);
-                                    if(i == numScores-1) {
-                                        g.setColor(ALT_COLOR);
-                                    } else {
-                                        g.setColor(PRIMARY_COLOR);
-                                    }
-                                    g.fillRect(x, H(0.9)-15-charH-12, scoreWidth, 4);
-                                }
+                                drawText(g, str, 
+                                        ALIGN_CLOCK_LEFT ? 10 : W(1)-10-
+                                                getTextWidth(str)-getTextWidth(str2),
+                                        y, false);                                
+                                drawText(g, str2,
+                                        ALIGN_CLOCK_LEFT ? 10+getTextWidth(str)
+                                                 : W(1)-10-getTextWidth(str2),
+                                        y, true);                              
                                 i = 0;
                                 int colW;
                                 int rowH = 40+smallH+10+charH;
@@ -513,18 +552,25 @@ public class DisplayFrame extends JFrame {
                                 drawText(g, str2, x, y, true);
                                 x -= getTextWidth(str);
                                 drawText(g, str, x, y, false);
-                                
-                                break OUTER;
                             case CompetitionState.POST_RUN:
-                                str = "BEST SCORE";
-                                drawText(g, str, 10, H(0.9)-15-charH, false);
                                 Team t = c.getSession().getActiveTeam();
-                                Score highestScore = t.getBestScore();
+                                Score highestScore = t.getBestScore();                                
                                 if(highestScore != null) {
-                                    drawScore(g, highestScore, 10, H(0.9)-15-charH-20-smallH);
+                                    str = "BEST SCORE";
+                                    drawText(g, str,
+                                            ALIGN_CLOCK_LEFT ? W(1)-getTextWidth(str)-10 : 10,
+                                            H(0.9)-15-charH, false);
+                                    drawScore(g, highestScore, 
+                                            ALIGN_CLOCK_LEFT ?
+                                                    W(1)-scoreWidth-10 :
+                                                    10,
+                                            H(0.9)-15-charH-20-smallH);
                                 } else {
-                                    str = "DID NOT FINISH";
-                                    drawText(g, str, 10, H(0.9)-15-2*charH-20, true);
+                                    str = "NO SCORE";
+                                    drawText(g, str,
+                                            ALIGN_CLOCK_LEFT ? W(1)-getTextWidth(str)-10 :
+                                                    10,
+                                            H(0.9)-15-charH, true);
                                 }
                                 break OUTER;
                             default:
@@ -599,7 +645,7 @@ public class DisplayFrame extends JFrame {
                     
                     if(c.getState() == CompetitionState.SETUP ||
                             c.getState() == CompetitionState.RUN) {
-                        g.setColor(Color.BLACK);
+                        g.setColor(BG_COLOR);
                         g.fillRect(0, H(1)-5-charH-5, W, charH+10);
                         g.setColor(ALT_COLOR);
                         g.fillRect(0, H(1)-5-charH-5-2, W, 2);
@@ -674,6 +720,10 @@ public class DisplayFrame extends JFrame {
                 }
                 x += smallW;
             }
+        }
+        
+        private int getClockWidth() {
+            return 4 * scaledBlueDigits[0].getWidth() + 20;
         }
         
         private void drawScore(Graphics2D g, Score score, int x, int y) {

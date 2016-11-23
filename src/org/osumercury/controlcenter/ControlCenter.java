@@ -26,52 +26,53 @@ import javax.swing.JFrame;
 import com.beust.jcommander.*;
 import javax.swing.JOptionPane;
 import java.io.File;
+import javax.swing.SwingUtilities;
 
 /**
  *
  * @author wira
  */
 public class ControlCenter {
-    @Parameter(names = { "-c", "--config" }, description = "merccc configuration file to load")
+    @Parameter(names = { "-c", "--config" })
     private String configFile = null;
     
-    @Parameter(names = { "-z", "--zip" }, description = "Zipped merccc configuration to load")
+    @Parameter(names = { "-z", "--zip" })
     private String zipFile = null;
     
-    @Parameter(names = { "-l", "--load" }, description = "Load previously saved CSV data file")
+    @Parameter(names = { "-l", "--load" })
     private String dataFile = null;
     
-    @Parameter(names = { "-d", "--debug" }, description = "Debug level")
+    @Parameter(names = { "-d", "--debug" })
     private Integer debug = 0;
     
-    @Parameter(names = { "-p", "--port" }, description = "Socket interface port number")
+    @Parameter(names = { "-p", "--port" })
     private Integer port = -1;
     
-    @Parameter(names = { "--localport" }, description = "Loopback socket interface port number")
+    @Parameter(names = { "--localport" })
     private Integer localPort = -1;
     
-    @Parameter(names = { "--help" }, help = true, description = "Display this helpful message")
+    @Parameter(names = { "--help" }, help = true)
     private boolean help = false;
     
-    @Parameter(names = { "--about" }, help = true, description = "Display information about the software")
+    @Parameter(names = { "--about" })
     private boolean about = false;
     
-    @Parameter(names = { "-f", "--format" }, help = true, description = "Display configuration file format")
+    @Parameter(names = { "-f", "--format" })
     private boolean confformat = false;
     
-    @Parameter(names = { "--nosound" }, help = true, description = "Disable sound")
+    @Parameter(names = { "-m", "--nosound" })
     private boolean nosound = false;
     
-    @Parameter(names = { "--rendertime" }, help = true, description = "Draw render time")
+    @Parameter(names = { "--rendertime" })
     private boolean drawRenderTime = false;
     
-    @Parameter(names = { "--notheme" }, help = true, description = "Ignore user-defined fonts")
+    @Parameter(names = { "-t", "--notheme" })
     private boolean noTheme = false;
     
-    @Parameter(names = { "--font" }, help = true, description = "Use this system font instead of bitmap fonts")
+    @Parameter(names = { "--font" })
     private String sysFont = null;
     
-    @Parameter(names = { "--ask-font" }, help = true, description = "Ask user to choose a font on startup")
+    @Parameter(names = { "--ask-font" })
     private boolean askFont = false;
     
     private Boolean GUI = true;
@@ -104,7 +105,7 @@ public class ControlCenter {
         String val;
         
         if(help) {
-            jc.usage();
+            printHelp();
             return;
         }
         
@@ -180,6 +181,11 @@ public class ControlCenter {
                 Team.setSortOrder(Team.SORT_DESCENDING);
             }
         }
+        
+        val = Config.getValue("theme", "alignclockleft");
+        if(val != null && val.equals("1")) {
+            DisplayFrame.ALIGN_CLOCK_LEFT = true;
+        }
  
         Score.init();
         if(!Score.initialized()) {
@@ -221,6 +227,13 @@ public class ControlCenter {
             if(!noTheme) {
                 Assets.theme();
             }
+            
+            val = Config.getValue("theme", "systemfont");
+            if(val != null) {
+                sysFont = val;
+                Log.d(0, "Using sysfont: " + sysFont);
+            }
+            
             if(askFont) {
                 FontSelectDialog fSelect = new FontSelectDialog("Choose Display Font");
                 fSelect.setModal(true);
@@ -228,16 +241,18 @@ public class ControlCenter {
                 fSelect.showDialog();
                 if(fSelect.isApproved()) {
                     sysFont = fSelect.getFontName();
+                    Log.d(0, "Using sysfont: " + sysFont);
                 }
             }
+
             display = new DisplayFrame(sysFont);
             control = new ControlFrame();
-            control.init();
-            control.pack();
-            control.setVisible(true);
-            DisplayFrame.DRAW_RENDER_TIME = drawRenderTime;
-            display.init();
-            control.updateDataView();
+            SwingUtilities.invokeLater(() -> {
+                control.init();          
+                DisplayFrame.DRAW_RENDER_TIME = drawRenderTime;
+                display.init();
+                control.updateDataView();     
+            });
             
             if(port > 0 && port < 65535) {
                 socket = new SocketInterface(port, competition, control, false);
@@ -265,5 +280,42 @@ public class ControlCenter {
         }
         
         System.exit(ret);
+    }
+    
+    public static void printHelp() {
+        Log.d(0, "");
+        Log.d(0, "java -jar <jarfile> [options]");
+        Log.d(0, "");
+        Log.d(0, "options:");
+        Log.d(0, "  -c, --config FILE        load FILE to configure merccc");
+        Log.d(0, "  -z, --zip ZIPFILE        load ZIPFILE containing a merccc configuration");
+        Log.d(0, "");
+        Log.d(0, "if neither option is specified, merccc will present a file open dialog.");
+        Log.d(0, "if no configuration file or a zip file containing a configuration is specified,");
+        Log.d(0, "merccc will not start");
+        Log.d(0, "");
+        Log.d(0, "additional options:");
+        Log.d(0, "  -f, --format             print configuration file format to console and quit");
+        Log.d(0, "  -l, --load FILE          load saved .csv data from a previous scoring session");
+        Log.d(0, "      --help               display this help message");
+        Log.d(0, "      --about              display information about the software");
+        Log.d(0, "      --font FONT          use the specified FONT instead the built-in font");
+        Log.d(0, "      --ask-font           list system fonts to use with font selection dialog");
+        Log.d(0, "  -p, --port PORT          open tcp socket interface");
+        Log.d(0, "      --localport PORT     open loopback only tcp socket interface");
+        Log.d(0, "  -m, --nosound            disable all audio playback");
+        Log.d(0, "  -t, --notheme            ignore user's theme defined in the configuration");
+        Log.d(0, "  -d, --debug LEVEL        set program verbosity for debugging");
+        Log.d(0, "      --rendertime         display the time it took to render a frame");
+        Log.d(0, "");
+        Log.d(0, "keyboard shortcuts:");
+        Log.d(0, "  CTRL+[1-4]               select active control tab");
+        Log.d(0, "  F1                       set output mode to logo and time");
+        Log.d(0, "  F3                       set output mode to run status");
+        Log.d(0, "  F4                       set output mode to classification");
+        Log.d(0, "  CTRL+S                   save recorded data set");
+        Log.d(0, "  CTRL+L                   load previously saved data set");
+        Log.d(0, "  CTRL+M                   toggle sound playback");
+        Log.d(0, "");
     }
 }
