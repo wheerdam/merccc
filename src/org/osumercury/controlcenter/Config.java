@@ -149,7 +149,10 @@ public class Config {
                     }
                     w.close();
                 }
+                r.close();
             }
+            zip.close();
+            
             if(configPath == null) {
                 System.err.println("Config.loadZip: .merccc file not found in " +
                         "the archive");
