@@ -75,6 +75,12 @@ public class ControlCenter {
     @Parameter(names = { "--ask-font" })
     private boolean askFont = false;
     
+    @Parameter(names = { "--width"})
+    private Integer frameWidth = -1;
+    
+    @Parameter(names = { "--height"})
+    private Integer frameHeight = -1;
+    
     private Boolean GUI = true;
     
     public static CompetitionState competition;
@@ -244,6 +250,14 @@ public class ControlCenter {
                     Log.d(0, "Using sysfont: " + sysFont);
                 }
             }
+            
+            if(frameWidth > 0) {
+                ControlFrame.INITIAL_WIDTH = frameWidth;
+            }
+            
+            if(frameHeight > 0) {
+                ControlFrame.INITIAL_HEIGHT = frameHeight;
+            }
 
             display = new DisplayFrame(sysFont);
             control = new ControlFrame();
@@ -315,6 +329,7 @@ public class ControlCenter {
         Log.d(0, "  F4                       set output mode to classification");
         Log.d(0, "  CTRL+S                   save recorded data set");
         Log.d(0, "  CTRL+L                   load previously saved data set");
+        Log.d(0, "  CTRL+A                   add a score without running a scoring session");
         Log.d(0, "  CTRL+M                   toggle sound playback");
         Log.d(0, "");
     }

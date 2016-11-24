@@ -41,6 +41,9 @@ public class ControlFrame extends JFrame {
     private static int windowDuration;
     private static int maxAttempts;
     
+    public static int INITIAL_WIDTH = 1000;
+    public static int INITIAL_HEIGHT = 600;
+    
     //<editor-fold defaultstate="collapsed" desc="UI Elements Declarations">
     
     /** UI ELEMENTS **/
@@ -95,6 +98,7 @@ public class ControlFrame extends JFrame {
     private JButton btnDataDelete;
     private JButton btnDataClear;
     private JButton btnDataEdit;
+    private JButton btnDataAdd;
     private JTable tblData;
 
     /** CLASSIFICATION UI ELEMENTS */
@@ -127,7 +131,6 @@ public class ControlFrame extends JFrame {
         toggler.start();
         
         setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ")");
-        setSize(1000, 600);
         Container pane = this.getContentPane();
         
         this.addWindowListener(new WindowListener() {
@@ -301,7 +304,10 @@ public class ControlFrame extends JFrame {
         });
 
         paneRunInitTop.setLayout(new FlowLayout(FlowLayout.LEFT));
-        paneRunInitBottom.setLayout(new GridLayout(1,6,5,0));
+        // paneRunInitBottom.setLayout(new GridLayout(1,6,5,0));
+        paneRunInitBottom.setLayout(new BoxLayout(
+                paneRunInitBottom, BoxLayout.LINE_AXIS
+        ));
         paneRunInitTop.add(lblTeamSelect);
         paneRunInitTop.add(cmbTeamSelect);
         paneRunInitTop.add(btnStartTeamSession);
@@ -412,13 +418,10 @@ public class ControlFrame extends JFrame {
         paneRunScoringControl = new JPanel();
         paneRunScoringControl.setLayout(new BoxLayout(
                 paneRunScoringControl, BoxLayout.PAGE_AXIS));
-        //paneRunScoringControl.setPreferredSize(new Dimension(700, 700));
         paneRunScoringControl.setAutoscrolls(true);
 
-        //initScoreControl(paneRunScoringControl, txtScoreFields, false);
-
         paneRunScoringControlScroll = new JScrollPane(paneRunScoringControl,
-                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
         );
         
@@ -438,6 +441,7 @@ public class ControlFrame extends JFrame {
         btnDataDelete = new JButton("DELETE");
         btnDataClear = new JButton("CLEAR");
         btnDataEdit = new JButton("EDIT");
+        btnDataAdd = new JButton("ADD");
         btnDataClear.setForeground(Color.RED);
         btnDataDelete.setForeground(Color.RED);
         
@@ -494,12 +498,17 @@ public class ControlFrame extends JFrame {
         btnDataEdit.addActionListener((ActionEvent e) -> {
             editData();
         });
+        
+        btnDataAdd.addActionListener((ActionEvent e) -> {
+            addScore();
+        });
 
         paneDataTop.add(btnDataSave);
         paneDataTop.add(btnDataLoad);
         paneDataTop.add(new JSeparator());
+        paneDataTop.add(btnDataAdd);
         paneDataTop.add(btnDataEdit);
-        paneDataTop.add(btnDataDelete);
+        paneDataTop.add(btnDataDelete);        
         paneDataTop.add(new JSeparator());
         paneDataTop.add(btnDataClear);
 
@@ -602,6 +611,14 @@ public class ControlFrame extends JFrame {
             }
         });
         
+        String keyAddAction = "ADD_DATA";
+        this.getRootPane().getActionMap().put(keyAddAction, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                addScore();
+            }
+        });
+        
         String keyTab1Action = "TAB_1";
         this.getRootPane().getActionMap().put(keyTab1Action, new AbstractAction() {
             @Override
@@ -672,6 +689,7 @@ public class ControlFrame extends JFrame {
         InputMap im = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), keySaveAction);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK), keyLoadAction);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.CTRL_DOWN_MASK), keyAddAction);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_1, InputEvent.CTRL_DOWN_MASK), keyTab1Action);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_2, InputEvent.CTRL_DOWN_MASK), keyTab2Action);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_3, InputEvent.CTRL_DOWN_MASK), keyTab3Action);
@@ -685,6 +703,7 @@ public class ControlFrame extends JFrame {
         validate();
         triggerEvent(UserEvent.GUI_INIT, this);
         pack();
+        setSize(INITIAL_WIDTH, INITIAL_HEIGHT);
         setVisible(true);
     }
     
@@ -699,15 +718,14 @@ public class ControlFrame extends JFrame {
             lblScoreFields[i] = new JLabel(key + " " +
                     Score.description.get(key));
             scoreFields[i] = new JTextField("" + Score.defaultValue.get(key));
-            //lblScoreFields[i].setPreferredSize(new Dimension(100, 30));
-            //txtScoreFields[i].setSize(100, 50);
-            paneScoreFieldContainer[i] = new JPanel();
-            paneScoreFieldContainer[i].setLayout(new GridLayout(
-                    1, 8, 5, 10
-            ));
-            paneScoreFieldContainer[i].add(lblScoreFields[i]);
-            paneScoreFieldContainer[i].add(scoreFields[i]);
             scoreFields[i].setEditable(editable);
+            paneScoreFieldContainer[i] = new JPanel();
+            paneScoreFieldContainer[i].setLayout(new GridLayout(0, 2));
+            JPanel paneLabelAndField = new JPanel();
+            paneLabelAndField.setLayout(new GridLayout(0, 2));
+            paneLabelAndField.add(lblScoreFields[i]);
+            paneLabelAndField.add(scoreFields[i]);
+            paneScoreFieldContainer[i].add(paneLabelAndField);
             
             if(Score.type.get(key) == 1) {
                 JPanel paneButtonsContainer = new JPanel();
@@ -968,9 +986,108 @@ public class ControlFrame extends JFrame {
     public int getTeamSelectIndex() {
         return cmbTeamSelect.getSelectedIndex();
     }
+    
+    public boolean populateScore(Score s, JTextField[] fields) {
+        int i = 0;
+        String[] keys = Config.getKeysInOriginalOrder("fields").toArray(new String[0]);
+        if(fields.length != keys.length) {
+            return false;
+        }
+        for(String key : keys) {
+            try {
+                s.setValue(key, Double.parseDouble(fields[i].getText()));
+            } catch(NumberFormatException nfe) {
+                JOptionPane.showMessageDialog(this,
+                        "Failed to parse score for " + key + "\n" +
+                                "Offending value: " + fields[i].getText(),
+                        "Score Commit Failed", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+            i++;
+        }      
+        return true;
+    }
+    
+    public void addScore() {
+        JDialog d = new JDialog();
+        d.setModal(true);
+        d.setSize(700, 600);
+        d.setTitle("Add Score Entry");
+        Container pane = d.getContentPane();
+        JPanel paneButtons = new JPanel();
+        JPanel paneScoreInput = new JPanel();
+        JComboBox<String> cmbTeams = new JComboBox();
+        Team team;
+        for(String key : Config.getKeysInOriginalOrder("teams")) {
+            team = competition.getTeamByID(Integer.parseInt(key));
+            cmbTeams.addItem(team.getNumber() + ": " + team.getName());
+        }
+        cmbTeams.setSelectedIndex(0);
+        JButton btnCommit = new JButton("Commit");
+        JButton btnCancel = new JButton("Cancel");
+        paneButtons.add(btnCommit);
+        paneButtons.add(btnCancel);
+        paneScoreInput.setLayout(new BoxLayout(
+                paneScoreInput, BoxLayout.PAGE_AXIS));
+        paneScoreInput.setAutoscrolls(true);
+        JScrollPane paneScoreInputScroll;
+        paneScoreInputScroll = new JScrollPane(paneScoreInput,
+                JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        );
+        JTextField[] fields = new JTextField[Config.getSection("fields").length];
+        populateScoreControl(paneScoreInput, fields, true);
+        
+        btnCancel.addActionListener((ActionEvent e) -> {
+            d.dispose();
+        });
+        
+        btnCommit.addActionListener((ActionEvent e) -> {
+            Score s = new Score();
+            if(!populateScore(s, fields)) {
+                return;
+            }
+            s.setCompleted(true);
+            Team t = competition.getTeamByID(cmbTeams.getSelectedIndex());
+            Data.lock.writeLock().lock();
+            try {
+                t.addScore(s);
+            } finally {
+                Data.lock.writeLock().unlock();
+            }
+            Object[] params = { t.getNumber(), t.getScores().size()-1 };
+            triggerEvent(UserEvent.DATA_ADDED, params);
+            updateDataView();
+            d.dispose();
+        });
+        
+        pane.add(cmbTeams, BorderLayout.PAGE_START);
+        pane.add(paneScoreInputScroll, BorderLayout.CENTER);
+        pane.add(paneButtons, BorderLayout.PAGE_END);
+        
+        String keyEscape = "ESCAPE";
+        d.getRootPane().getActionMap().put(keyEscape, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                d.dispose();
+            }
+        });
+        
+        InputMap im = d.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), keyEscape);
+        
+        d.pack();
+        d.setLocationRelativeTo(this);
+        d.setVisible(true);
+    }
 
     private void commitScore() {
         // populate activeScore fields here
+        if(!populateScore(activeScore, txtScoreFields)) {
+            return;
+        }
+        
+        /*
         int i = 0;
         for(String key : Config.getKeysInOriginalOrder("fields")) {
             try {
@@ -984,6 +1101,7 @@ public class ControlFrame extends JFrame {
             }
             i++;
         }
+        */
         
         SessionState session = competition.getSession();
         

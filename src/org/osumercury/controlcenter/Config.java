@@ -172,7 +172,7 @@ public class Config {
     
     public static String[] getSection(String key) {
         if(sections.containsKey(key)) {
-            return (String[]) sections.get(key).values().toArray();
+            return (String[]) sections.get(key).values().toArray(new String[0]);
         }
         
         System.err.println("Config.getSection: \"" + key + "\" section" +

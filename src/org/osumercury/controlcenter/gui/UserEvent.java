@@ -38,6 +38,7 @@ public interface UserEvent {
     public static final int DATA_CLEARED                = 12;
     public static final int DATA_RECORD_EXPUNGED        = 13;
     public static final int DATA_IMPORTED               = 14;
+    public static final int DATA_ADDED                  = 15;
     public static final int EXIT                        = 200;
             
     public abstract void callback(int eventID, Object param);

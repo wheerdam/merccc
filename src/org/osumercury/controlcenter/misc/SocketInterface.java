@@ -112,6 +112,11 @@ public class SocketInterface extends Thread {
                     broadcast("DATA_CHANGED " + (Integer)p[0] + " " 
                             + (Integer)p[1] + " " + p[2] + " " + (Double)p[3]);
                     break;
+                case UserEvent.DATA_ADDED:
+                    p = (Object[]) param;
+                    broadcast("DATA_ADDED " + (Integer)p[0] + " " +
+                            (Integer)p[1]);
+                    break;
             }
         });
     }
