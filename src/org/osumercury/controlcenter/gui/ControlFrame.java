@@ -16,6 +16,7 @@ limitations under the License.
  */
 package org.osumercury.controlcenter.gui;
 
+import org.osumercury.controlcenter.RefreshThread;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -30,8 +31,9 @@ import org.osumercury.controlcenter.*;
  */
 public class ControlFrame extends JFrame {
     private CompetitionState competition;
+    private ControlCenter cc;
     private SessionTimer timer;
-    public TogglerThread toggler;
+    public RefreshThread toggler;
     private Score activeScore;
     private DisplayFrame display;
     private ArrayList<ScoreChangedCallback> scoreChangedHooks;
@@ -104,22 +106,20 @@ public class ControlFrame extends JFrame {
     /** CLASSIFICATION UI ELEMENTS */
     private JButton btnGenerateReport;
     private JButton btnSetTiebreaker;
-    private JTable tblClassification;
+    private JTable tblClassification;    
     
 //</editor-fold>
     
     /**
      * Creates new form ControlFrame
      */
-    public ControlFrame() {
-        this.competition = ControlCenter.competition;     
-        this.display = ControlCenter.display;
+    public ControlFrame(ControlCenter cc) {
+        this.cc = cc;
+        this.competition = cc.getCompetitionState();     
+        this.display = cc.getDisplayFrame();
         competition.addStateChangeHook((CompetitionState c) -> {
             setControlPhase(c.getState());
-        });
-        competition.addRepaintHook((CompetitionState c) -> {
-            repaintDisplay();
-        });
+        });        
         scoreChangedHooks = new ArrayList();
         userEventHooks = new ArrayList();
     }
@@ -127,8 +127,6 @@ public class ControlFrame extends JFrame {
     public void init() {
         Log.d(0, "ControlFrame: init");
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        toggler = new TogglerThread(competition, 500);
-        toggler.start();
         
         setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ")");
         Container pane = this.getContentPane();
@@ -145,7 +143,7 @@ public class ControlFrame extends JFrame {
             public void windowDeiconified(WindowEvent e) {}
             public void windowOpened(WindowEvent e) {}
             public void windowClosed(WindowEvent e) {}
-        });
+        });                
         
         //<editor-fold defaultstate="collapsed" desc="Main Pane Init">
         paneTabbedContainer = new JTabbedPane();
@@ -686,6 +684,22 @@ public class ControlFrame extends JFrame {
             }
         });
         
+        String keyChangeFont = "CHANGE_FONT";
+        this.getRootPane().getActionMap().put(keyChangeFont, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                FontSelectDialog fsd = new FontSelectDialog("Select Display Window Font");
+                fsd.setLocationRelativeTo(cc.getControlFrame());
+                fsd.setModal(true);
+                fsd.showDialog();
+                if(fsd.isApproved()) {
+                    String fontName = fsd.getFontName();
+                    Log.d(0, "Setting font to " + fontName);
+                    cc.getDisplayFrame().setFont(fontName);
+                }
+            }
+        });
+        
         InputMap im = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), keySaveAction);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK), keyLoadAction);
@@ -698,6 +712,7 @@ public class ControlFrame extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), keyOutputRunStatus);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0), keyOutputClassification);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK), keyToggleSound);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), keyChangeFont);
         //</editor-fold>
 
         validate();
@@ -859,6 +874,10 @@ public class ControlFrame extends JFrame {
         paneContainer.add(Box.createRigidArea(new Dimension(5,15)));       
         paneContainer.add(scrollText); 
     }
+    
+    public long getRenderTime() {
+        return indicators.renderTime;
+    }
 
     public void setControlPhase(int phase) {
         Log.d(0, "ControlFrame: entering phase " + phase);
@@ -943,7 +962,7 @@ public class ControlFrame extends JFrame {
     public void repaintDisplay() {
         if(indicators != null) {
             indicators.repaint();
-            indicators.validate();
+            //indicators.validate();
         }
     }
     
@@ -1165,7 +1184,7 @@ public class ControlFrame extends JFrame {
         activeScore = new Score();
         txtScoreFields = new JTextField[Score.fields.size()];
         populateScoreControl(paneRunScoringControl, txtScoreFields, false);        
-        ControlCenter.display.newScore();
+        cc.getDisplayFrame().newScore();
     }
     
     public void updateDataView() {
@@ -1377,7 +1396,7 @@ public class ControlFrame extends JFrame {
                         NumberInputDialog.FLOAT
                 ); 
                 dialog.setModal(true);
-                dialog.setLocationRelativeTo(ControlCenter.control);
+                dialog.setLocationRelativeTo(cc.getControlFrame());
                 dialog.showDialog();
                 if(!dialog.isApproved()) {
                     return;

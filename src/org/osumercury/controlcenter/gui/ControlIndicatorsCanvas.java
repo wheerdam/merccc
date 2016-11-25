@@ -16,7 +16,6 @@ limitations under the License.
  */
 package org.osumercury.controlcenter.gui;
 
-import org.osumercury.controlcenter.gui.ControlFrame;
 import java.awt.*;
 import java.awt.image.*;
 import javax.swing.*;
@@ -24,7 +23,6 @@ import java.util.Calendar;
 import org.osumercury.controlcenter.CompetitionState;
 import org.osumercury.controlcenter.Score;
 import org.osumercury.controlcenter.SessionState;
-import org.osumercury.controlcenter.Team;
 
 /**
  *
@@ -47,6 +45,8 @@ public class ControlIndicatorsCanvas extends JPanel {
     public static final int COLON = 10;
     public static final int PERIOD = 11;
     public static final int DASH = 12;
+    
+    public long renderTime = 0;
     
     public ControlIndicatorsCanvas(CompetitionState c, ControlFrame f) {
         this.c = c;
@@ -81,6 +81,7 @@ public class ControlIndicatorsCanvas extends JPanel {
     
     @Override
     public synchronized void paint(Graphics _g) {
+        long startTime = System.nanoTime();
         Graphics2D g = (Graphics2D) _g;
         if(getWidth() != W || getHeight() != H) {
             W = getWidth();
@@ -242,6 +243,7 @@ public class ControlIndicatorsCanvas extends JPanel {
                 drawStatusFlags(g, false, false, false, false);
                 break;
         }
+        renderTime = System.nanoTime() - startTime;
     }
     
     private void drawDashes(Graphics2D g) {

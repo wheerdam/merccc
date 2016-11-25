@@ -17,6 +17,10 @@ limitations under the License.
 package org.osumercury.controlcenter.gui;
 
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.*;
 import java.awt.image.*;
 import java.util.Calendar;
@@ -37,6 +41,7 @@ import org.osumercury.controlcenter.Team;
 public class DisplayFrame extends JFrame {
     
     private CompetitionState c;
+    private ControlCenter cc;
     private int mode;
     private int W;
     private int H;
@@ -56,14 +61,24 @@ public class DisplayFrame extends JFrame {
     private BufferedImage[] scaledWhiteNonAlphabet = new BufferedImage[19];
     private BufferedImage[] teamBadges;
     private DisplayCanvas canvas;
-    private RefreshThread refresh;
     private int rankStart = 1;
     private ArrayList<String[]> classificationRows;
     private double[] scores;
     private int[] scoreDigits;
     private int[] scoreDecimal;
     private Score currentScore;
-    private Font nativeFont;
+    private Font systemFont;
+    private String systemFontName;        
+    
+    /** MENUBAR UI ELEMENTS */
+    private JPopupMenu menuOpts;
+    private JMenuItem menuOptsFont;
+    private JCheckBoxMenuItem menuOptsRenderTime;
+    
+    private long beginTime = -1;
+    private long renderTime = 0;
+    private long renderedFrames = 0;
+    private boolean drawing = false;
     
     public static final int OUTPUT_LOGO = 0;
     public static final int OUTPUT_RUN_STATUS = 1;
@@ -100,19 +115,17 @@ public class DisplayFrame extends JFrame {
     public static int ALT_BLUE = 0xff;
     public static Color ALT_COLOR;
      
-    public static final int DISPLAY_REFRESH_RATE_MS = 50;
+    // static options (common for all displays)
     public static boolean DRAW_RENDER_TIME = false;
     public static boolean ALIGN_CLOCK_LEFT = false;
     public static float POSITION_RIGHT_RECORDED_SCORES = 0.5f;
     public static float POSITION_LEFT_RECORDED_SCORES = 0.3f;
-    private static String NATIVE_FONT;
     
-    private static long renderTime = -1;
-    
-    public DisplayFrame(String nativeFont) {
-        this.c = ControlCenter.competition;
+    public DisplayFrame(ControlCenter cc, String nativeFont) {
+        this.cc = cc;
+        this.c = cc.getCompetitionState();
         mode = 0;        
-        NATIVE_FONT = nativeFont;
+        systemFontName = nativeFont;
     }
     
     public void init() {
@@ -123,17 +136,17 @@ public class DisplayFrame extends JFrame {
         BG_COLOR = new Color(BG_RED, BG_GREEN, BG_BLUE);
         canvas = new DisplayCanvas();
         add(canvas);
-        refresh = new RefreshThread(this);
-        refresh.start();
+        // refresh = new RefreshThread(this);
+        // refresh.start();
         classificationRows = new ArrayList();
         scores = new double[Score.fields.size()];
         scoreDigits = new int[Score.fields.size()];
         scoreDecimal = new int[Score.fields.size()];
         teamBadges = new BufferedImage[c.getTeams().size()];
-        nativeFont = new Font(Font.MONOSPACED, Font.BOLD, 12);
+        systemFont = new Font(Font.MONOSPACED, Font.BOLD, 12);
         newScore();
-        if(ControlCenter.control != null) {
-            ControlCenter.control.addScoreChangedHook((String key, int scoreID, String scoreValue) -> {
+        if(cc.getControlFrame() != null) {
+            cc.getControlFrame().addScoreChangedHook((String key, int scoreID, String scoreValue) -> {
                 scores[scoreID] = Double.parseDouble(scoreValue);
                 currentScore.setValue(key, scores[scoreID]);
             });        
@@ -180,6 +193,49 @@ public class DisplayFrame extends JFrame {
             }
             i++;
         }
+        
+        //<editor-fold defaultstate="collapsed" desc="Popup Menu Init">
+        menuOpts = new JPopupMenu();
+        menuOptsFont = new JMenuItem("Select font...");
+        menuOptsFont.setMnemonic(KeyEvent.VK_F);
+        menuOptsRenderTime = new JCheckBoxMenuItem("Display render time");
+        menuOptsRenderTime.setMnemonic(KeyEvent.VK_R);
+        menuOptsRenderTime.setSelected(DRAW_RENDER_TIME);
+        
+        menuOptsFont.addActionListener((ActionEvent e) -> {
+            FontSelectDialog fsd = new FontSelectDialog("Select Display Window Font");
+            fsd.setLocationRelativeTo(this);
+            fsd.setModal(true);
+            fsd.showDialog();
+            if(fsd.isApproved()) {
+                String fontName = fsd.getFontName();
+                Log.d(0, "Setting font to " + fontName);
+                setFont(fontName);
+            }
+        });
+        
+        menuOptsRenderTime.addActionListener((ActionEvent e) -> {
+            DRAW_RENDER_TIME = menuOptsRenderTime.isSelected();
+        });
+        
+        menuOpts.add(menuOptsFont);
+        menuOpts.add(menuOptsRenderTime);
+        
+        canvas.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent e) { process(e); }
+            @Override
+            public void mouseClicked(MouseEvent e) { process(e); }
+            @Override
+            public void mouseReleased(MouseEvent e) { process(e); }
+            
+            private void process(MouseEvent e) {
+                if(e.isPopupTrigger()) {
+                    menuOpts.show(canvas, e.getX(), e.getY());
+                }
+            }
+        });
+        //</editor-fold>
     }
     
     public void setClassificationData(ArrayList<Team> classification) {
@@ -214,6 +270,9 @@ public class DisplayFrame extends JFrame {
     }
     
     private void rescale(int width, int height) {
+        if(!isVisible()) {
+            return;
+        }
         Log.d(0, "DisplayFrame.rescale: rescaling");        
         Graphics2D g = (Graphics2D) canvas.getGraphics();
         String str = "RESCALING DISPLAY UI";
@@ -235,13 +294,13 @@ public class DisplayFrame extends JFrame {
         digitW = scaledBlueDigits[0].getWidth();
         smallW = scaledSmallDigits[0].getWidth();
                
-        if(NATIVE_FONT != null) {
+        if(systemFontName != null) {
             int fontSize = 0;
             do {            
                 fontSize++;
-                nativeFont = new Font(NATIVE_FONT, Font.BOLD, fontSize);
-            } while(g.getFontMetrics(nativeFont).getHeight() < charH);
-            charW = g.getFontMetrics(nativeFont).stringWidth("A");
+                systemFont = new Font(systemFontName, Font.BOLD, fontSize);
+            } while(g.getFontMetrics(systemFont).getHeight() < charH);
+            charW = g.getFontMetrics(systemFont).stringWidth("A");
             Log.d(3, "DisplayFrame.rescale: font size="+fontSize);
         } else {
             scaledAlphabet = Assets.scaleFontH(0, charH);
@@ -250,6 +309,11 @@ public class DisplayFrame extends JFrame {
             scaledWhiteNonAlphabet = Assets.scaleFontH(3, charH);
             charW = scaledAlphabet[0].getWidth();
         }
+    }
+    
+    public void setFont(String fontName) {
+        systemFontName = fontName;
+        rescale(getWidth(), getHeight());
     }
     
     public void setMode(int mode) {
@@ -269,12 +333,12 @@ public class DisplayFrame extends JFrame {
     }
     
     public void stopRefreshThread() {
-        refresh.stopThread();
+        // refresh.stopThread();
     }
     
     private int getTextWidth(String str) {
-        if(NATIVE_FONT != null) {
-            return canvas.getGraphics().getFontMetrics(nativeFont).stringWidth(str);
+        if(systemFontName != null) {
+            return canvas.getGraphics().getFontMetrics(systemFont).stringWidth(str);
         }
         
         int width = 0;
@@ -289,11 +353,11 @@ public class DisplayFrame extends JFrame {
     }
         
     private void drawText(Graphics2D g, String str, int x, int y, boolean white) {
-        if(NATIVE_FONT != null) {
-            FontMetrics m = g.getFontMetrics(nativeFont);
+        if(systemFontName != null) {
+            FontMetrics m = g.getFontMetrics(systemFont);
             int baseY = y + m.getHeight() - m.getDescent();
             g.setColor(white ? Color.WHITE : PRIMARY_COLOR);            
-            g.setFont(nativeFont);
+            g.setFont(systemFont);
             g.drawString(str, x, baseY);            
             return;
         }
@@ -357,6 +421,14 @@ public class DisplayFrame extends JFrame {
         }
     }
     
+    public long getRenderTime() {
+        return renderTime;
+    }
+    
+    public boolean isDrawing() {
+        return drawing;
+    }
+    
     class DisplayCanvas extends JPanel {
         
         public int W(double r) {
@@ -373,10 +445,16 @@ public class DisplayFrame extends JFrame {
 
         private int centeredY(int height) {
             return (int)(H(0.5) - 0.5*height);
-        }
+        }        
         
         @Override
         public void paint(Graphics _g) {
+            drawing = true;
+                        
+            if(beginTime < 0) {
+                beginTime = System.nanoTime();
+            }
+            long startTime = System.nanoTime();
             Graphics2D g = (Graphics2D) _g;
             if(W != getWidth() || H != getHeight()) {
                 W = getWidth();
@@ -456,23 +534,23 @@ public class DisplayFrame extends JFrame {
                                     (int)((s.getSecondsLeft()+1)%60),
                                     s.getMinutesLeft() < 2,
                                     ALIGN_CLOCK_LEFT ? 10+2*digitW+10 : 
-                                            W(1)-10-2*digitW-10,
+                                            W(1)-100-2*digitW-10,
                                     H(0.9)-15-charH-20-digitH
                             );
                             g.drawImage(s.getMinutesLeft() < 2 ? scaledRedDigits[COLON] : scaledBlueDigits[COLON],
                                     ALIGN_CLOCK_LEFT ? 10+2*digitW+10-scaledRedDigits[COLON].getWidth()/2 :
-                                            W(1)-10-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
+                                            W(1)-100-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
                                     H(0.9)-15-charH-20-digitH, this);
                         } else {
                             drawClock(g,
                                     0, 0, true,
                                     ALIGN_CLOCK_LEFT ? 10+2*digitW+10 : 
-                                            W(1)-10-2*digitW-10,
+                                            W(1)-100-2*digitW-10,
                                     H(0.9)-15-charH-20-digitH
                             );
                             g.drawImage(scaledRedDigits[COLON],
                                     ALIGN_CLOCK_LEFT ? 10+2*digitW+10-scaledRedDigits[COLON].getWidth()/2 :
-                                            W(1)-10-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
+                                            W(1)-100-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
                                     H(0.9)-15-charH-20-digitH, this);
                         }
                         ArrayList<Score> activeScores;
@@ -483,7 +561,7 @@ public class DisplayFrame extends JFrame {
                                 str = "SETUP PERIOD";
                                 y = H(0.9)-15-charH;
                                 drawText(g, str, 
-                                        ALIGN_CLOCK_LEFT ? 10 : W(1)-10-getTextWidth(str),
+                                        ALIGN_CLOCK_LEFT ? 10 : W(1)-100-getTextWidth(str),
                                         y, false);
                                 str = c.getTeamByID(teamID).getLogoFileName();
                                 if(teamBadges[teamID] == null &&
@@ -513,12 +591,12 @@ public class DisplayFrame extends JFrame {
                                 str2 = "" + c.getSession().getRunNumber() + " of " + c.getSession().getMaxAttempts();
                                 y = H(0.9)-15-charH;
                                 drawText(g, str, 
-                                        ALIGN_CLOCK_LEFT ? 10 : W(1)-10-
+                                        ALIGN_CLOCK_LEFT ? 10 : W(1)-100-
                                                 getTextWidth(str)-getTextWidth(str2),
                                         y, false);                                
                                 drawText(g, str2,
                                         ALIGN_CLOCK_LEFT ? 10+getTextWidth(str)
-                                                 : W(1)-10-getTextWidth(str2),
+                                                 : W(1)-100-getTextWidth(str2),
                                         y, true);                              
                                 i = 0;
                                 int colW;
@@ -558,26 +636,26 @@ public class DisplayFrame extends JFrame {
                                 if(highestScore != null) {
                                     str = "BEST SCORE";
                                     drawText(g, str,
-                                            ALIGN_CLOCK_LEFT ? W(1)-getTextWidth(str)-10 : 10,
+                                            ALIGN_CLOCK_LEFT ? W(1)-getTextWidth(str)-10 : 100,
                                             H(0.9)-15-charH, false);
                                     drawScore(g, highestScore, 
                                             ALIGN_CLOCK_LEFT ?
                                                     W(1)-scoreWidth-10 :
-                                                    10,
+                                                    100,
                                             H(0.9)-15-charH-20-smallH);
                                 } else {
                                     str = "NO SCORE";
                                     drawText(g, str,
                                             ALIGN_CLOCK_LEFT ? W(1)-getTextWidth(str)-10 :
-                                                    10,
+                                                    100,
                                             H(0.9)-15-charH, true);
                                 }
                                 break OUTER;
                             default:
                                 break;
                         }
-                    } else if(ControlCenter.control != null) {
-                        int nextTeamID = ControlCenter.control.getTeamSelectIndex();
+                    } else if(cc.getControlFrame() != null) {
+                        int nextTeamID = cc.getControlFrame().getTeamSelectIndex();
                         if(nextTeamID >= 0) {
                             Team t = c.getTeamByID(nextTeamID);
                             str = "NEXT:";
@@ -661,13 +739,39 @@ public class DisplayFrame extends JFrame {
                     break;
             }
             
-            if(DRAW_RENDER_TIME) {
+            renderedFrames++;
+            if(DRAW_RENDER_TIME) {                
+                String strFPS =
+                        String.format("%.2f",
+                                (float)renderedFrames/((System.nanoTime()-beginTime)/1000000000.0))
+                        + " fps";                
+                String strControlRenderTime = "control: " +
+                        String.format("%1$4s", cc.getControlFrame().getRenderTime()/1000000) + " ms";
+                g.setFont(new Font("Monospaced", Font.PLAIN, 14));
+                int txtHeight = g.getFontMetrics().getHeight();
+                int txtDescent = g.getFontMetrics().getDescent();
+                int txtWidth = g.getFontMetrics().stringWidth(strFPS);
                 g.setColor(Color.BLACK);
-                str = "" + renderTime + " ms";
-                g.fillRect(0, H(1)-charH-10, getTextWidth(str)+10, 10+charH);
-                drawText(g, str, 5, H(1)-charH-5, false);
+                g.fillRect(W(1)-4-txtWidth, H(1)-txtHeight, txtWidth+4, txtHeight);
+                g.setColor(Color.YELLOW);
+                g.drawString(strFPS, W(1)-2-txtWidth, H(1)-txtDescent);
+                txtWidth = g.getFontMetrics().stringWidth(strControlRenderTime);
+                g.setColor(Color.BLACK);
+                g.fillRect(W(1)-4-txtWidth, H(1)-3*txtHeight, txtWidth+4, txtHeight);
+                g.setColor(Color.YELLOW);
+                g.drawString(strControlRenderTime, W(1)-2-txtWidth, H(1)-2*txtHeight-txtDescent);
+                renderTime = System.nanoTime()-startTime;
+                String strRenderTime = "display: " + 
+                        String.format("%1$4s", renderTime/1000000) + " ms";
+                txtWidth = g.getFontMetrics().stringWidth(strRenderTime);
+                g.setColor(Color.BLACK);
+                g.fillRect(W(1)-4-txtWidth, H(1)-2*txtHeight, txtWidth+4, txtHeight);
+                g.setColor(Color.YELLOW);
+                g.drawString(strRenderTime, W(1)-2-txtWidth, H(1)-txtHeight-txtDescent);
             }
-        }
+            
+            drawing = false;
+        }        
         
         private void drawClock(Graphics2D g, int high, int low, boolean red, int x, int y) {
             int digit0 = high / 10 % 10;
@@ -781,37 +885,5 @@ public class DisplayFrame extends JFrame {
                     x+5*smallW+scaledSmallDigits[PERIOD].getWidth(), y, this
             );
         }                
-    }
-    
-    class RefreshThread extends Thread {
-        private boolean stop = false;
-        private DisplayFrame f;
-        
-        public RefreshThread(DisplayFrame f) {
-            this.f = f;
-        }
-        
-        @Override
-        public void run() {
-            long renderStart;
-            Log.d(0, "DisplayFrame.RefreshThread: started");
-            while(!stop) {
-                renderStart = System.currentTimeMillis();
-                f.repaint();
-                renderTime = System.currentTimeMillis() - renderStart;
-                if(renderTime < DISPLAY_REFRESH_RATE_MS) {
-                    try{
-                        Thread.sleep(DISPLAY_REFRESH_RATE_MS - renderTime);
-                    } catch(Exception e) {
-                        
-                    }
-                }
-            }
-            Log.d(0, "DisplayFrame.RefreshThread: exit");
-        }
-        
-        public void stopThread() {
-            stop = true;
-        }
-    }
+    }        
 }

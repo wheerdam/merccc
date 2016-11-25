@@ -81,20 +81,27 @@ public class ControlCenter {
     @Parameter(names = { "--height"})
     private Integer frameHeight = -1;
     
+    @Parameter(names = { "-r", "--refreshrate" })
+    private Long refreshRateMs = 100L;
+    
     private Boolean GUI = true;
     
-    public static CompetitionState competition;
-    public static DisplayFrame display;
-    public static ControlFrame control;
-    public static JCommander jc;
-    public static SocketInterface socket;
-    public static SocketInterface loopback;
+    private CompetitionState competition;
+    private DisplayFrame display;
+    private ControlFrame control;    
+    private SocketInterface socket;
+    private SocketInterface loopback;
+    
+    private static JCommander jc;
+    private static ControlCenter cc;
+    
+    public static long beginTime = -1;
     
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {        
-        ControlCenter cc = new ControlCenter();
+        cc = new ControlCenter();
         try {
             jc = new JCommander(cc, args);
         } catch(ParameterException pe) {
@@ -259,25 +266,46 @@ public class ControlCenter {
                 ControlFrame.INITIAL_HEIGHT = frameHeight;
             }
 
-            display = new DisplayFrame(sysFont);
-            control = new ControlFrame();
+            display = new DisplayFrame(this, sysFont);
+            control = new ControlFrame(this);
             SwingUtilities.invokeLater(() -> {
                 control.init();          
                 DisplayFrame.DRAW_RENDER_TIME = drawRenderTime;
                 display.init();
                 control.updateDataView();     
+                (new RefreshThread(this, refreshRateMs)).start();
             });
             
-            if(port > 0 && port < 65535) {
+            if(port > 0 && port <= 65535) {
                 socket = new SocketInterface(port, competition, control, false);
                 socket.start();
             }
             
-            if(localPort > 0 && localPort < 65535) {
+            if(localPort > 0 && localPort <= 65535) {
                 loopback = new SocketInterface(localPort, competition, control, true);
                 loopback.start();
             }
         }
+    }    
+    
+    public CompetitionState getCompetitionState() {
+        return competition;
+    }
+    
+    public DisplayFrame getDisplayFrame() {
+        return display;
+    }
+    
+    public ControlFrame getControlFrame() {
+        return control;
+    }
+    
+    public SocketInterface getSocketHandle() {
+        return socket;
+    }
+    
+    public SocketInterface getLoopbackSocketHandle() {
+        return loopback;
     }
     
     public static void exit(int ret) {
@@ -289,8 +317,8 @@ public class ControlCenter {
             }
         }
         
-        if(socket != null) {
-            socket.close();
+        if(cc.getSocketHandle() != null) {
+            cc.getSocketHandle().close();
         }
         
         System.exit(ret);
@@ -320,6 +348,7 @@ public class ControlCenter {
         Log.d(0, "  -m, --nosound            disable all audio playback");
         Log.d(0, "  -t, --notheme            ignore user's theme defined in the configuration");
         Log.d(0, "  -d, --debug LEVEL        set program verbosity for debugging");
+        Log.d(0, "  -r, --refreshrate TIME   set display refresh rate in milliseconds");
         Log.d(0, "      --rendertime         display the time it took to render a frame");
         Log.d(0, "");
         Log.d(0, "keyboard shortcuts:");
@@ -331,6 +360,7 @@ public class ControlCenter {
         Log.d(0, "  CTRL+L                   load previously saved data set");
         Log.d(0, "  CTRL+A                   add a score without running a scoring session");
         Log.d(0, "  CTRL+M                   toggle sound playback");
+        Log.d(0, "  CTRL+F                   change display window font");
         Log.d(0, "");
     }
 }

@@ -22,10 +22,10 @@ package org.osumercury.controlcenter;
  */
 public class SessionTimer extends Thread {
     private boolean stop = false;
-    private SessionState r;
-    private CompetitionState c;
+    private final SessionState r;
+    private final CompetitionState c;
     
-    private static final long REFRESH_RATE_MS = 30;
+    private static final long REFRESH_RATE_MS = 50;
     private static final long MIN_CPU_SLEEP_MS = 5;
     
     public SessionTimer(CompetitionState c) {
@@ -47,7 +47,6 @@ public class SessionTimer extends Thread {
                 c.setState(CompetitionState.POST_RUN);
                 SoundPlayer.play("window-end.wav");
             }
-            c.repaintFrames();
             loopTimeUsed = System.currentTimeMillis() - startLoopTime;
             try {
                 if((loopTimeUsed + MIN_CPU_SLEEP_MS) < REFRESH_RATE_MS) {

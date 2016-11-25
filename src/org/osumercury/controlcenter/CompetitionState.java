@@ -32,7 +32,6 @@ public class CompetitionState {
     private SessionState session;
     private boolean redFlagged;
     private ArrayList<Callback> stateChangeHooks;
-    private ArrayList<Callback> repaintHooks;
        
     private boolean sorted;    
         
@@ -45,7 +44,6 @@ public class CompetitionState {
     
     public CompetitionState() {
         stateChangeHooks = new ArrayList();
-        repaintHooks = new ArrayList();
         teams = new ArrayList();
         teamByID = new HashMap();
         sorted = false;              
@@ -88,10 +86,6 @@ public class CompetitionState {
         stateChangeHooks.add(hook);
     }
     
-    public void addRepaintHook(Callback hook) {
-        repaintHooks.add(hook);
-    }
-    
     public synchronized void sort() {     
         teamsFinished = new ArrayList();
         teamsDNF = new ArrayList();
@@ -129,12 +123,6 @@ public class CompetitionState {
     
     public boolean redFlagged() {
         return redFlagged;
-    }
-    
-    public void repaintFrames() {
-        for(Callback hook : repaintHooks) {
-            hook.callback(this);
-        }
     }
     
     public ArrayList<Team> getTeams() {

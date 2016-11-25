@@ -38,6 +38,8 @@ public class FontSelectDialog extends JDialog {
     private boolean OK;
     private String fontName;
     
+    private static int lastSelection = -1;
+    
     public FontSelectDialog(String title) {
         setTitle(title);
         
@@ -60,7 +62,6 @@ public class FontSelectDialog extends JDialog {
         }
         listFont.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
         listFont.setModel(listModel);
-        listFont.setSelectedIndex(0);
         setSize(500,500);
         Container pane = this.getContentPane();
         pane.setLayout(new BoxLayout(pane, BoxLayout.PAGE_AXIS));
@@ -73,6 +74,7 @@ public class FontSelectDialog extends JDialog {
             fontName = listFont.getSelectedIndex() == 0 ? null :
                     listFont.getSelectedValue();
             OK = true;
+            lastSelection = listFont.getSelectedIndex();
             dispose();
         });
                
@@ -91,6 +93,25 @@ public class FontSelectDialog extends JDialog {
                 txtPreview.setFont(new Font("Monospaced", Font.PLAIN, 20));
             }
         });
+        
+        listFont.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent evt) {
+                if(evt.getClickCount() == 2) {
+                    fontName = listFont.getSelectedIndex() == 0 ? null :
+                            listFont.getSelectedValue();
+                    OK = true;
+                    lastSelection = listFont.getSelectedIndex();
+                    dispose();
+                }
+            }
+        });
+        if(lastSelection != -1 && lastSelection < listModel.size()) {
+            listFont.setSelectedIndex(lastSelection);
+            listFont.ensureIndexIsVisible(lastSelection);
+        } else {
+            listFont.setSelectedIndex(0);
+        }
         
         pane.add(txtPreview);        
         pane.add(listScroller);
