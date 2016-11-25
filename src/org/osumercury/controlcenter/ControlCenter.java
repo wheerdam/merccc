@@ -27,6 +27,7 @@ import com.beust.jcommander.*;
 import javax.swing.JOptionPane;
 import java.io.File;
 import javax.swing.SwingUtilities;
+import org.osumercury.controlcenter.gui.ThumbnailFrame;
 
 /**
  *
@@ -89,11 +90,13 @@ public class ControlCenter {
     private CompetitionState competition;
     private DisplayFrame display;
     private ControlFrame control;    
+    private ThumbnailFrame thumb;
+    private RefreshThread refresh;
     private SocketInterface socket;
     private SocketInterface loopback;
     
     private static JCommander jc;
-    private static ControlCenter cc;
+    public static ControlCenter cc;
     
     public static long beginTime = -1;
     
@@ -268,12 +271,14 @@ public class ControlCenter {
 
             display = new DisplayFrame(this, sysFont);
             control = new ControlFrame(this);
+            thumb = new ThumbnailFrame(this);
+            refresh = new RefreshThread(this, refreshRateMs);
             SwingUtilities.invokeLater(() -> {
                 control.init();          
                 DisplayFrame.DRAW_RENDER_TIME = drawRenderTime;
                 display.init();
                 control.updateDataView();     
-                (new RefreshThread(this, refreshRateMs)).start();
+                refresh.start();
             });
             
             if(port > 0 && port <= 65535) {
@@ -300,6 +305,14 @@ public class ControlCenter {
         return control;
     }
     
+    public ThumbnailFrame getThumbnailFrame() {
+        return thumb;
+    }
+    
+    public RefreshThread getRefreshThread() {
+        return refresh;
+    }
+    
     public SocketInterface getSocketHandle() {
         return socket;
     }
@@ -319,6 +332,14 @@ public class ControlCenter {
         
         if(cc.getSocketHandle() != null) {
             cc.getSocketHandle().close();
+        }
+        
+        if(cc.getLoopbackSocketHandle() != null) {
+            cc.getLoopbackSocketHandle().close();
+        }
+        
+        if(cc.getRefreshThread() != null) {
+            cc.getRefreshThread().stopThread();
         }
         
         System.exit(ret);
@@ -356,6 +377,7 @@ public class ControlCenter {
         Log.d(0, "  F1                       set output mode to logo and time");
         Log.d(0, "  F3                       set output mode to run status");
         Log.d(0, "  F4                       set output mode to classification");
+        Log.d(0, "  F5                       show/hide thumbnailed view");
         Log.d(0, "  CTRL+S                   save recorded data set");
         Log.d(0, "  CTRL+L                   load previously saved data set");
         Log.d(0, "  CTRL+A                   add a score without running a scoring session");

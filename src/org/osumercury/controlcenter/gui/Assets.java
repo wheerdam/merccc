@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.awt.Image;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import org.imgscalr.Scalr;
 import org.osumercury.controlcenter.Config;
 import org.osumercury.controlcenter.Log;
@@ -412,18 +410,15 @@ public class Assets {
         height = height == 0 ? 1 : height;
         BufferedImage result = Scalr.resize(src, Scalr.Method.ULTRA_QUALITY, width, height,
                 Scalr.OP_ANTIALIAS);
-        /*
-        BufferedImage result = new BufferedImage(width, height,
-                src.getType());
-        Graphics2D g = result.createGraphics();
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-            RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g.drawImage(src, 0, 0, width, height, 0, 0, src.getWidth(),
-            src.getHeight(), null);
-        g.dispose();
-        */
+
+        return result;
+    }
+    
+    public static BufferedImage fastScale(BufferedImage src, int width, int height) {
+        width = width == 0 ? 1 : width;
+        height = height == 0 ? 1 : height;
+        BufferedImage result = Scalr.resize(src, Scalr.Method.SPEED, width, height);
+
         return result;
     }
     

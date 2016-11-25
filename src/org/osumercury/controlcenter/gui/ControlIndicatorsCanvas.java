@@ -82,18 +82,18 @@ public class ControlIndicatorsCanvas extends JPanel {
     @Override
     public synchronized void paint(Graphics _g) {
         long startTime = System.nanoTime();
-        Graphics2D g = (Graphics2D) _g;
         if(getWidth() != W || getHeight() != H) {
             W = getWidth();
             H = getHeight();
             rescaleDigits();
-        } 
+        }
+        BufferedImage displayImage = new BufferedImage(W, H, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = displayImage.createGraphics();
         
         yOffset = 0;
         
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        boolean timerActive = c.getState() == 0 || c.getState() == 1;
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, W, H);
         
@@ -243,6 +243,8 @@ public class ControlIndicatorsCanvas extends JPanel {
                 drawStatusFlags(g, false, false, false, false);
                 break;
         }
+        _g.drawImage(displayImage, 0, 0, null);
+        g.dispose();
         renderTime = System.nanoTime() - startTime;
     }
     

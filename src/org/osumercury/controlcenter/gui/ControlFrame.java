@@ -694,6 +694,14 @@ public class ControlFrame extends JFrame {
             }
         });
         
+        String keyToggleThumbnail = "TOGGLE_THUMBNAIL";
+        this.getRootPane().getActionMap().put(keyToggleThumbnail, new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cc.getDisplayFrame().showThumbnailWindow(!cc.getThumbnailFrame().isVisible());
+            }
+        });
+        
         InputMap im = this.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), keySaveAction);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_DOWN_MASK), keyLoadAction);
@@ -705,6 +713,7 @@ public class ControlFrame extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), keyOutputLogo);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), keyOutputRunStatus);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F4, 0), keyOutputClassification);
+        im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), keyToggleThumbnail);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK), keyToggleSound);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), keyChangeFont);
         //</editor-fold>

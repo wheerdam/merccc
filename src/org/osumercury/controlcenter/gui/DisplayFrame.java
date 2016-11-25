@@ -51,6 +51,8 @@ public class DisplayFrame extends JFrame {
     private int smallH;
     private int charW;
     private int charH;
+    private BufferedImage displayImage;
+    private BufferedImage thumbnailImage;
     private BufferedImage scaledLogo;
     private BufferedImage[] scaledBlueDigits = new BufferedImage[13];
     private BufferedImage[] scaledRedDigits = new BufferedImage[13];
@@ -62,6 +64,7 @@ public class DisplayFrame extends JFrame {
     private BufferedImage[] teamBadges;
     private DisplayCanvas canvas;
     private int rankStart = 1;
+    private int thumbIntervalCount = 0;
     private ArrayList<String[]> classificationRows;
     private double[] scores;
     private int[] scoreDigits;
@@ -74,6 +77,7 @@ public class DisplayFrame extends JFrame {
     private JPopupMenu menuOpts;
     private JMenuItem menuOptsFont;
     private JCheckBoxMenuItem menuOptsRenderTime;
+    private JCheckBoxMenuItem menuOptsThumbnail;
     
     private long beginTime = -1;
     private long renderTime = 0;
@@ -118,8 +122,11 @@ public class DisplayFrame extends JFrame {
     // static options (common for all displays)
     public static boolean DRAW_RENDER_TIME = false;
     public static boolean ALIGN_CLOCK_LEFT = false;
+    public static boolean GENERATE_THUMBNAIL = false;
     public static float POSITION_RIGHT_RECORDED_SCORES = 0.5f;
     public static float POSITION_LEFT_RECORDED_SCORES = 0.3f;
+    public static int THUMB_WIDTH = 300;
+    public static int THUMB_INTERVAL = 2;
     
     public DisplayFrame(ControlCenter cc, String nativeFont) {
         this.cc = cc;
@@ -201,6 +208,9 @@ public class DisplayFrame extends JFrame {
         menuOptsRenderTime = new JCheckBoxMenuItem("Display render time");
         menuOptsRenderTime.setMnemonic(KeyEvent.VK_R);
         menuOptsRenderTime.setSelected(DRAW_RENDER_TIME);
+        menuOptsThumbnail = new JCheckBoxMenuItem("Display thumbnail");
+        menuOptsThumbnail.setMnemonic(KeyEvent.VK_T);
+        menuOptsThumbnail.setSelected(GENERATE_THUMBNAIL);
         
         menuOptsFont.addActionListener((ActionEvent e) -> {
             FontSelectDialog fsd = new FontSelectDialog("Select Display Window Font");
@@ -218,8 +228,14 @@ public class DisplayFrame extends JFrame {
             DRAW_RENDER_TIME = menuOptsRenderTime.isSelected();
         });
         
+        menuOptsThumbnail.addActionListener((ActionEvent e) -> {
+            GENERATE_THUMBNAIL = menuOptsThumbnail.isSelected();
+            cc.getThumbnailFrame().setVisible(menuOptsThumbnail.isSelected());
+        });
+        
         menuOpts.add(menuOptsFont);
         menuOpts.add(menuOptsRenderTime);
+        menuOpts.add(menuOptsThumbnail);
         
         canvas.addMouseListener(new MouseAdapter() {
             @Override
@@ -267,6 +283,27 @@ public class DisplayFrame extends JFrame {
         
         scores[id] = value;
         currentScore.setValue(key, value);
+    }
+    
+    public synchronized BufferedImage getThumbnail() {
+        return thumbnailImage;
+    }
+    
+    public synchronized void generateThumbnail() {
+        int width = THUMB_WIDTH;
+        int height = (int)((float)displayImage.getHeight()/displayImage.getWidth()
+                * THUMB_WIDTH);
+        thumbnailImage = Assets.fastScale(displayImage, width, height);
+    }
+    
+    public void showThumbnailWindow(boolean b) {
+        menuOptsThumbnail.setSelected(b);
+        GENERATE_THUMBNAIL = b;
+        cc.getThumbnailFrame().setVisible(b);
+    }
+    
+    public synchronized void setThumbnailWidth(int w) {
+        THUMB_WIDTH = w;
     }
     
     private void rescale(int width, int height) {
@@ -455,13 +492,16 @@ public class DisplayFrame extends JFrame {
                 beginTime = System.nanoTime();
             }
             long startTime = System.nanoTime();
-            Graphics2D g = (Graphics2D) _g;
+            
             if(W != getWidth() || H != getHeight()) {
                 W = getWidth();
                 H = getHeight();
                 rescale(W, H);
             }
             int x, y, i;
+            displayImage = new BufferedImage(
+                W, H, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g = displayImage.createGraphics();
             
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                                RenderingHints.VALUE_ANTIALIAS_ON);
@@ -491,11 +531,9 @@ public class DisplayFrame extends JFrame {
             
             int teamID = -1;
             String teamName = "";
-            String institution = "";
             if(s != null && s.getActiveTeam() != null) {
                 teamID = s.getActiveTeam().getNumber();
                 teamName = s.getActiveTeam().getName();
-                institution = s.getActiveTeam().getInstitution();
             }
             int yOffset = 0;
             OUTER:
@@ -553,8 +591,7 @@ public class DisplayFrame extends JFrame {
                                             W(1)-100-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
                                     H(0.9)-15-charH-20-digitH, this);
                         }
-                        ArrayList<Score> activeScores;
-                        int numScores, scoreWidth;
+                        int scoreWidth;
                         scoreWidth = 6*smallW+scaledSmallDigits[PERIOD].getWidth();                          
                         switch (c.getState()) {
                             case CompetitionState.SETUP:
@@ -739,7 +776,17 @@ public class DisplayFrame extends JFrame {
                     break;
             }
             
+            if(GENERATE_THUMBNAIL) {
+                if(thumbIntervalCount == THUMB_INTERVAL) {
+                    thumbIntervalCount = 0;
+                    generateThumbnail();
+                }
+                thumbIntervalCount++;
+            }
+            
             renderedFrames++;
+            _g.drawImage(displayImage, 0, 0, null);
+            g.dispose();            
             if(DRAW_RENDER_TIME) {                
                 String strFPS =
                         String.format("%.2f",
@@ -747,29 +794,32 @@ public class DisplayFrame extends JFrame {
                         + " fps";                
                 String strControlRenderTime = "control: " +
                         String.format("%1$4s", cc.getControlFrame().getRenderTime()/1000000) + " ms";
-                g.setFont(new Font("Monospaced", Font.PLAIN, 14));
-                int txtHeight = g.getFontMetrics().getHeight();
-                int txtDescent = g.getFontMetrics().getDescent();
-                int txtWidth = g.getFontMetrics().stringWidth(strFPS);
-                g.setColor(Color.BLACK);
-                g.fillRect(W(1)-4-txtWidth, H(1)-txtHeight, txtWidth+4, txtHeight);
-                g.setColor(Color.YELLOW);
-                g.drawString(strFPS, W(1)-2-txtWidth, H(1)-txtDescent);
-                txtWidth = g.getFontMetrics().stringWidth(strControlRenderTime);
-                g.setColor(Color.BLACK);
-                g.fillRect(W(1)-4-txtWidth, H(1)-3*txtHeight, txtWidth+4, txtHeight);
-                g.setColor(Color.YELLOW);
-                g.drawString(strControlRenderTime, W(1)-2-txtWidth, H(1)-2*txtHeight-txtDescent);
+                
+                _g.setFont(new Font("Monospaced", Font.PLAIN, 14));
+                int txtHeight = _g.getFontMetrics().getHeight();
+                int txtDescent = _g.getFontMetrics().getDescent();
+                
+                int txtWidth = _g.getFontMetrics().stringWidth(strFPS);
+                _g.setColor(Color.BLACK);
+                _g.fillRect(W(1)-4-txtWidth, H(1)-txtHeight, txtWidth+4, txtHeight);
+                _g.setColor(Color.YELLOW);
+                _g.drawString(strFPS, W(1)-2-txtWidth, H(1)-txtDescent);
+                
+                txtWidth = _g.getFontMetrics().stringWidth(strControlRenderTime);
+                _g.setColor(Color.BLACK);
+                _g.fillRect(W(1)-4-txtWidth, H(1)-3*txtHeight, txtWidth+4, txtHeight);
+                _g.setColor(Color.YELLOW);
+                _g.drawString(strControlRenderTime, W(1)-2-txtWidth, H(1)-2*txtHeight-txtDescent);
+                
                 renderTime = System.nanoTime()-startTime;
                 String strRenderTime = "display: " + 
                         String.format("%1$4s", renderTime/1000000) + " ms";
-                txtWidth = g.getFontMetrics().stringWidth(strRenderTime);
-                g.setColor(Color.BLACK);
-                g.fillRect(W(1)-4-txtWidth, H(1)-2*txtHeight, txtWidth+4, txtHeight);
-                g.setColor(Color.YELLOW);
-                g.drawString(strRenderTime, W(1)-2-txtWidth, H(1)-txtHeight-txtDescent);
-            }
-            
+                txtWidth = _g.getFontMetrics().stringWidth(strRenderTime);
+                _g.setColor(Color.BLACK);
+                _g.fillRect(W(1)-4-txtWidth, H(1)-2*txtHeight, txtWidth+4, txtHeight);
+                _g.setColor(Color.YELLOW);
+                _g.drawString(strRenderTime, W(1)-2-txtWidth, H(1)-txtHeight-txtDescent);
+            }                        
             drawing = false;
         }        
         

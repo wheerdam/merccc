@@ -18,6 +18,7 @@ package org.osumercury.controlcenter;
 
 import org.osumercury.controlcenter.gui.ControlFrame;
 import org.osumercury.controlcenter.gui.DisplayFrame;
+import org.osumercury.controlcenter.gui.ThumbnailFrame;
 
 /**
  *
@@ -34,7 +35,7 @@ public class RefreshThread extends Thread {
         this.cc = cc;
     }
     
-    public void stopTimer() {
+    public void stopThread() {
         stop = true;
     }
     
@@ -52,6 +53,7 @@ public class RefreshThread extends Thread {
         ControlCenter.beginTime = System.nanoTime();
         DisplayFrame display = cc.getDisplayFrame();
         ControlFrame control = cc.getControlFrame();
+        ThumbnailFrame thumb = cc.getThumbnailFrame();
         while(!stop) {
             if(display.isDrawing()) {
                 Log.d(0, "RefreshThread.run: display frame not ready");
@@ -59,8 +61,10 @@ public class RefreshThread extends Thread {
                 display.repaint();
             }
             control.repaintDisplay();
+            thumb.repaint();
             try {
-                render = display.getRenderTime() + control.getRenderTime();
+                render = display.getRenderTime() + control.getRenderTime() +
+                        thumb.getRenderTime();
                 if(render < delay_ns/2 && delay_ns/2 >= original_delay_ns) {                    
                     delay_ns /= 2;
                     Log.d(0, "RefreshThread.run: decreasing redraw delay to " + delay_ns + " ns");
