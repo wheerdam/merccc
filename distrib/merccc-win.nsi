@@ -10,7 +10,7 @@
 
 Name "merccc"
 
-OutFile "merccc-0.9.8.exe"
+OutFile "merccc-MERCCCVERSION.exe"
 
 ; The default installation directory
 InstallDir $PROGRAMFILES\merccc
@@ -51,31 +51,31 @@ Section "Mercury Control Center Install (required)"
   SetOutPath $INSTDIR
   
   ; Put file there
-  File ".\merccc-0.9.8.jar"
+  File ".\merccc-MERCCCVERSION.jar"
   File ".\appicon.ico"
   File ".\appicon1.ico"
 
   IfFileExists $INSTDIR\merccc.bat 0 +2
     Delete $INSTDIR\merccc.bat    
-  Push `cd /D $INSTDIR$\r$\n"$R0" -Djava.library.path=. -jar merccc-0.9.8.jar %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n`
+  Push `cd /D $INSTDIR$\r$\n"$R0" -Djava.library.path=. -jar merccc-MERCCCVERSION.jar %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n`
   Push `$INSTDIR\merccc.bat`
   Call WriteToFile
   
   IfFileExists $INSTDIR\merccco.bat 0 +2
     Delete $INSTDIR\merccco.bat    
-  Push `cd /D $INSTDIR$\r$\n"$R0" -Djava.library.path=. -jar merccc-0.9.8.jar -c %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n`
+  Push `cd /D $INSTDIR$\r$\n"$R0" -Djava.library.path=. -jar merccc-MERCCCVERSION.jar -c %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n`
   Push `$INSTDIR\merccco.bat`
   Call WriteToFile
   
   IfFileExists $INSTDIR\mercccz.bat 0 +2
     Delete $INSTDIR\mercccz.bat    
-  Push `cd /D $INSTDIR$\r$\n"$R0" -Djava.library.path=. -jar merccc-0.9.8.jar -z %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n`
+  Push `cd /D $INSTDIR$\r$\n"$R0" -Djava.library.path=. -jar merccc-MERCCCVERSION.jar -z %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n`
   Push `$INSTDIR\mercccz.bat`
   Call WriteToFile
   
   IfFileExists $INSTDIR\mercccserv.bat 0 +2
     Delete $INSTDIR\mercccserv.bat    
-  Push `cd /D $INSTDIR$\r$\n"$R0" -Djava.library.path=. -jar merccc-0.9.8.jar -p 19000 %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n`
+  Push `cd /D $INSTDIR$\r$\n"$R0" -Djava.library.path=. -jar merccc-MERCCCVERSION.jar -p 19000 %1 %2 %3 %4 %5 %6 %7 %8 %9$\r$\n`
   Push `$INSTDIR\mercccserv.bat`
   Call WriteToFile
   
@@ -122,7 +122,7 @@ Section "Uninstall"
   ${unregisterExtension} ".merccc" "Mercury Control Center configuration"
   
   ; Remove files and uninstaller
-  Delete $INSTDIR\merccc-0.9.8.jar
+  Delete $INSTDIR\merccc-MERCCCVERSION.jar
   Delete $INSTDIR\merccc.bat
   Delete $INSTDIR\merccco.bat
   Delete $INSTDIR\mercccz.bat

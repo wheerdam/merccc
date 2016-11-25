@@ -12,6 +12,8 @@ then
 	ant package-for-store
 	cd distrib
 fi
+echo "- generating debian control file"
+cat debian-control | sed "s/VERSION/`cat version`/" > deb/DEBIAN/control
 echo "- copying files to include in the package"
 rm -rf ./deb/usr
 mkdir ./deb/usr
@@ -21,7 +23,7 @@ mkdir ./deb/usr/lib/merccc
 mkdir ./deb/usr/share
 mkdir ./deb/usr/share/applications
 cp -v ../store/MercControl.jar ./deb/usr/lib/merccc/merccc-`cat version`.jar
-cp -v ../web/appicon.png ./deb/usr/lib/merccc
+cp -v ./appicon.png ./deb/usr/lib/merccc
 cp -v ./*.desktop ./deb/usr/share/applications
 echo "- generating run script"
 echo "#!/bin/sh" > ./deb/usr/bin/merccc

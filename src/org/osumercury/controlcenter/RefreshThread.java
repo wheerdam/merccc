@@ -56,7 +56,7 @@ public class RefreshThread extends Thread {
         ThumbnailFrame thumb = cc.getThumbnailFrame();
         while(!stop) {
             if(display.isDrawing()) {
-                Log.d(0, "RefreshThread.run: display frame not ready");
+                Log.d(3, "RefreshThread.run: display frame not ready");
             } else {
                 display.repaint();
             }
@@ -67,11 +67,11 @@ public class RefreshThread extends Thread {
                         thumb.getRenderTime();
                 if(render < delay_ns/2 && delay_ns/2 >= original_delay_ns) {                    
                     delay_ns /= 2;
-                    Log.d(0, "RefreshThread.run: decreasing redraw delay to " + delay_ns + " ns");
+                    Log.d(1, "RefreshThread.run: decreasing redraw delay to " + delay_ns + " ns");
                 } else if(render > delay_ns) {
-                    Log.d(0, "RefreshThread.run: render time was too long (" + render + " ns)");
+                    Log.d(1, "RefreshThread.run: render time was too long (" + render + " ns)");
                     delay_ns *= 2;
-                    Log.d(0, "RefreshThread.run: increasing redraw delay to " + delay_ns + " ns");
+                    Log.d(1, "RefreshThread.run: increasing redraw delay to " + delay_ns + " ns");
                 }
                 Thread.sleep(delay_ns/1000000);
             } catch(Exception e) {
