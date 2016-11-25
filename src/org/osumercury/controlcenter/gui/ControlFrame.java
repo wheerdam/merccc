@@ -16,7 +16,6 @@ limitations under the License.
  */
 package org.osumercury.controlcenter.gui;
 
-import org.osumercury.controlcenter.RefreshThread;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -33,7 +32,6 @@ public class ControlFrame extends JFrame {
     private CompetitionState competition;
     private ControlCenter cc;
     private SessionTimer timer;
-    public RefreshThread toggler;
     private Score activeScore;
     private DisplayFrame display;
     private ArrayList<ScoreChangedCallback> scoreChangedHooks;
@@ -112,6 +110,8 @@ public class ControlFrame extends JFrame {
     
     /**
      * Creates new form ControlFrame
+     * 
+     * @param cc
      */
     public ControlFrame(ControlCenter cc) {
         this.cc = cc;
@@ -131,18 +131,12 @@ public class ControlFrame extends JFrame {
         setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ")");
         Container pane = this.getContentPane();
         
-        this.addWindowListener(new WindowListener() {
+        this.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
+                Log.d(0, "Window closing event");
                 exit();
             }
-            
-            public void windowActivated(WindowEvent e) {}
-            public void windowDeactivated(WindowEvent e) {}
-            public void windowIconified(WindowEvent e) {}
-            public void windowDeiconified(WindowEvent e) {}
-            public void windowOpened(WindowEvent e) {}
-            public void windowClosed(WindowEvent e) {}
         });                
         
         //<editor-fold defaultstate="collapsed" desc="Main Pane Init">
@@ -979,12 +973,6 @@ public class ControlFrame extends JFrame {
         if(timer != null) {
             // warn of current run
             timer.stopTimer();
-        }
-        if(toggler != null) {
-            toggler.stopTimer();
-        }
-        if(display != null) {
-            display.stopRefreshThread();
         }
         
         ControlCenter.exit(0);
