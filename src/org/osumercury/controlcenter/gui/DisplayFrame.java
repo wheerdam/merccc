@@ -71,13 +71,7 @@ public class DisplayFrame extends JFrame {
     private int[] scoreDecimal;
     private Score currentScore;
     private Font systemFont;
-    private String systemFontName;        
-    
-    /** MENUBAR UI ELEMENTS */
-    private JPopupMenu menuOpts;
-    private JMenuItem menuOptsFont;
-    private JCheckBoxMenuItem menuOptsRenderTime;
-    private JCheckBoxMenuItem menuOptsThumbnail;
+    private String systemFontName;                
     
     private long beginTime = -1;
     private long renderTime = 0;
@@ -199,59 +193,7 @@ public class DisplayFrame extends JFrame {
                 scoreDecimal[i] = SCORE_FIELD_DECIMAL;
             }
             i++;
-        }
-        
-        //<editor-fold defaultstate="collapsed" desc="Popup Menu Init">
-        menuOpts = new JPopupMenu();
-        menuOptsFont = new JMenuItem("Select font...");
-        menuOptsFont.setMnemonic(KeyEvent.VK_F);
-        menuOptsRenderTime = new JCheckBoxMenuItem("Display render time");
-        menuOptsRenderTime.setMnemonic(KeyEvent.VK_R);
-        menuOptsRenderTime.setSelected(DRAW_RENDER_TIME);
-        menuOptsThumbnail = new JCheckBoxMenuItem("Display thumbnail");
-        menuOptsThumbnail.setMnemonic(KeyEvent.VK_T);
-        menuOptsThumbnail.setSelected(GENERATE_THUMBNAIL);
-        
-        menuOptsFont.addActionListener((ActionEvent e) -> {
-            FontSelectDialog fsd = new FontSelectDialog("Select Display Window Font");
-            fsd.setLocationRelativeTo(this);
-            fsd.setModal(true);
-            fsd.showDialog();
-            if(fsd.isApproved()) {
-                String fontName = fsd.getFontName();
-                Log.d(0, "Setting font to " + fontName);
-                setFont(fontName);
-            }
-        });
-        
-        menuOptsRenderTime.addActionListener((ActionEvent e) -> {
-            DRAW_RENDER_TIME = menuOptsRenderTime.isSelected();
-        });
-        
-        menuOptsThumbnail.addActionListener((ActionEvent e) -> {
-            GENERATE_THUMBNAIL = menuOptsThumbnail.isSelected();
-            cc.getThumbnailFrame().setVisible(menuOptsThumbnail.isSelected());
-        });
-        
-        menuOpts.add(menuOptsFont);
-        menuOpts.add(menuOptsRenderTime);
-        menuOpts.add(menuOptsThumbnail);
-        
-        canvas.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) { process(e); }
-            @Override
-            public void mouseClicked(MouseEvent e) { process(e); }
-            @Override
-            public void mouseReleased(MouseEvent e) { process(e); }
-            
-            private void process(MouseEvent e) {
-                if(e.isPopupTrigger()) {
-                    menuOpts.show(canvas, e.getX(), e.getY());
-                }
-            }
-        });
-        //</editor-fold>
+        }        
     }
     
     public void setClassificationData(ArrayList<Team> classification) {
@@ -294,13 +236,7 @@ public class DisplayFrame extends JFrame {
         int height = (int)((float)displayImage.getHeight()/displayImage.getWidth()
                 * THUMB_WIDTH);
         thumbnailImage = Assets.fastScale(displayImage, width, height);
-    }
-    
-    public void showThumbnailWindow(boolean b) {
-        menuOptsThumbnail.setSelected(b);
-        GENERATE_THUMBNAIL = b;
-        cc.getThumbnailFrame().setVisible(b);
-    }
+    }    
     
     public synchronized void setThumbnailWidth(int w) {
         THUMB_WIDTH = w;

@@ -21,7 +21,6 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
-import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -42,7 +41,7 @@ public class ThumbnailFrame extends JFrame {
     
     public ThumbnailFrame(ControlCenter cc) {
         this.cc = cc;
-        setTitle("Thumbnail");
+        setTitle("Preview");
         setSize(300, 200);
         //setResizable(false);
         canvas = new ThumbnailCanvas(this);
@@ -59,7 +58,7 @@ public class ThumbnailFrame extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                cc.getDisplayFrame().showThumbnailWindow(false);
+                cc.getControlFrame().showThumbnailWindow(false);
             }
         });
         getContentPane().add(canvas);

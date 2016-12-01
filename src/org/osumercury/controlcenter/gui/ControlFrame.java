@@ -55,14 +55,21 @@ public class ControlFrame extends JFrame {
     private JPanel paneAbout;
     private JPanel paneDataManipulation;
     
+    /** OPTIONS MENU ELEMENTS **/
+    private JPopupMenu menuOpts;
+    private JMenuItem menuOptsFont;
+    private JCheckBoxMenuItem menuOptsRenderTime;
+    private JCheckBoxMenuItem menuOptsThumbnail;
+    private JCheckBoxMenuItem menuOptsSounds;
+    
     /** GLOBAL UI ELEMENTS **/
     private JLabel lblDisplayScreen;
     private JComboBox cmbDisplayScreen;
     private JLabel lblDisplayMode;
     private JComboBox cmbDisplayMode;
     private JButton btnRefreshScreens;
-    private JButton btnExit;
-    private JCheckBox chkPlaySounds;
+    private JButton btnExit;    
+    private JButton btnOptions;
     
     /** DISPLAY OPTIONS UI ELEMENTS **/
     
@@ -182,22 +189,25 @@ public class ControlFrame extends JFrame {
         cmbDisplayMode.addItem("Classification");
         btnRefreshScreens = new JButton("Detect");
         btnExit = new JButton("Exit");
-        chkPlaySounds = new JCheckBox("Sounds");
-        chkPlaySounds.setSelected(true);
-        SoundPlayer.setEnabled(true);
+        btnOptions = new JButton("Options");
+
         paneGlobal.add(lblDisplayScreen);
         paneGlobal.add(cmbDisplayScreen);
         paneGlobal.add(btnRefreshScreens);
         paneGlobal.add(new JSeparator());
         paneGlobal.add(lblDisplayMode);
         paneGlobal.add(cmbDisplayMode);
-        paneGlobal.add(chkPlaySounds);
+        paneGlobal.add(new JSeparator());
+        paneGlobal.add(btnOptions);
         paneGlobal.add(new JSeparator());
         paneGlobal.add(btnExit);
-        if(Config.SOUND_DISABLED) {
-            chkPlaySounds.setEnabled(false);
-            chkPlaySounds.setSelected(false);
-        }
+        
+        btnOptions.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                menuOpts.show(btnOptions, e.getX(), e.getY());
+            }
+        });
         
         btnExit.addActionListener((ActionEvent e) -> {
             exit();
@@ -212,9 +222,6 @@ public class ControlFrame extends JFrame {
             outputDisplayToScreen();
         });
         
-        chkPlaySounds.addActionListener((ActionEvent e) -> {
-            SoundPlayer.setEnabled(chkPlaySounds.isSelected());
-        });
 //</editor-fold>                              
 
         //<editor-fold defaultstate="collapsed" desc="Run Controls Init">
@@ -671,9 +678,9 @@ public class ControlFrame extends JFrame {
         this.getRootPane().getActionMap().put(keyToggleSound, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(chkPlaySounds.isEnabled()) {
-                    chkPlaySounds.setSelected(!chkPlaySounds.isSelected());
-                    SoundPlayer.setEnabled(chkPlaySounds.isSelected());
+                if(menuOptsSounds.isEnabled()) {
+                    menuOptsSounds.setSelected(!menuOptsSounds.isSelected());
+                    SoundPlayer.setEnabled(menuOptsSounds.isSelected());
                 }
             }
         });
@@ -698,7 +705,7 @@ public class ControlFrame extends JFrame {
         this.getRootPane().getActionMap().put(keyToggleThumbnail, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                cc.getDisplayFrame().showThumbnailWindow(!cc.getThumbnailFrame().isVisible());
+                showThumbnailWindow(!cc.getThumbnailFrame().isVisible());
             }
         });
         
@@ -717,12 +724,72 @@ public class ControlFrame extends JFrame {
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK), keyToggleSound);
         im.put(KeyStroke.getKeyStroke(KeyEvent.VK_F, InputEvent.CTRL_DOWN_MASK), keyChangeFont);
         //</editor-fold>
+        
+        //<editor-fold defaultstate="collapsed" desc="Popup Menu Init">
+        menuOpts = new JPopupMenu();
+        menuOptsFont = new JMenuItem("Select font...");
+        menuOptsFont.setMnemonic(KeyEvent.VK_F);
+        menuOptsRenderTime = new JCheckBoxMenuItem("Display render time");
+        menuOptsRenderTime.setMnemonic(KeyEvent.VK_R);
+        menuOptsRenderTime.setSelected(DisplayFrame.DRAW_RENDER_TIME);
+        menuOptsThumbnail = new JCheckBoxMenuItem("Preview window");
+        menuOptsThumbnail.setMnemonic(KeyEvent.VK_T);
+        menuOptsThumbnail.setSelected(DisplayFrame.GENERATE_THUMBNAIL);
+        
+        menuOptsSounds = new JCheckBoxMenuItem("Play sounds");
+        
+        if(Config.SOUND_DISABLED) {
+            menuOptsSounds.setEnabled(false);
+            menuOptsSounds.setSelected(false);
+        } else {
+            menuOptsSounds.setSelected(true);
+            SoundPlayer.setEnabled(true);
+        }
+        
+        menuOptsFont.addActionListener((ActionEvent e) -> {
+            FontSelectDialog fsd = new FontSelectDialog("Select Display Window Font");
+            fsd.setLocationRelativeTo(this);
+            fsd.setModal(true);
+            fsd.showDialog();
+            if(fsd.isApproved()) {
+                String fontName = fsd.getFontName();
+                Log.d(0, "Setting font to " + fontName);
+                cc.getDisplayFrame().setFont(fontName);
+            }
+        });
+        
+        menuOptsRenderTime.addActionListener((ActionEvent e) -> {
+            DisplayFrame.DRAW_RENDER_TIME = menuOptsRenderTime.isSelected();
+        });
+        
+        menuOptsThumbnail.addActionListener((ActionEvent e) -> {
+            DisplayFrame.GENERATE_THUMBNAIL = menuOptsThumbnail.isSelected();
+            cc.getThumbnailFrame().setVisible(menuOptsThumbnail.isSelected());
+        });
+        
+        menuOptsSounds.addActionListener((ActionEvent e) -> {
+            SoundPlayer.setEnabled(menuOptsSounds.isSelected());
+        });
+        
+        menuOpts.add(menuOptsSounds);
+        menuOpts.add(menuOptsFont);
+        menuOpts.add(menuOptsThumbnail);
+        menuOpts.add(new JSeparator());
+        menuOpts.add(menuOptsRenderTime);
+        
+        //</editor-fold>
 
         validate();
         triggerEvent(UserEvent.GUI_INIT, this);
         pack();
         setSize(INITIAL_WIDTH, INITIAL_HEIGHT);
         setVisible(true);
+    }
+    
+    public void showThumbnailWindow(boolean b) {
+        menuOptsThumbnail.setSelected(b);
+        DisplayFrame.GENERATE_THUMBNAIL = b;
+        cc.getThumbnailFrame().setVisible(b);
     }
     
     private void populateScoreControl(Container pane, JTextField[] scoreFields, boolean editable) {            
@@ -967,6 +1034,10 @@ public class ControlFrame extends JFrame {
             indicators.repaint();
             //indicators.validate();
         }
+    }
+    
+    public JPanel getGlobalControlsPane() {
+        return paneGlobal;
     }
     
     public void exit() {

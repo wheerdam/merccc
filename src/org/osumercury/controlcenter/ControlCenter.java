@@ -347,9 +347,9 @@ public class ControlCenter {
     
     public static void printHelp() {
         Log.d(0, "");
-        Log.d(0, "java -jar <jarfile> [options]");
+        Log.d(0, "usage: java -jar <jarfile> [options]");
         Log.d(0, "");
-        Log.d(0, "options:");
+        Log.d(0, "options (exclusive):");
         Log.d(0, "  -c, --config FILE        load FILE to configure merccc");
         Log.d(0, "  -z, --zip ZIPFILE        load ZIPFILE containing a merccc configuration");
         Log.d(0, "");
@@ -362,7 +362,7 @@ public class ControlCenter {
         Log.d(0, "  -l, --load FILE          load saved .csv data from a previous scoring session");
         Log.d(0, "      --help               display this help message");
         Log.d(0, "      --about              display information about the software");
-        Log.d(0, "      --font FONT          use the specified FONT instead the built-in font");
+        Log.d(0, "      --font FONT          use the specified FONT instead of the built-in font");
         Log.d(0, "      --ask-font           list system fonts to use with font selection dialog");
         Log.d(0, "  -p, --port PORT          open tcp socket interface");
         Log.d(0, "      --localport PORT     open loopback only tcp socket interface");
