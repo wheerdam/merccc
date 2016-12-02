@@ -858,7 +858,7 @@ public class ControlFrame extends JFrame {
         pane.validate();
     }
     
-    public static void populateAboutPane(Container paneContainer, boolean exitOption) {
+    public static void populateAboutPane(Container paneContainer, boolean aboutOnly) {
         paneContainer.setLayout(new BoxLayout(paneContainer, BoxLayout.PAGE_AXIS));
         JLabel logo = new JLabel();
         logo.setIcon(new ImageIcon(Assets.getMercuryLogo(100)));
@@ -889,12 +889,10 @@ public class ControlFrame extends JFrame {
         cmbTextSelect.addItem("License");
         cmbTextSelect.addItem("3rd Party");
         cmbTextSelect.addItem("Configuration File Format");
-        cmbTextSelect.addItem("Current Configuration");
         cmbTextSelect.addItem("Apache License 2.0");        
-        cmbTextSelect.addItem("Loaded Resources");
-        
-        if(exitOption) {
-            cmbTextSelect.addItem("Exit");
+        if(!aboutOnly) {
+            cmbTextSelect.addItem("Current Configuration");
+            cmbTextSelect.addItem("Loaded Resources");
         }
         
         cmbTextSelect.setMaximumSize(new Dimension(600, 50));
@@ -913,16 +911,13 @@ public class ControlFrame extends JFrame {
                     text.setText(Text.getConfigFileSpecs());
                     break;
                 case 3:
-                    text.setText(Config.CONFIG_STRING);
+                    text.setText(Text.getApache2License());
                     break;                    
                 case 4:
-                    text.setText(Text.getApache2License());
+                    text.setText(Config.CONFIG_STRING);
                     break;
                 case 5:
                     text.setText(Assets.getAssetInfo());
-                    break;
-                case 6:
-                    System.exit(0);
                     break;
             }
             text.setCaretPosition(0);

@@ -82,14 +82,15 @@ public class ThumbnailFrame extends JFrame {
             BufferedImage thumb = cc.getDisplayFrame().getThumbnail();
             g.setColor(new Color(33, 0, 33));
             g.fillRect(0, 0, getWidth(), getHeight());
-            if(thumb != null) {
+            if(thumb != null && cc.getDisplayFrame().isVisible()) {
                 Dimension d = new Dimension(thumb.getWidth(), thumb.getHeight());
                 this.setPreferredSize(d);
                 g.drawImage(thumb, 0, 0, null);
             }
             g.setColor(Color.YELLOW);
             g.setFont(new Font("Monospaced", Font.PLAIN, 10));
-            String str = thumb == null ? "no thumb" : 
+            String str = thumb == null || !cc.getDisplayFrame().isVisible() ? 
+                    "display window hidden" : 
                     thumb.getWidth() + "x" + thumb.getHeight();
             FontMetrics m = g.getFontMetrics();
             g.drawString(str, 2, 2+m.getHeight()-m.getDescent());

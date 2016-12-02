@@ -37,12 +37,11 @@ public class Score {
     private HashMap<String, Double> values;
     private boolean teamCompletedTrack = false;
     
-    public static void init() {
+    public static void init(String postfix, HashMap<String, String> vars) {
         try {
-            String postfix = Config.getValue("formula", "postfix");
             int typeTemp;
             postfixFormula = new ArrayList();
-            fields = Config.getSectionAsMap("fields");
+            fields = vars;
             type = new HashMap();
             description = new HashMap();
             defaultValue = new HashMap();
@@ -84,10 +83,21 @@ public class Score {
             
             initialized = true;            
             
-            HashMap<String, String> map = Config.getSectionAsMap("test");
+        } catch(Exception e) {
+            System.err.print("Score.init: Exception");
+            System.err.println(" -> " + e.toString());
+            if(Log.debugLevel > 0) {
+                e.printStackTrace();
+            }
+        }
+    }
+        
+    public static boolean test(HashMap<String, String> map, String strResult) {
+        try {
+            double result = Double.parseDouble(strResult);
             if(map != null) {
                 Score test = new Score();
-                Log.di(0, "Score.init: test values -> ");
+                Log.di(0, "Score.test: test values -> ");
                 for(Map.Entry<String, String> e : map.entrySet()) {
                     if(!e.getKey().equals("__RESULT")) {
                         Log.di(0, e.getKey() + "=" + e.getValue() + " ");
@@ -95,8 +105,7 @@ public class Score {
                     }
                 }
                 Log.d(0, "");
-                double result = Double.parseDouble(map.get("__RESULT"));
-                Log.di(0, "Score.init: test result -> expected=" + result +
+                Log.di(0, "Score.test: test result -> expected=" + result +
                         " calculated=" + test.getScore());
                 if(result != test.getScore()) {
                     Log.di(0, " ERROR\n");
@@ -104,17 +113,21 @@ public class Score {
                     System.err.println("WARNING: calculated score did not "
                     + "match the expected score from the config. file!");
                     System.err.println("===");
+                    return false;
                 } else {
                     Log.di(0, " OK\n");
+                    return true;
                 }
-            }
+            }        
         } catch(Exception e) {
-            System.err.print("Score.initialize: Exception");
+            System.err.print("Score.test: Exception");
             System.err.println(" -> " + e.toString());
             if(Log.debugLevel > 0) {
                 e.printStackTrace();
             }
         }
+            
+        return false;
     }
     
     public static double calculate(Score s) {

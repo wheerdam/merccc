@@ -24,8 +24,12 @@ import org.osumercury.controlcenter.misc.SocketInterface;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import com.beust.jcommander.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
 import javax.swing.JOptionPane;
 import java.io.File;
+import javax.swing.JButton;
+import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.osumercury.controlcenter.gui.ThumbnailFrame;
 
@@ -135,7 +139,14 @@ public class ControlCenter {
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
             f.setSize(650, 600);
             f.setTitle("About Mercury Control Center");
-            ControlFrame.populateAboutPane(f.getContentPane(), true);
+            JPanel aboutPane = new JPanel();
+            f.getContentPane().add(aboutPane, BorderLayout.CENTER);
+            ControlFrame.populateAboutPane(aboutPane, true);
+            JButton aboutPaneBtnExit = new JButton("Exit");
+            aboutPaneBtnExit.addActionListener((ActionEvent e) -> {
+                System.exit(0);
+            });
+            f.getContentPane().add(aboutPaneBtnExit, BorderLayout.PAGE_END);
             f.setVisible(true);
             return;
         }       
@@ -203,11 +214,18 @@ public class ControlCenter {
             DisplayFrame.ALIGN_CLOCK_LEFT = true;
         }
  
-        Score.init();
+        Score.init(
+                Config.getValue("formula", "postfix"),
+                Config.getSectionAsMap("fields")
+        );
         if(!Score.initialized()) {
             Log.fatal(2, "Failed to initialize scoring system\n" +
                     "This is most likely caused by an invalid configuration file");
         }
+        Score.test(
+                Config.getSectionAsMap("test"),
+                Config.getValue("test", "__RESULT")
+        );
         try {
             competition = new CompetitionState();
         } catch(Exception e) {
