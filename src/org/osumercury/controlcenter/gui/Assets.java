@@ -103,6 +103,10 @@ public class Assets {
                 }
             }
         }
+        
+        if(!doesAssetExist("logo.png")) {
+            Log.d(0, "Assets.load: logo.png not found, using default Mercury logo");
+        }
 
         return true;
     }
@@ -212,6 +216,22 @@ public class Assets {
                 DisplayFrame.BG_RED = R;
                 DisplayFrame.BG_GREEN = G;
                 DisplayFrame.BG_BLUE = B;
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse color information");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
+        String tableBgColor = Config.getValue("theme", "tablebgcolor");
+        if(tableBgColor != null) {
+            try {
+                String[] tokens = tableBgColor.trim().split(",");
+                int R = Integer.parseInt(tokens[0].trim());
+                int G = Integer.parseInt(tokens[1].trim());
+                int B = Integer.parseInt(tokens[2].trim());
+                DisplayFrame.TABLE_BG_RED = R;
+                DisplayFrame.TABLE_BG_GREEN = G;
+                DisplayFrame.TABLE_BG_BLUE = B;
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
@@ -363,7 +383,7 @@ public class Assets {
     public static BufferedImage getLogoW(int width) {
         BufferedImage img = rImages.get("logo.png");
         if(img == null) {
-            img = missingAsset;
+            img = mercuryLogo;
         }
         
         return scale(img, width, (int)((double)width/img.getWidth()*img.getHeight()));
@@ -372,7 +392,7 @@ public class Assets {
     public static BufferedImage getLogoH(int height) {
         BufferedImage img = rImages.get("logo.png");
         if(img == null) {
-            img = missingAsset;
+            img = mercuryLogo;
         }
         
         return scale(img, (int)((double)height/img.getHeight()*img.getWidth()), height);

@@ -34,10 +34,29 @@ import java.nio.file.Path;
 public class Config {
     private static HashMap<String, HashMap<String, String>> sections;
     private static HashMap<String, ArrayList<String>> orderedKeys;
-    public static File CONFIG_FILE;
-    public static String CONFIG_STRING;
-    public static String TMP_DIR;
-    public static boolean SOUND_DISABLED = false;
+    private static File CONFIG_FILE;
+    private static String CONFIG_STRING;
+    private static String TMP_DIR;
+    
+    public static File getConfigFile() {
+        return CONFIG_FILE;
+    }
+    
+    public static String getConfigString() {
+        return CONFIG_STRING;
+    }
+    
+    public static String getTmpDir() {
+        return TMP_DIR;
+    }
+    
+    public static String getConfigFileParent() {
+        if(CONFIG_FILE == null || CONFIG_FILE.getParent() == null) {
+            return ".";
+        } else {
+            return CONFIG_FILE.getParent();
+        }
+    }
 
     public static boolean load(String f, boolean zip) {
         if(zip) {

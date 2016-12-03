@@ -103,6 +103,7 @@ public class ControlCenter {
     public static ControlCenter cc;
     
     public static long beginTime = -1;
+    public static boolean SOUND_DISABLED = false;
     
     /**
      * @param args the command line arguments
@@ -151,7 +152,7 @@ public class ControlCenter {
             return;
         }       
         
-        Config.SOUND_DISABLED = nosound;        
+        SOUND_DISABLED = nosound;        
         Log.errorDialogBox = GUI;
         
         if(zipFile != null && configFile != null) {
@@ -169,7 +170,7 @@ public class ControlCenter {
                 if(!Config.load(fc.getSelectedFile().toString(),
                         selectedFile.toLowerCase().endsWith(".zip") ||
                         selectedFile.toLowerCase().endsWith(".merccz"))) {
-                    Log.fatal(1, "Failed to load configuration file " + Config.CONFIG_FILE);
+                    Log.fatal(1, "Failed to load configuration file " + Config.getConfigFile());
                 }
             } else {
                 Log.fatal(1, "Configuration file is required");
@@ -180,7 +181,7 @@ public class ControlCenter {
             }
         } else {
             if(!Config.load(configFile, false)) {
-                Log.fatal(1, "Failed to load configuration file " + Config.CONFIG_FILE);
+                Log.fatal(1, "Failed to load configuration file " + Config.getConfigFile());
             }
         }
         Log.debugLevel = debug;
@@ -240,7 +241,7 @@ public class ControlCenter {
         
         // graphical UI
         if(GUI) {
-            String dirParent = Config.CONFIG_FILE.getParent();
+            String dirParent = Config.getConfigFileParent();
             String resourceDir = (dirParent != null ? dirParent + File.separatorChar : "") + 
                     Config.getValue("system", "resourcedir");
             Log.d(0, "Checking " + resourceDir);
@@ -250,7 +251,7 @@ public class ControlCenter {
                         "was not found", "Resource directory", JOptionPane.ERROR_MESSAGE);
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                fileChooser.setCurrentDirectory(new File(Config.CONFIG_FILE.getParent()));
+                fileChooser.setCurrentDirectory(new File(dirParent));
                 fileChooser.showOpenDialog(null);
                 if(fileChooser.getSelectedFile() != null) {
                     resourceDir = fileChooser.getSelectedFile().getAbsolutePath();
@@ -341,9 +342,9 @@ public class ControlCenter {
     
     public static void exit(int ret) {
         Log.d(0, "Cleanup");
-        if(Config.TMP_DIR != null) {
-            Log.d(0, "Deleting " + Config.TMP_DIR);
-            if(!Config.deleteDirectory(Config.TMP_DIR)) {
+        if(Config.getTmpDir() != null) {
+            Log.d(0, "Deleting " + Config.getTmpDir());
+            if(!Config.deleteDirectory(Config.getTmpDir())) {
                 System.err.println("Failed to delete directory");
             }
         }
@@ -364,43 +365,43 @@ public class ControlCenter {
     }
     
     public static void printHelp() {
-        Log.d(0, "");
-        Log.d(0, "usage: java -jar <jarfile> [options]");
-        Log.d(0, "");
-        Log.d(0, "options (exclusive):");
-        Log.d(0, "  -c, --config FILE        load FILE to configure merccc");
-        Log.d(0, "  -z, --zip ZIPFILE        load ZIPFILE containing a merccc configuration");
-        Log.d(0, "");
-        Log.d(0, "if neither option is specified, merccc will present a file open dialog.");
-        Log.d(0, "if no configuration file or a zip file containing a configuration is specified,");
-        Log.d(0, "merccc will not start");
-        Log.d(0, "");
-        Log.d(0, "additional options:");
-        Log.d(0, "  -f, --format             print configuration file format to console and quit");
-        Log.d(0, "  -l, --load FILE          load saved .csv data from a previous scoring session");
-        Log.d(0, "      --help               display this help message");
-        Log.d(0, "      --about              display information about the software");
-        Log.d(0, "      --font FONT          use the specified FONT instead of the built-in font");
-        Log.d(0, "      --ask-font           list system fonts to use with font selection dialog");
-        Log.d(0, "  -p, --port PORT          open tcp socket interface");
-        Log.d(0, "      --localport PORT     open loopback only tcp socket interface");
-        Log.d(0, "  -m, --nosound            disable all audio playback");
-        Log.d(0, "  -t, --notheme            ignore user's theme defined in the configuration");
-        Log.d(0, "  -d, --debug LEVEL        set program verbosity for debugging");
-        Log.d(0, "  -r, --refreshrate TIME   set display refresh rate in milliseconds");
-        Log.d(0, "      --rendertime         display the time it took to render a frame");
-        Log.d(0, "");
-        Log.d(0, "keyboard shortcuts:");
-        Log.d(0, "  CTRL+[1-4]               select active control tab");
-        Log.d(0, "  F1                       set output mode to logo and time");
-        Log.d(0, "  F3                       set output mode to run status");
-        Log.d(0, "  F4                       set output mode to classification");
-        Log.d(0, "  F5                       show/hide thumbnailed view");
-        Log.d(0, "  CTRL+S                   save recorded data set");
-        Log.d(0, "  CTRL+L                   load previously saved data set");
-        Log.d(0, "  CTRL+A                   add a score without running a scoring session");
-        Log.d(0, "  CTRL+M                   toggle sound playback");
-        Log.d(0, "  CTRL+F                   change display window font");
-        Log.d(0, "");
+        Log.d(0, "\n"+
+                 "usage: java -jar <jarfile> [options]\n"+
+                 "\n"+
+                 "options (exclusive):\n"+
+                 "  -c, --config FILE        load FILE to configure merccc\n"+
+                 "  -z, --zip ZIPFILE        load ZIPFILE containing a merccc configuration\n"+
+                 "\n"+
+                 "if neither option is specified, merccc will present a file open dialog.\n"+
+                 "if no configuration file or a zip file containing a configuration is specified,\n"+
+                 "merccc will not start\n"+
+                 "\n"+
+                 "additional options:\n"+
+                 "  -f, --format             print configuration file format to console and quit\n"+
+                 "  -l, --load FILE          load saved .csv data from a previous scoring session\n"+
+                 "      --help               display this help message\n"+
+                 "      --about              display information about the software\n"+
+                 "      --font FONT          use the specified FONT instead of the built-in font\n"+
+                 "      --ask-font           list system fonts to use with font selection dialog\n"+
+                 "  -p, --port PORT          open tcp socket interface\n"+
+                 "      --localport PORT     open loopback only tcp socket interface\n"+
+                 "  -m, --nosound            disable all audio playback\n"+
+                 "  -t, --notheme            ignore user's theme defined in the configuration\n"+
+                 "  -d, --debug LEVEL        set program verbosity for debugging\n"+
+                 "  -r, --refreshrate TIME   set display refresh rate in milliseconds\n"+
+                 "      --rendertime         display the time it took to render a frame\n"+
+                 "\n"+
+                 "keyboard shortcuts:\n"+
+                 "  CTRL+[1-4]               select active control tab\n"+
+                 "  F1                       set output mode to logo and time\n"+
+                 "  F3                       set output mode to run status\n"+
+                 "  F4                       set output mode to classification\n"+
+                 "  F5                       show/hide thumbnailed view\n"+
+                 "  CTRL+S                   save recorded data set\n"+
+                 "  CTRL+L                   load previously saved data set\n"+
+                 "  CTRL+A                   add a score without running a scoring session\n"+
+                 "  CTRL+M                   toggle sound playback\n"+
+                 "  CTRL+F                   change display window font\n"+
+                 "");
     }
 }

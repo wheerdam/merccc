@@ -29,10 +29,22 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @author wira
  */
 public class Data {
-    public static ReentrantReadWriteLock lock = new ReentrantReadWriteLock(
+    private static ReentrantReadWriteLock lock = new ReentrantReadWriteLock(
             true
     );
-    public static File dataWorkDir = new File(".");
+    private static File dataWorkDir = new File(".");
+    
+    public static void setDataWorkDir(String f) {
+        dataWorkDir = new File(f);
+    }
+    
+    public static File getDataWorkDir() {
+        return dataWorkDir;
+    }
+    
+    public static ReentrantReadWriteLock lock() {
+        return lock;
+    }
     
     public static AbstractTableModel getTableModel(CompetitionState c) {
         DefaultTableModel m = new DefaultTableModel() {
@@ -68,10 +80,10 @@ public class Data {
     }
     
     public static String getDataAsCSV(CompetitionState c) {
-        int hash = Config.CONFIG_STRING.hashCode();
+        int hash = Config.getConfigString().hashCode();
         StringBuilder str = new StringBuilder();
         str.append("# config:");
-        str.append(Config.CONFIG_FILE.getName());
+        str.append(Config.getConfigFile().getName());
         str.append("\n# hash:");
         str.append(String.valueOf(hash));
         str.append("\n# tiebreakers: ");
@@ -122,13 +134,13 @@ public class Data {
                     if(l.contains("hash")) {
                         tokens = l.split("hash:");
                         int hash = Integer.parseInt(tokens[1]);
-                        if(hash != Config.CONFIG_STRING.hashCode()) {
+                        if(hash != Config.getConfigString().hashCode()) {
                             System.err.println();
                             System.err.println("WARNING! Config file hashes between " + 
                                     "the current active config and the saved CSV " +
                                     "DID NOT MATCH.");
                             System.err.println("Active config=" + 
-                                    Config.CONFIG_STRING.hashCode() +
+                                    Config.getConfigString().hashCode() +
                                     " Saved config=" + hash);
                             System.err.println();
                         }
@@ -146,7 +158,7 @@ public class Data {
                     tokens = l.trim().split(",");
                     String ID = tokens[0].trim();
                     Score s = new Score();
-                    for(int i = 3; i < 3+Score.fields.size(); i++) {
+                    for(int i = 3; i < 3+Score.getFields().size(); i++) {
                         s.setValue(Config.getKeysInOriginalOrder("fields").get(i-3),
                                 Double.parseDouble(tokens[i].trim()));
                     }
@@ -170,7 +182,7 @@ public class Data {
     }
     
     public static String[] getColHeaders() {
-        int n = Score.fields.size();
+        int n = Score.getFields().size();
         int cols = 3 + n + 1;
         
         String[] colHeader = new String[cols];
@@ -186,7 +198,7 @@ public class Data {
     }
     
     public static ArrayList<String[]> getData(CompetitionState c) {
-        int n = Score.fields.size();
+        int n = Score.getFields().size();
         int cols = 3 + n + 1;
         ArrayList<String[]> rows = new ArrayList();
         
@@ -298,7 +310,7 @@ public class Data {
             str.append(getDataAsCSV(c));
             
             str.append("\nConfiguration-------------------------------------------------------------------\n");
-            str.append(Config.CONFIG_STRING);           
+            str.append(Config.getConfigString());           
             
             str.append("\nEND OF FILE---------------------------------------------------------------------\n");
             w.write(str.toString());

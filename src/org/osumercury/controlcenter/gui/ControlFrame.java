@@ -135,7 +135,7 @@ public class ControlFrame extends JFrame {
         Log.d(0, "ControlFrame: init");
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
-        setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ")");
+        setTitle("Mercury Control Center (" + Config.getConfigFile().getName() + ")");
         Container pane = this.getContentPane();
         
         this.addWindowListener(new WindowAdapter() {
@@ -465,11 +465,11 @@ public class ControlFrame extends JFrame {
                 if(rows.length > 0) {
                     int teamID = Integer.parseInt((String)tblData.getValueAt(rows[0], 0));
                     int score = Integer.parseInt((String)tblData.getValueAt(rows[0], 2));
-                    Data.lock.writeLock().lock();
+                    Data.lock().writeLock().lock();
                     try {
                         competition.getTeamByID(teamID).getScores().remove(score);
                     } finally {
-                        Data.lock.writeLock().unlock();
+                        Data.lock().writeLock().unlock();
                     }
                     Object[] params = {teamID, score};
                     triggerEvent(UserEvent.DATA_RECORD_EXPUNGED, params);
@@ -481,13 +481,13 @@ public class ControlFrame extends JFrame {
         btnDataClear.addActionListener((ActionEvent e) -> {
             if(confirmYesNo("This will delete ALL recorded scores. ARE YOU SURE?!",
                     "Delete All Data")) {
-                Data.lock.writeLock().lock();
+                Data.lock().writeLock().lock();
                 try {
                     for(Team t : competition.getTeams()) {
                         t.getScores().clear();
                     }
                 } finally {
-                        Data.lock.writeLock().unlock();
+                        Data.lock().writeLock().unlock();
                 }
                 triggerEvent(UserEvent.DATA_CLEARED);
                 updateDataView();
@@ -738,7 +738,7 @@ public class ControlFrame extends JFrame {
         
         menuOptsSounds = new JCheckBoxMenuItem("Play sounds");
         
-        if(Config.SOUND_DISABLED) {
+        if(ControlCenter.SOUND_DISABLED) {
             menuOptsSounds.setEnabled(false);
             menuOptsSounds.setSelected(false);
         } else {
@@ -793,16 +793,16 @@ public class ControlFrame extends JFrame {
     }
     
     private void populateScoreControl(Container pane, JTextField[] scoreFields, boolean editable) {            
-        JLabel[] lblScoreFields = new JLabel[Score.fields.size()];
-        JPanel[] paneScoreFieldContainer = new JPanel[Score.fields.size()];        
+        JLabel[] lblScoreFields = new JLabel[Score.getFields().size()];
+        JPanel[] paneScoreFieldContainer = new JPanel[Score.getFields().size()];        
                 
         pane.removeAll();
 
         int i = 0;
         for(String key : Config.getKeysInOriginalOrder("fields")) {
             lblScoreFields[i] = new JLabel(key + " " +
-                    Score.description.get(key));
-            scoreFields[i] = new JTextField("" + Score.defaultValue.get(key));
+                    Score.getDescription(key));
+            scoreFields[i] = new JTextField("" + Score.getDefaultValue(key));
             scoreFields[i].setEditable(editable);
             paneScoreFieldContainer[i] = new JPanel();
             paneScoreFieldContainer[i].setLayout(new GridLayout(0, 2));
@@ -812,7 +812,7 @@ public class ControlFrame extends JFrame {
             paneLabelAndField.add(scoreFields[i]);
             paneScoreFieldContainer[i].add(paneLabelAndField);
             
-            if(Score.type.get(key) == 1) {
+            if(Score.getType(key) == 1) {
                 JPanel paneButtonsContainer = new JPanel();
                 paneButtonsContainer.setLayout(new GridLayout(1, 8, 5, 0));
                 JButton add = new JButton("+1");
@@ -827,10 +827,10 @@ public class ControlFrame extends JFrame {
                 paneButtonsContainer.add(add);
                 paneButtonsContainer.add(undo);
                 paneScoreFieldContainer[i].add(paneButtonsContainer);
-            } else if(Score.type.get(key) > 1) {
+            } else if(Score.getType(key) > 1) {
                 JPanel panePossibleValues = new JPanel();
                 panePossibleValues.setLayout(new GridLayout(1, 8, 5, 0));
-                Double[] possibleValues = (Double[]) Score.possibleValues.get(key);
+                Double[] possibleValues = (Double[]) Score.getPossibleValues(key);
                 JButton[] values = new JButton[possibleValues.length];
                 int j = 0;
                 for(Double val : possibleValues) {
@@ -864,7 +864,7 @@ public class ControlFrame extends JFrame {
         logo.setIcon(new ImageIcon(Assets.getMercuryLogo(100)));
         logo.setAlignmentX(Component.CENTER_ALIGNMENT);
         JLabel title = new JLabel("Mercury Control Center v" +
-                Text.MAJOR_VERSION + "." + Text.MINOR_VERSION + "." + Text.MINOR_MINOR_VERSION);
+                Text.getVersion());
         title.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 16));
         title.setForeground(Color.WHITE);
         title.setBackground(Color.BLACK);
@@ -914,7 +914,7 @@ public class ControlFrame extends JFrame {
                     text.setText(Text.getApache2License());
                     break;                    
                 case 4:
-                    text.setText(Config.CONFIG_STRING);
+                    text.setText(Config.getConfigString());
                     break;
                 case 5:
                     text.setText(Assets.getAssetInfo());
@@ -948,7 +948,7 @@ public class ControlFrame extends JFrame {
         Log.d(0, "ControlFrame: entering phase " + phase);
         switch (phase) {
             case CompetitionState.IDLE:
-                setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ")");
+                setTitle("Mercury Control Center (" + Config.getConfigFile().getName() + ")");
                 if(timer != null) {
                     timer.stopTimer();
                     timer = null;
@@ -965,7 +965,7 @@ public class ControlFrame extends JFrame {
                 break;
 
             case CompetitionState.SETUP:   
-                setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ") - SETUP");
+                setTitle("Mercury Control Center (" + Config.getConfigFile().getName() + ") - SETUP");
                 // disable team selection controls
                 cmbTeamSelect.setEnabled(false);
                 // enable timing controls
@@ -991,7 +991,7 @@ public class ControlFrame extends JFrame {
                 break;
                 
             case CompetitionState.RUN:
-                setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ") - RUNNING");
+                setTitle("Mercury Control Center (" + Config.getConfigFile().getName() + ") - RUNNING");
                 btnSkipSetup.setEnabled(false);
                 btnCommitScore.setEnabled(true);
                 btnDiscardScore.setEnabled(true);
@@ -1006,7 +1006,7 @@ public class ControlFrame extends JFrame {
                 break;
                 
             case CompetitionState.POST_RUN:
-                setTitle("Mercury Control Center (" + Config.CONFIG_FILE.getName() + ") - POST RUN");
+                setTitle("Mercury Control Center (" + Config.getConfigFile().getName() + ") - POST RUN");
                 cmbTeamSelect.setEnabled(true);
                 competition.getSession().end();
                 btnPause.setEnabled(false);
@@ -1131,11 +1131,11 @@ public class ControlFrame extends JFrame {
             }
             s.setCompleted(true);
             Team t = competition.getTeamByID(cmbTeams.getSelectedIndex());
-            Data.lock.writeLock().lock();
+            Data.lock().writeLock().lock();
             try {
                 t.addScore(s);
             } finally {
-                Data.lock.writeLock().unlock();
+                Data.lock().writeLock().unlock();
             }
             Object[] params = { t.getNumber(), t.getScores().size()-1 };
             triggerEvent(UserEvent.DATA_ADDED, params);
@@ -1190,12 +1190,12 @@ public class ControlFrame extends JFrame {
         if(competition.getState() == CompetitionState.RUN) {
             if(session.getRunNumber() <= maxAttempts) {
                 activeScore.setCompleted(true);
-                Data.lock.writeLock().lock();
+                Data.lock().writeLock().lock();
                 try {
                     session.getActiveTeam().addScore(activeScore);
                     session.getActiveScoreList().add(activeScore);
                 } finally {
-                    Data.lock.writeLock().unlock();
+                    Data.lock().writeLock().unlock();
                 }
                 triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber());
                 if(session.getRunNumber() < maxAttempts) {
@@ -1210,12 +1210,12 @@ public class ControlFrame extends JFrame {
         } else if(competition.getState() == CompetitionState.POST_RUN) {
             if(session.getRunNumber() <= maxAttempts) {
                 activeScore.setCompleted(true);
-                Data.lock.writeLock().lock();
+                Data.lock().writeLock().lock();
                 try {
                     session.getActiveTeam().addScore(activeScore);
                     session.getActiveScoreList().add(activeScore);
                 } finally {
-                    Data.lock.writeLock().unlock();
+                    Data.lock().writeLock().unlock();
                 }
 
                 triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber());
@@ -1245,7 +1245,7 @@ public class ControlFrame extends JFrame {
     
     private void newScore() {
         activeScore = new Score();
-        txtScoreFields = new JTextField[Score.fields.size()];
+        txtScoreFields = new JTextField[Score.getFields().size()];
         populateScoreControl(paneRunScoringControl, txtScoreFields, false);        
         cc.getDisplayFrame().newScore();
     }
@@ -1285,7 +1285,7 @@ public class ControlFrame extends JFrame {
         fc.setFileFilter(
                 new FileNameExtensionFilter("Saved Mercury Data (.csv)", "csv")
         );
-        fc.setCurrentDirectory(Data.dataWorkDir);
+        fc.setCurrentDirectory(Data.getDataWorkDir());
         if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             if(fc.getSelectedFile().exists()) {
                 if(!confirmYesNo(fc.getSelectedFile().getName() + " exists." +
@@ -1304,7 +1304,7 @@ public class ControlFrame extends JFrame {
         fc.setFileFilter(
                 new FileNameExtensionFilter("Saved Mercury Data (.csv)", "csv")
         );
-        fc.setCurrentDirectory(Data.dataWorkDir);
+        fc.setCurrentDirectory(Data.getDataWorkDir());
         if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             Data.loadCSV(competition, fc.getSelectedFile().getAbsolutePath());
             triggerEvent(UserEvent.DATA_IMPORTED, Data.getData(competition));
@@ -1314,10 +1314,10 @@ public class ControlFrame extends JFrame {
     
     private void editData() {
         int col = tblData.getSelectedColumn();
-        if(col-3 < 0 || col-3 >= Score.fields.size()) {
+        if(col-3 < 0 || col-3 >= Score.getFields().size()) {
             return;
         }
-        Data.lock.writeLock().lock();
+        Data.lock().writeLock().lock();
         try {
             DefaultTableModel m = (DefaultTableModel) tblData.getModel();
             int row = tblData.getSelectedRow();
@@ -1339,13 +1339,13 @@ public class ControlFrame extends JFrame {
                 Score s = t.getScores().get(scoreID);
                 s.setValue(field, dialog.getValueDouble());
                 m.setValueAt(dialog.getValueDouble() + "", row, column);
-                m.setValueAt(Score.calculate(s) + "", row, 3+Score.fields.size());
+                m.setValueAt(Score.calculate(s) + "", row, 3+Score.getFields().size());
                 Object[] params = {teamID, scoreID, field, dialog.getValueDouble()};
                 triggerEvent(UserEvent.DATA_CHANGED, params);
                 updateDataView();
             }
         } finally {
-            Data.lock.writeLock().unlock();
+            Data.lock().writeLock().unlock();
         }
     }
     

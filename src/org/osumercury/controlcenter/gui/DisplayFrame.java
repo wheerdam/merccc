@@ -108,6 +108,11 @@ public class DisplayFrame extends JFrame {
     public static int ALT_GREEN = 0xff;
     public static int ALT_BLUE = 0xff;
     public static Color ALT_COLOR;
+    
+    public static int TABLE_BG_RED = 0x05;
+    public static int TABLE_BG_GREEN = 0x20;
+    public static int TABLE_BG_BLUE = 0x50;
+    public static Color TABLE_BG_COLOR;
      
     // static options (common for all displays)
     public static boolean DRAW_RENDER_TIME = false;
@@ -131,12 +136,13 @@ public class DisplayFrame extends JFrame {
         SECONDARY_COLOR = new Color(SECONDARY_RED, SECONDARY_GREEN, SECONDARY_BLUE);
         ALT_COLOR = new Color(ALT_RED, ALT_GREEN, ALT_BLUE);
         BG_COLOR = new Color(BG_RED, BG_GREEN, BG_BLUE);
+        TABLE_BG_COLOR = new Color(TABLE_BG_RED, TABLE_BG_GREEN, TABLE_BG_BLUE);
         canvas = new DisplayCanvas();
         add(canvas);
         classificationRows = new ArrayList();
-        scores = new double[Score.fields.size()];
-        scoreDigits = new int[Score.fields.size()];
-        scoreDecimal = new int[Score.fields.size()];
+        scores = new double[Score.getFields().size()];
+        scoreDigits = new int[Score.getFields().size()];
+        scoreDecimal = new int[Score.getFields().size()];
         teamBadges = new BufferedImage[competition.getTeams().size()];
         systemFont = new Font(Font.MONOSPACED, Font.BOLD, 12);
         newScore();
@@ -209,8 +215,8 @@ public class DisplayFrame extends JFrame {
         currentScore = new Score();
         for(int i = 0; i < scores.length; i++) {
             for(String key : Config.getKeysInOriginalOrder("fields")) {
-                scores[i] = Score.defaultValue.get(key);
-                currentScore.setValue(key, Score.defaultValue.get(key));
+                scores[i] = Score.getDefaultValue(key);
+                currentScore.setValue(key, Score.getDefaultValue(key));
             }
         }
     }
@@ -685,7 +691,7 @@ public class DisplayFrame extends JFrame {
                             break;
                         }
                         if(background) {
-                            g.setColor(new Color(0x05, 0x20, 0x50));
+                            g.setColor(TABLE_BG_COLOR);
                             g.fillRect(0, y, W(1), charH+10);
                         }
                         y += 5;

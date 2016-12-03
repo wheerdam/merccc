@@ -38,7 +38,7 @@ public class SoundPlayer {
     }
 
     public static void play(String key) {
-        if(enabled && !Config.SOUND_DISABLED)
+        if(enabled && !ControlCenter.SOUND_DISABLED)
             (new PlayThread(key)).start();
     }    
 }

@@ -254,7 +254,7 @@ public class SocketInterface extends Thread {
                                 }
                                 break;
                             case "config":
-                                send(Config.CONFIG_STRING);
+                                send(Config.getConfigString());
                                 break;
                             case "state":
                                 send("STATE " + c.getState() + 

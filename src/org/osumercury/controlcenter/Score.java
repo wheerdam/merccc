@@ -28,14 +28,34 @@ import java.util.Map;
 public class Score {
     private static boolean initialized = false;
     private static ArrayList<String> postfixFormula;
-    public static HashMap<String, String> fields;
-    public static HashMap<String, String> description;
-    public static HashMap<String, Integer> type;
-    public static HashMap<String, Double[]> possibleValues;
-    public static HashMap<String, Double> defaultValue;
+    private static HashMap<String, String> fields;
+    private static HashMap<String, String> description;
+    private static HashMap<String, Integer> type;
+    private static HashMap<String, Double[]> possibleValues;
+    private static HashMap<String, Double> defaultValue;
     
     private HashMap<String, Double> values;
     private boolean teamCompletedTrack = false;
+    
+    public static HashMap<String, String> getFields() {
+        return fields;
+    }
+    
+    public static String getDescription(String key) {
+        return description.get(key);
+    }
+    
+    public static int getType(String key) {
+        return type.get(key);
+    }
+    
+    public static Double[] getPossibleValues(String key) {
+        return possibleValues.get(key);
+    }
+    
+    public static double getDefaultValue(String key) {
+        return defaultValue.get(key);
+    }
     
     public static void init(String postfix, HashMap<String, String> vars) {
         try {
