@@ -213,11 +213,11 @@ public class DisplayFrame extends JFrame {
     
     public void newScore() {
         currentScore = new Score();
-        for(int i = 0; i < scores.length; i++) {
-            for(String key : Config.getKeysInOriginalOrder("fields")) {
-                scores[i] = Score.getDefaultValue(key);
-                currentScore.setValue(key, Score.getDefaultValue(key));
-            }
+        int i = 0;
+        for(String key : Config.getKeysInOriginalOrder("fields")) {
+            scores[i] = Score.getDefaultValue(key);
+            currentScore.setValue(key, Score.getDefaultValue(key));
+            i++;
         }
     }
     
@@ -790,7 +790,7 @@ public class DisplayFrame extends JFrame {
             boolean leading = true;
             boolean outOfRange = score < 0 || score >= Math.pow(10,digits);
             int totalDigits = digits + decimal;
-            int normalizedScore = (int)(score*Math.pow(10,decimal));;
+            int normalizedScore = (int)(score*Math.pow(10,decimal));
             if((int)score >= Math.pow(10, digits)) {
                 normalizedScore %= (int)(Math.pow(10, totalDigits));
             }
