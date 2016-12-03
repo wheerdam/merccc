@@ -24,7 +24,6 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import java.awt.Image;
 import org.imgscalr.Scalr;
-import org.osumercury.controlcenter.Config;
 import org.osumercury.controlcenter.Log;
 
 /**
@@ -111,27 +110,27 @@ public class Assets {
         return true;
     }
     
-    public static void theme() {
-        if(!Config.hasSection("theme")) {
+    public static void theme(HashMap<String, String> theme) {
+        if(theme == null) {
             return;
         }
         
         Log.d(0, "Assets.theme: Checking for user-defined theme definitions");
         
         String val;
-        val = Config.getValue("theme", "digitfont");
+        val = theme.get("digitfont");
         if(val != null) {
             try {
                 Log.d(0, "Assets.theme: loading custom digits font " + val);
                 BufferedImage digitFont = getAsset(val);
-                int digitW = Integer.parseInt(Config.getValue("theme", "digitW"));
-                int digitH = Integer.parseInt(Config.getValue("theme", "digitH"));
-                int colonX = Integer.parseInt(Config.getValue("theme", "colonX"));
-                int colonW = Integer.parseInt(Config.getValue("theme", "colonW"));
-                int periodX = Integer.parseInt(Config.getValue("theme", "periodX"));
-                int periodW = Integer.parseInt(Config.getValue("theme", "periodW"));
-                int dashX = Integer.parseInt(Config.getValue("theme", "dashX"));
-                int dashW = Integer.parseInt(Config.getValue("theme", "dashW"));
+                int digitW = Integer.parseInt(theme.get("digitW"));
+                int digitH = Integer.parseInt(theme.get("digitH"));
+                int colonX = Integer.parseInt(theme.get("colonX"));
+                int colonW = Integer.parseInt(theme.get("colonW"));
+                int periodX = Integer.parseInt(theme.get("periodX"));
+                int periodW = Integer.parseInt(theme.get("periodW"));
+                int dashX = Integer.parseInt(theme.get("dashX"));
+                int dashW = Integer.parseInt(theme.get("dashW"));
                 populateDigits(digitFont, digitW, digitH,
                         colonX, colonW, periodX, periodW, dashX, dashW);
             } catch(Exception e) {
@@ -140,17 +139,17 @@ public class Assets {
             }
         }
         
-        val = Config.getValue("theme", "font");
+        val = theme.get("font");
         if(val != null) {
             try {
                 Log.d(0, "Assets.theme: loading custom text font " + val);
                 BufferedImage font = getAsset(val);
-                int runeW = Integer.parseInt(Config.getValue("theme", "runeW"));
-                int runeH = Integer.parseInt(Config.getValue("theme", "runeH"));
-                int row0 = Integer.parseInt(Config.getValue("theme", "row0"));
-                int row1 = Integer.parseInt(Config.getValue("theme", "row1"));
-                int row2 = Integer.parseInt(Config.getValue("theme", "row2"));
-                int row3 = Integer.parseInt(Config.getValue("theme", "row3"));
+                int runeW = Integer.parseInt(theme.get("runeW"));
+                int runeH = Integer.parseInt(theme.get("runeH"));
+                int row0 = Integer.parseInt(theme.get("row0"));
+                int row1 = Integer.parseInt(theme.get("row1"));
+                int row2 = Integer.parseInt(theme.get("row2"));
+                int row3 = Integer.parseInt(theme.get("row3"));
                 populateFont(font, runeW, runeH, row0, row1, row2, row3);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to load custom text font");
@@ -158,7 +157,7 @@ public class Assets {
             }
         }
         
-        String primaryColor = Config.getValue("theme", "primarycolor");
+        String primaryColor = theme.get("primarycolor");
         if(primaryColor != null) {
             try {
                 String[] tokens = primaryColor.trim().split(",");
@@ -174,7 +173,7 @@ public class Assets {
             }
         }
         
-        String secondaryColor = Config.getValue("theme", "secondarycolor");
+        String secondaryColor = theme.get("secondarycolor");
         if(secondaryColor != null) {
             try {
                 String[] tokens = secondaryColor.trim().split(",");
@@ -190,7 +189,7 @@ public class Assets {
             }
         }
         
-        String altColor = Config.getValue("theme", "altcolor");
+        String altColor = theme.get("altcolor");
         if(altColor != null) {
             try {
                 String[] tokens = altColor.trim().split(",");
@@ -206,7 +205,7 @@ public class Assets {
             }
         }
         
-        String bgColor = Config.getValue("theme", "bgcolor");
+        String bgColor = theme.get("bgcolor");
         if(bgColor != null) {
             try {
                 String[] tokens = bgColor.trim().split(",");
@@ -222,7 +221,7 @@ public class Assets {
             }
         }
         
-        String tableBgColor = Config.getValue("theme", "tablebgcolor");
+        String tableBgColor = theme.get("tablebgcolor");
         if(tableBgColor != null) {
             try {
                 String[] tokens = tableBgColor.trim().split(",");
@@ -238,12 +237,12 @@ public class Assets {
             }
         }
         
-        String bgImageFile = Config.getValue("theme", "bgimage");
+        String bgImageFile = theme.get("bgimage");
         if(bgImageFile != null) {
             DisplayFrame.BG_IMAGE = getAsset(bgImageFile);
         }
         
-        String bgAlignment = Config.getValue("theme", "bgalignment");
+        String bgAlignment = theme.get("bgalignment");
         if(bgAlignment != null) {
             try {
                 DisplayFrame.BG_ALIGNMENT = Integer.parseInt(bgAlignment);

@@ -82,6 +82,7 @@ public class DisplayFrame extends JFrame {
     public static final int PERIOD = 11;
     public static final int DASH = 12;
     
+    // static options (common for all displays) and default values
     public static int SCORE_FIELD_DIGITS = 2;
     public static int SCORE_FIELD_DECIMAL = 2;
     
@@ -114,7 +115,6 @@ public class DisplayFrame extends JFrame {
     public static int TABLE_BG_BLUE = 0x50;
     public static Color TABLE_BG_COLOR;
      
-    // static options (common for all displays)
     public static boolean DRAW_RENDER_TIME = false;
     public static boolean ALIGN_CLOCK_LEFT = false;
     public static boolean GENERATE_THUMBNAIL = false;
@@ -290,11 +290,23 @@ public class DisplayFrame extends JFrame {
             str = t.getLogoFileName();
             if(Assets.doesAssetExist(str)) {
                 BufferedImage logo = Assets.getAsset(str);
-                if(logo.getWidth() < (int)(0.5 * width)) {
+                int logoScaledWidth =
+                        (int)((double)(height*TEAM_BADGE_HEIGHT_RATIO)/logo.getHeight()*logo.getWidth());
+                
+                // if scaled width is less than half the screen width, use these
+                // dimensions
+                if(logoScaledWidth < (int)(0.5 * width)) {
+                    Log.d(2, "DisplayFrame.rescale: teamBadges[" + teamID + "]: " +
+                            "scaled by height");
                     teamBadges[teamID] = Assets.scale(logo,
-                            (int)((double)(height*TEAM_BADGE_HEIGHT_RATIO)/logo.getHeight()*logo.getWidth()),
+                            logoScaledWidth,
                             (int)(height*TEAM_BADGE_HEIGHT_RATIO));
+                    
+                // otherwise scale to half screen width so the clock won't be
+                // covered by the team badge
                 } else {
+                    Log.d(2, "DisplayFrame.rescale: teamBadges[" + teamID + "]: " +
+                            "scaled by width");
                     teamBadges[teamID] = Assets.scale(logo,
                             (int)(0.5*width),
                             (int)(0.5*width/logo.getWidth()*logo.getHeight()));

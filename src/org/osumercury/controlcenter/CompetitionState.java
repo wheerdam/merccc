@@ -42,7 +42,7 @@ public class CompetitionState {
     
     private int state;
     
-    public CompetitionState() {
+    public CompetitionState(HashMap<String, String> teamsMap) {
         stateChangeHooks = new ArrayList();
         teams = new ArrayList();
         teamByID = new HashMap();
@@ -50,7 +50,6 @@ public class CompetitionState {
         state = IDLE;
         redFlagged = false;
         
-        HashMap<String, String> teamsMap = Config.getSectionAsMap("teams");
         if(teamsMap == null) {
             Log.fatal(3, "CompetitionState: no teams section in config. file");
         }

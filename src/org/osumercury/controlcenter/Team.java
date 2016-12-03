@@ -16,8 +16,6 @@ limitations under the License.
  */
 package org.osumercury.controlcenter;
 
-import org.osumercury.controlcenter.gui.Assets;
-import java.awt.Image;
 import java.util.ArrayList;
 
 /**
@@ -25,11 +23,11 @@ import java.util.ArrayList;
  * @author wira
  */
 public class Team implements Comparable {
-    private String logo;
-    private int teamNumber;
-    private String teamName;
-    private String teamInstitution;
-    private ArrayList<Score> scores;
+    private final String logo;
+    private final int teamNumber;
+    private final String teamName;
+    private final String teamInstitution;
+    private final ArrayList<Score> scores;
     private int tiebreaker;    
     
     public static final int SORT_DESCENDING = 0;

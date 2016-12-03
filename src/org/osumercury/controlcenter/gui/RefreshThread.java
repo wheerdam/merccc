@@ -14,11 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
  */
-package org.osumercury.controlcenter;
+package org.osumercury.controlcenter.gui;
 
-import org.osumercury.controlcenter.gui.ControlFrame;
-import org.osumercury.controlcenter.gui.DisplayFrame;
-import org.osumercury.controlcenter.gui.ThumbnailFrame;
+import org.osumercury.controlcenter.ControlCenter;
+import org.osumercury.controlcenter.Log;
 
 /**
  *

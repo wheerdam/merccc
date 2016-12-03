@@ -16,6 +16,7 @@ limitations under the License.
  */
 package org.osumercury.controlcenter;
 
+import org.osumercury.controlcenter.gui.RefreshThread;
 import org.osumercury.controlcenter.gui.Assets;
 import org.osumercury.controlcenter.gui.DisplayFrame;
 import org.osumercury.controlcenter.gui.ControlFrame;
@@ -228,7 +229,7 @@ public class ControlCenter {
                 Config.getValue("test", "__RESULT")
         );
         try {
-            competition = new CompetitionState();
+            competition = new CompetitionState(Config.getSectionAsMap("teams"));
         } catch(Exception e) {
             Log.fatal(3, "Failed to initialize competition state.\n" + 
                     "This is most likely caused by an invalid configuration file.\n" +
@@ -260,7 +261,7 @@ public class ControlCenter {
             Assets.loadInternalAssets();
             Assets.load(resourceDir);
             if(!noTheme) {
-                Assets.theme();
+                Assets.theme(Config.getSectionAsMap("theme"));
             }
             
             val = Config.getValue("theme", "systemfont");
