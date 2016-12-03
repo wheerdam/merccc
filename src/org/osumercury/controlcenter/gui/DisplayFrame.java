@@ -517,7 +517,7 @@ public class DisplayFrame extends JFrame {
                         g.fillRect(0, 0, W, H(0.1));
                         g.fillRect(0, H(0.9), W, H(0.1));
                         yOffset += H(0.1)+15;
-                        str = "ROBOT #" + teamID;
+                        str = "TEAM #" + teamID;
                         str2 = " " + teamName;
                         drawText(g, str, 10, yOffset, true);
                         drawText(g, str2, 10+getTextWidth(str), yOffset, false);
