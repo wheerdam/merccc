@@ -96,6 +96,9 @@ public class ControlCenter {
     @Parameter(names = { "--client" })
     private boolean clientModeHelp = false;
     
+    @Parameter(names = { "--lockmode" })
+    private int lockMode = -1;
+    
     private Boolean GUI = true;
     
     private CompetitionState competition;
@@ -356,7 +359,7 @@ public class ControlCenter {
                 display = new DisplayFrame(this, sysFont);
                 refresh = new RefreshThread(this, refreshRateMs);
                 DisplayClient.connect(this, controlHost, controlPort,
-                        displayNumber, fetchConfig);
+                        displayNumber, fetchConfig, lockMode);
             }
         }
     }    
@@ -457,7 +460,7 @@ public class ControlCenter {
     
     public static void printClientModeHelp() {
         Log.d(0, "\n"+
-                 "client mode: java -jar <jarfile> -x HOST:PORT:DISPLAY\n\n"+
+                 "client mode: java -jar <jarfile> -x HOST:PORT:DISPLAY [options]\n\n"+
                  "  Connect to a remote instance of merccc running on the specified host. The\n"+
                  "  local display window will reflect the state of the remote server and be\n"+
                  "  displayed on a screen as specified by DISPLAY. DISPLAY is the index of the\n"+
@@ -470,7 +473,11 @@ public class ControlCenter {
                  "\n"+
                  "  Resources will not be transferred. Local resources will be loaded if the\n"+
                  "  local directory is found or if a ZIP file containing the resources is loaded\n"+
-                 "  using the '-z' option.\n"
+                 "  using the '-z' option.\n"+
+                 "\n"+
+                 "client mode specific options:\n"+
+                 "      --lockmode MODE      lock the display window in a specific MODE:\n"+
+                 "                           0: logo and time, 1: run status, 2: classification\n"
         );
     }
 }

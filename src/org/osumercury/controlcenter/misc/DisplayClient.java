@@ -64,7 +64,8 @@ public class DisplayClient {
     }
     
     public static void connect(ControlCenter cc, 
-            String host, int port, int displayNumber, boolean fetchConfig) {
+            String host, int port, int displayNumber, boolean fetchConfig,
+            int lockMode) {
         CompetitionState c = cc.getCompetitionState();
         DisplayFrame display = cc.getDisplayFrame();        
         SoundPlayer.setEnabled(false);
@@ -116,6 +117,9 @@ public class DisplayClient {
                 display.setVisible(true);
                 cc.getRefreshThread().start();
                 display.setClassificationData(c.getSortedFinishedTeams());
+                if(lockMode >= 0 && lockMode <= 2) {
+                    display.setMode(lockMode);
+                }
             });
             
             Log.d(0, "- going into monitor mode");
@@ -128,7 +132,9 @@ public class DisplayClient {
                 String[] tokens = d.split(" ", 2);
                 switch(tokens[0]) {
                     case "DISPLAY_MODE_CHANGE":
-                        display.setMode(Integer.parseInt(tokens[1]));
+                        if(lockMode < 0 || lockMode > 2) {
+                            display.setMode(Integer.parseInt(tokens[1]));
+                        }
                         break;
                     case "DISPLAY_RANK_START":
                         display.setRankStart(Integer.parseInt(tokens[1]));
