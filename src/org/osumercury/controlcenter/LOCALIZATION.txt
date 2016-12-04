@@ -1,0 +1,31 @@
+MERCURY CONTROL CENTER
+Program Output Localization
+
+Revision History:
+0.9.9  2016-12-04  Initial version
+
+Certain text in the Mercury Control Center program can be replaced during runtime for localization purposes. To localize the text in the DISPLAY WINDOW, add a [localization] section in the configuration file. The following entries then can be used to localize the string:
+
+Key              Default (English)
+----------------------------------
+TEAM             TEAM 
+SETUP_PERIOD     SETUP PERIOD
+TIME_LEFT        TIME LEFT
+SETUP_TIME_LEFT  SETUP TIME LEFT
+RUN              RUN
+OF               OF
+NEXT             NEXT
+CURRENT          CURRENT
+NO_SCORE         NO SCORE
+BEST_SCORE       BEST SCORE
+CLASSIFICATION   CLASSIFICATION
+POSITION         P.
+ID               ID
+SCORE            SCORE
+
+As an example, to replace the word "TEAM" with "ROBOT", and "CLASSIFICATION" with "STANDINGS", one can use the following localization section in the configuration file:
+
+	[localization]
+	TEAM=ROBOT
+	CLASSIFICATION=STANDINGS
+

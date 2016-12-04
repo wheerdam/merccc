@@ -66,6 +66,9 @@ public class ControlCenter {
     @Parameter(names = { "-f", "--format" })
     private boolean confFormat = false;
     
+    @Parameter(names = { "--localization" })
+    private boolean localization = false;
+    
     @Parameter(names = { "-m", "--nosound" })
     private boolean nosound = false;
     
@@ -147,6 +150,11 @@ public class ControlCenter {
         
         if(confFormat) {
             System.out.println(Text.getConfigFileSpecs());
+            return;
+        }
+        
+        if(localization) {
+            System.out.println(Text.getLocalizationInformation());
             return;
         }
         
@@ -433,6 +441,7 @@ public class ControlCenter {
                  "  -l, --load FILE          load saved .csv data from a previous scoring session\n"+
                  "      --help               display this help message\n"+
                  "      --about              display information about the software\n"+
+                 "      --localization       display information about text localization\n"+
                  "      --font FONT          use the specified FONT instead of the built-in font\n"+
                  "      --ask-font           list system fonts to use with font selection dialog\n"+
                  "  -p, --port PORT          open tcp server socket interface\n"+

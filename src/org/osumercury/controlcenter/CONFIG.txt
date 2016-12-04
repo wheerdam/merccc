@@ -8,7 +8,7 @@ Revision History:
 0.9.3  2016/10/15  Added theming support
 0.9.7  2016/11/23  Added more theming options
 0.9.8b 2016/12/03  Classification table background color
-0.9.9  2016/12/04  Team IDs do not need to be in sequence any more
+0.9.9  2016/12/04  Arbitrary team IDs, logo sizing, and banner
 
 ========
 OVERVIEW
@@ -31,9 +31,9 @@ tournament - default tournament parameters
 teams      - team entries
 theme      - optional section to change the DISPLAY WINDOW's appearances
 
------------
+===========
 FILE FORMAT
------------
+===========
 
 The configuration file format is similar to Windows .INI format. Section headers are enclosed within square brackets. Entries within sections are defined by an identifier on the left, an equal sign, and parameters on the right. There must not be any space between the identifier and the equal sign. The following is an example of a section:
 
@@ -44,19 +44,17 @@ The configuration file format is similar to Windows .INI format. Section headers
 
 Hash marks (#) can be used to write comments. Anything after the hash mark will be ignored by the program.
 
---------------
+==============
 SYSTEM SECTION
---------------
+==============
 
 The system section has two entries:
 
-	debuglevel=<integer> # optional
-
-Set the verbosity of the program. Default is 0.
-
+	[system]
 	resourcedir=<path>
+	debuglevel=<integer> # console output verbosity, optional
 
-Specify the directory that contains user-defined resources such as team badges, event sounds, and competition logo. This directory is relative to the directory where the configuration file is located when it was loaded. If this entry is missing or the program can not open the specified directory, the program will prompt the user to provide a resource directory when it executes.
+resourcedir specifies the directory that contains user-defined resources such as team badges, event sounds, and competition logo. This directory is relative to the directory where the configuration file is located when it was loaded. If this entry is missing or the program can not open the specified directory, the program will prompt the user to provide a resource directory when it executes.
 
 The following files are expected to be inside the resource directory:
 - logo.png - competition logo, displayed in LOGO mode or when no run is in progress
@@ -65,10 +63,10 @@ The following files are expected to be inside the resource directory:
 - window-end.wav - sound to play when the run window has ended
 
 Other files are user-defined within the configuration file. If the logo image is not found, the default logo will be displayed instead. No sound will play if the program could not find the above sound files.
-
----------------
+	
+===============
 FORMULA SECTION
----------------
+===============
 
 The formula section specifies the formula that is going to be used to score a team. This section only has one valid entry "postfix". The scoring formula is defined in postfix notation. ALL variables used in the formula must also be defined in the "fields" section of the configuration file. Constants must be included as numerical values in the formula. The formula accepts floating point number constants and the following operators: +, -, *, /, ^ (exponent), SQRT (square root)
 
@@ -77,9 +75,9 @@ For example, to use the following infix formula (0.5 * A + B) * (20 - P), the fo
 	[formula]
 	postfix=0.5 A * B + 20 P - *
 
---------------
+==============
 FIELDS SECTION
---------------
+==============
 
 The fields section defines the variables used in the scoring formula. Each entry of the section contains the description, default value, type, and possible values (if applicable) of each scoring variable. The following is the format for each scoring variable in this section:
 
@@ -99,9 +97,9 @@ POSSIBLE_VALUES only applies when TYPE is 2 or greater. POSSIBLE_VALUES is ':' o
 
 The program will have 3 buttons that correspond to the possible values for the operator to choose while in a scoring session.
 
----------------
+===============
 DISPLAY SECTION
----------------
+===============
 
 Each score field value can be displayed while a scored run is active. This section allows the organizers to format how each score field is displayed in the program. By default the program will display 2 digits and 2 decimal digits for each field. This default can be overridden in this section by using the following entries:
 
@@ -113,9 +111,9 @@ To override the default for a specific field, just add an entry for the field an
 
 	P=2,0	# display the 'P' field as '00'	
 
-------------
+============
 TEST SECTION
-------------
+============
 
 The test section allows the user of the program to verify their formula. To use this feature, add an entry for each variable in the formula with a test value, and add an entry to assert the result with __RESULT. The program will give a warning during initialization if the expected value given in __RESULT and the calculated value do not match. The following is an example of a test section for the formula given in the formula section.
 
@@ -127,9 +125,9 @@ The test section allows the user of the program to verify their formula. To use 
 
 If the calculated value does not equal 270, a warning will be given in the console window during program startup.
 
-------------------
+==================
 TOURNAMENT SECTION
-------------------
+==================
 
 The tournament section defines the default setup and window durations, the number of scored attempts the team can make during a run window, and whether the score is sorted in ascending or descending order. The timing and attempts parameters can be overidden during the running of the program. The following example defines a setup window of 5 minutes, run window of 10 minutes, and 3 maximum attempts (Mercury Remote Robot Competition timings). The setup period can be skipped by the operator during a scoring session if desired. 
 
@@ -141,9 +139,9 @@ The tournament section defines the default setup and window durations, the numbe
 
 The teams are sorted in descending order by default (higher score is better). If sortorder is set to 1, the teams will be sorted in ascending order (lower score is better).
 
--------------
+=============
 TEAMS SECTION
--------------
+=============
 
 The teams section contains entries for all competing teams. Each team is assigned a unique team number. The format for each entry is: 
 
@@ -158,15 +156,44 @@ The following is an example of the section (the ID numbers do not have to be in 
 
 If the specified image file exists in the resource directory, the program will display the graphic during the setup phase. Images can either be .PNG or .JPG format.
 
--------------
+=============
 THEME SECTION
--------------
+=============
 
 The theme section allows the user to modify how the DISPLAY WINDOW will appear. This section is completely optional.
+
+---------------
+CLOCK ALIGNMENT
+---------------
 
 The clock on the DISPLAY WINDOW during a run (setup and run windows) is aligned to the right by default. The user can change this aligment by adding the following option:
 
 	alignclockleft=1
+
+----------------------------
+LOGO SCALING AND POSITIONING
+----------------------------
+
+The competition logo can be scaled and positioned relative to the current screen height with the following options:
+
+	logoheight=0.4
+	logoposition=0.4
+
+A wide logo will be scaled better than a tall one as to make good use of widescreen displays.
+
+------
+BANNER
+------
+
+The program can display a banner in logo mode (e.g. for sponsors). The image for the banner can either be in PNG or JPG format. The image must be placed inside the resources directory or it will not be displayed.
+
+	banner=banner.png
+
+The banner will be displayed on the bottom right portion of the screen, scaled appropriately as to not cover the clock and logo. The banner will also be displayed on the top right portion of the screen during setup period.
+
+------------
+BITMAP FONTS
+------------
 
 The bitmap digits and text fonts in the program can be replaced by the user using this section. The fonts have to be in .PNG format and placed within the resource directory. The font then can be used by using the entries below (it is not necessary to provide both, the user can just replace the digits OR the text if that is what is desired):
 
@@ -198,19 +225,33 @@ The following configuration entries will be used to clip each character: runeW, 
 
 The program assumes a monospaced font. runeW and runeH simply define the clipping box for each character. The x-axis position of each character is derived by multiplying runeW with the number of characters to skip to reach the desired position. The row entries define where in y-axis the program should look for the desired row. The y-axis' origin is on the top of the image, e.g. if the first row is aligned to the top of the image, row0 will be zero.
 
+-----------
+SYSTEM FONT
+-----------
+
 An alternative to using bitmap text fonts is to use system fonts (e.g. to render non-basic Latin characters). This can be specified by using the systemfont option:
 
 	systemfont=Times New Roman
 
 This option overrides bitmap font options. The systemfont option will not be used to render digits, only the text font.
 
+------
+COLORS
+------
+
 The theme section also allows the user to change the graphic colors used in the DISPLAY WINDOW. The entries are:
 
-	primarycolor=255,255,255 # color in 24-bit RGB
-	secondarycolor=255,255,0
-	altcolor=255,0,255
+	primarycolor=32,187,255 # color in 24-bit RGB
+	secondarycolor=255,126,48
+	altcolor=255,255,255
 	bgcolor=0,0,0 # background color
-        tablebgcolor=0,32,80 # class. table "light" background
+	tablebgcolor=5,32,80 # class. table "light" background
+
+The values above are the default values used by the program internally. The primary color is light blue, the secondary color is bright orange, the alternate color is white, and table light background is dark blue. Bitmap fonts' colors are fixed and the user must replace the image files to use different colors.
+
+----------------
+BACKGROUND IMAGE
+----------------
 
 merccc can display a background image in the DISPLAY WINDOW. The background image is specified as follows:
 

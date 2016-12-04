@@ -84,6 +84,25 @@ public class Text {
         return str.toString();
     }
     
+    public static String getLocalizationInformation() {
+        String line;
+        StringBuilder str = new StringBuilder();
+        BufferedReader r =  new BufferedReader(
+                new InputStreamReader(Text.class.getResourceAsStream("/org/osumercury/controlcenter/LOCALIZATION.txt"))
+        );
+        try {
+            while((line = r.readLine()) != null) {
+                str.append(line);
+                str.append("\n");
+            }
+        } catch(IOException ioe) {
+            System.err.println("Localization information unavailable");
+            return "Localization information unavailable";
+        }
+        
+        return str.toString();
+    }
+    
     public static String getApache2License() {
         String line;
         StringBuilder str = new StringBuilder();

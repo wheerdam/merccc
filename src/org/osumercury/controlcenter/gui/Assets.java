@@ -251,6 +251,26 @@ public class Assets {
                 System.err.println("Assets.theme: " + e.toString());
             }
         }
+        
+        val = theme.get("logoheight");
+        if(val != null) {
+            try {
+                DisplayFrame.LOGO_HEIGHT_PROPORTION = Float.parseFloat(val);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse logo height");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
+        val = theme.get("logoposition");
+        if(val != null) {
+            try {
+                DisplayFrame.LOGO_Y_POSITION_PROPORTION = Float.parseFloat(val);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse logo position");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
     }
     
     public static BufferedImage getMercuryLogo(int height) {

@@ -60,6 +60,7 @@ public class ControlFrame extends JFrame {
     private JCheckBoxMenuItem menuOptsRenderTime;
     private JCheckBoxMenuItem menuOptsThumbnail;
     private JCheckBoxMenuItem menuOptsSounds;
+    private JCheckBoxMenuItem menuOptsBanner;
     
     /** GLOBAL UI ELEMENTS **/
     private JLabel lblDisplayScreen;
@@ -740,9 +741,10 @@ public class ControlFrame extends JFrame {
         menuOptsRenderTime.setSelected(DisplayFrame.DRAW_RENDER_TIME);
         menuOptsThumbnail = new JCheckBoxMenuItem("Preview window");
         menuOptsThumbnail.setMnemonic(KeyEvent.VK_T);
-        menuOptsThumbnail.setSelected(DisplayFrame.GENERATE_THUMBNAIL);
-        
+        menuOptsThumbnail.setSelected(DisplayFrame.GENERATE_THUMBNAIL);        
         menuOptsSounds = new JCheckBoxMenuItem("Play sounds");
+        menuOptsBanner = new JCheckBoxMenuItem("Show banner");
+        menuOptsBanner.setSelected(DisplayFrame.SHOW_BANNER);
         
         if(ControlCenter.SOUND_DISABLED) {
             menuOptsSounds.setEnabled(false);
@@ -777,10 +779,15 @@ public class ControlFrame extends JFrame {
             SoundPlayer.setEnabled(menuOptsSounds.isSelected());
         });
         
+        menuOptsBanner.addActionListener(((ActionEvent e) -> {
+            DisplayFrame.SHOW_BANNER = menuOptsBanner.isSelected();
+        }));
+        
         menuOpts.add(menuOptsSounds);
         menuOpts.add(menuOptsFont);
         menuOpts.add(menuOptsThumbnail);
         menuOpts.add(new JSeparator());
+        menuOpts.add(menuOptsBanner);
         menuOpts.add(menuOptsRenderTime);
         
         //</editor-fold>
@@ -895,7 +902,8 @@ public class ControlFrame extends JFrame {
         cmbTextSelect.addItem("License");
         cmbTextSelect.addItem("3rd Party");
         cmbTextSelect.addItem("Configuration File Format");
-        cmbTextSelect.addItem("Apache License 2.0");        
+        cmbTextSelect.addItem("Apache License 2.0");
+        cmbTextSelect.addItem("Localization Information");
         if(!aboutOnly) {
             cmbTextSelect.addItem("Current Configuration");
             cmbTextSelect.addItem("Loaded Resources");
@@ -918,11 +926,14 @@ public class ControlFrame extends JFrame {
                     break;
                 case 3:
                     text.setText(Text.getApache2License());
-                    break;                    
+                    break;      
                 case 4:
+                    text.setText(Text.getLocalizationInformation());
+                    break;     
+                case 5:
                     text.setText(Config.getConfigString());
                     break;
-                case 5:
+                case 6:
                     text.setText(Assets.getAssetInfo());
                     break;
             }
