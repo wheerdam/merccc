@@ -901,8 +901,8 @@ public class ControlFrame extends JFrame {
         JComboBox cmbTextSelect = new JComboBox();
         cmbTextSelect.addItem("License");
         cmbTextSelect.addItem("3rd Party");
-        cmbTextSelect.addItem("Configuration File Format");
         cmbTextSelect.addItem("Apache License 2.0");
+        cmbTextSelect.addItem("Configuration File Format");
         cmbTextSelect.addItem("Localization Information");
         if(!aboutOnly) {
             cmbTextSelect.addItem("Current Configuration");
@@ -922,10 +922,10 @@ public class ControlFrame extends JFrame {
                     text.setText(Text.THIRD_PARTY);
                     break;
                 case 2:
-                    text.setText(Text.getConfigFileSpecs());
+                    text.setText(Text.getApache2License());
                     break;
                 case 3:
-                    text.setText(Text.getApache2License());
+                    text.setText(Text.getConfigFileSpecs());
                     break;      
                 case 4:
                     text.setText(Text.getLocalizationInformation());
