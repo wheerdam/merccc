@@ -1,18 +1,17 @@
 /*
     Copyright 2016 Wira Mulia
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package org.osumercury.controlcenter;
 
@@ -25,8 +24,8 @@ import java.util.Map;
  * @author wira
  */
 public class CompetitionState {
-    private ArrayList<Team> teams;
-    private HashMap<Integer, Team> teamByID;
+    private final ArrayList<Team> teams;
+    private final HashMap<Integer, Team> teamByID;
     private ArrayList<Team> teamsFinished;
     private ArrayList<Team> teamsDNF;
     private SessionState session;
@@ -60,7 +59,7 @@ public class CompetitionState {
         Team t;
         String[] tokens;
         for(Map.Entry<String, String> e : teamsMap.entrySet()) {
-            Log.d(0, "CompetitionState: adding team entry "
+            Log.d(1, "CompetitionState: adding team entry "
                     + e.getKey() + " -> " + e.getValue());
             tokens = e.getValue().trim().split(",");
             t = new Team(Integer.parseInt(e.getKey()),

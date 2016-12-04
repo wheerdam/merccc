@@ -1,18 +1,17 @@
 /*
     Copyright 2016 Wira Mulia
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package org.osumercury.controlcenter.gui;
 
@@ -21,6 +20,7 @@ import javax.swing.*;
 import java.awt.image.*;
 import java.util.Calendar;
 import java.util.ArrayList;
+import java.util.HashMap;
 import org.osumercury.controlcenter.CompetitionState;
 import org.osumercury.controlcenter.Config;
 import org.osumercury.controlcenter.ControlCenter;
@@ -57,9 +57,10 @@ public class DisplayFrame extends JFrame {
     private BufferedImage[] scaledNonAlphabet = new BufferedImage[19];
     private BufferedImage[] scaledWhiteAlphabet = new BufferedImage[26];
     private BufferedImage[] scaledWhiteNonAlphabet = new BufferedImage[19];
-    private BufferedImage[] teamBadges;
+    private HashMap<Integer, BufferedImage> teamBadges;
     private DisplayCanvas canvas;
     private int rankStart = 1;
+    private int nextTeamID = -1;
     private int thumbIntervalCount = 0;
     private ArrayList<String[]> classificationRows;
     private double[] scores;
@@ -83,6 +84,21 @@ public class DisplayFrame extends JFrame {
     public static final int DASH = 12;
     
     // static options (common for all displays) and default values
+    public static String TEXT_TEAM = "TEAM";
+    public static String TEXT_SETUP_PERIOD = "SETUP PERIOD";
+    public static String TEXT_TIME_LEFT = "TIME LEFT";
+    public static String TEXT_SETUP_TIME_LEFT = "SETUP TIME LEFT";
+    public static String TEXT_RUN = "RUN";
+    public static String TEXT_OF = "OF";
+    public static String TEXT_NEXT = "NEXT";
+    public static String TEXT_CURRENT = "CURRENT";
+    public static String TEXT_NO_SCORE ="NO SCORE";
+    public static String TEXT_BEST_SCORE = "BEST SCORE";
+    public static String TEXT_CLASSIFICATION = "CLASSIFICATION";
+    public static String TEXT_POSITION = "P.";
+    public static String TEXT_ID = "ID";
+    public static String TEXT_SCORE = "SCORE";
+    
     public static int SCORE_FIELD_DIGITS = 2;
     public static int SCORE_FIELD_DECIMAL = 2;
     
@@ -143,7 +159,7 @@ public class DisplayFrame extends JFrame {
         scores = new double[Score.getFields().size()];
         scoreDigits = new int[Score.getFields().size()];
         scoreDecimal = new int[Score.getFields().size()];
-        teamBadges = new BufferedImage[competition.getTeams().size()];
+        teamBadges = new HashMap();
         systemFont = new Font(Font.MONOSPACED, Font.BOLD, 12);
         newScore();
         if(cc.getControlFrame() != null) {
@@ -229,6 +245,10 @@ public class DisplayFrame extends JFrame {
         currentScore.setValue(key, value);
     }
     
+    public void setNextTeamID(int id) {
+        nextTeamID = id;
+    }
+    
     public synchronized BufferedImage getThumbnail() {
         return thumbnailImage;
     }
@@ -298,18 +318,20 @@ public class DisplayFrame extends JFrame {
                 if(logoScaledWidth < (int)(0.5 * width)) {
                     Log.d(2, "DisplayFrame.rescale: teamBadges[" + teamID + "]: " +
                             "scaled by height");
-                    teamBadges[teamID] = Assets.scale(logo,
+                    teamBadges.put(teamID, Assets.scale(logo,
                             logoScaledWidth,
-                            (int)(height*TEAM_BADGE_HEIGHT_RATIO));
+                            (int)(height*TEAM_BADGE_HEIGHT_RATIO))
+                    );
                     
                 // otherwise scale to half screen width so the clock won't be
                 // covered by the team badge
                 } else {
                     Log.d(2, "DisplayFrame.rescale: teamBadges[" + teamID + "]: " +
                             "scaled by width");
-                    teamBadges[teamID] = Assets.scale(logo,
+                    teamBadges.put(teamID, Assets.scale(logo,
                             (int)(0.5*width),
-                            (int)(0.5*width/logo.getWidth()*logo.getHeight()));
+                            (int)(0.5*width/logo.getWidth()*logo.getHeight()))
+                    );
                 }
             } 
         }
@@ -323,6 +345,10 @@ public class DisplayFrame extends JFrame {
     public void setMode(int mode) {
         this.mode = mode;
     }        
+    
+    public int getMode() {
+        return mode;
+    }
     
     public void setRankStart(int rank) {
         rankStart = rank;
@@ -517,7 +543,7 @@ public class DisplayFrame extends JFrame {
                         g.fillRect(0, 0, W, H(0.1));
                         g.fillRect(0, H(0.9), W, H(0.1));
                         yOffset += H(0.1)+15;
-                        str = "TEAM #" + teamID;
+                        str = TEXT_TEAM + " #" + teamID;
                         str2 = " " + teamName;
                         drawText(g, str, 10, yOffset, true);
                         drawText(g, str2, 10+getTextWidth(str), yOffset, false);
@@ -562,29 +588,32 @@ public class DisplayFrame extends JFrame {
                         scoreWidth = 6*smallW+scaledSmallDigits[PERIOD].getWidth();                          
                         switch (competition.getState()) {
                             case CompetitionState.SETUP:
-                                str = "SETUP PERIOD";
+                                str = TEXT_SETUP_PERIOD;
                                 y = H(0.9)-15-charH;
                                 drawText(g, str, 
                                         ALIGN_CLOCK_LEFT ? 10 : W(1)-100-getTextWidth(str),
                                         y, false);
-                                if(teamBadges[teamID] != null) {
+                                if(teamBadges.get(teamID) != null) {
                                     g.setColor(PRIMARY_COLOR);
+                                    BufferedImage badge = teamBadges.get(teamID);
                                     g.drawRect(
-                                            ALIGN_CLOCK_LEFT ? W(1)-12-teamBadges[teamID].getWidth() :
+                                            ALIGN_CLOCK_LEFT ? W(1)-12-badge.getWidth() :
                                                     8, 
-                                            H(0.9)-12-teamBadges[teamID].getHeight(),
-                                            teamBadges[teamID].getWidth()+3, 
-                                            teamBadges[teamID].getHeight()+3);
-                                    g.drawImage(teamBadges[teamID],
-                                            ALIGN_CLOCK_LEFT ? W(1)-10-teamBadges[teamID].getWidth() :
+                                            H(0.9)-12-badge.getHeight(),
+                                            badge.getWidth()+3, 
+                                            badge.getHeight()+3);
+                                    g.drawImage(badge,
+                                            ALIGN_CLOCK_LEFT ? W(1)-10-badge.getWidth() :
                                                     10,
-                                            H(0.9)-10-teamBadges[teamID].getHeight(), this);
+                                            H(0.9)-10-badge.getHeight(), this);
                                 }
 
                                 break OUTER;
                             case CompetitionState.RUN:
-                                str = "RUN ";
-                                str2 = "" + competition.getSession().getRunNumber() + " of " + competition.getSession().getMaxAttempts();
+                                str = TEXT_RUN + " ";
+                                str2 = "" + competition.getSession().getRunNumber() + 
+                                        " " + TEXT_OF + " " + 
+                                        competition.getSession().getMaxAttempts();
                                 y = H(0.9)-15-charH;
                                 drawText(g, str, 
                                         ALIGN_CLOCK_LEFT ? 10 : W(1)-100-
@@ -619,7 +648,7 @@ public class DisplayFrame extends JFrame {
                                     i++;
                                     x += colW;
                                 }
-                                str = "CURRENT ";
+                                str = TEXT_CURRENT + " ";
                                 str2 = String.format("%.2f", Score.calculate(currentScore));
                                 x = W(1)-10-getTextWidth(str2);
                                 y = H(0.1) + 15;
@@ -630,7 +659,7 @@ public class DisplayFrame extends JFrame {
                                 Team t = competition.getSession().getActiveTeam();
                                 Score highestScore = t.getBestScore();                                
                                 if(highestScore != null) {
-                                    str = "BEST SCORE";
+                                    str = TEXT_BEST_SCORE;
                                     drawText(g, str,
                                             ALIGN_CLOCK_LEFT ? W(1)-getTextWidth(str)-10 : 100,
                                             H(0.9)-15-charH, false);
@@ -650,11 +679,13 @@ public class DisplayFrame extends JFrame {
                             default:
                                 break;
                         }
-                    } else if(cc.getControlFrame() != null) {
-                        int nextTeamID = cc.getControlFrame().getTeamSelectIndex();
+                    } else if(cc.getControlFrame() != null || nextTeamID >= 0) {
+                        if(cc.getControlFrame() != null) {
+                            nextTeamID = cc.getControlFrame().getSelectedTeamID();
+                        }
                         if(nextTeamID >= 0) {
                             Team t = competition.getTeamByID(nextTeamID);
-                            str = "NEXT:";
+                            str = TEXT_NEXT + ":";
                             drawText(g, str, 10, H(1)-15-3*charH, false);
                             str = "#" + nextTeamID + " " + t.getName();
                             drawText(g, str, 10, H(1)-15-2*charH, true);
@@ -681,16 +712,16 @@ public class DisplayFrame extends JFrame {
                     break;
                 case OUTPUT_CLASSIFICATION:
                     y = 5;
-                    str = "CLASSIFICATION";
+                    str = TEXT_CLASSIFICATION;
                     drawText(g, str, centeredX(getTextWidth(str)), y, false);
                     y += charH + 5;
-                    str = "P.";
+                    str = TEXT_POSITION;
                     drawText(g, str, 20, y, false);
-                    str = "TEAM";
+                    str = TEXT_TEAM;
                     drawText(g, str, W(0.1), y, false);
-                    str = "ID";
+                    str = TEXT_ID;
                     drawText(g, str, W(0.6), y, false);
-                    str = "SCORE";
+                    str = TEXT_SCORE;
                     drawText(g, str, W(0.8), y, false);
                     y += charH + 5;
                     g.setColor(SECONDARY_COLOR);
@@ -723,8 +754,9 @@ public class DisplayFrame extends JFrame {
                         g.fillRect(0, H(1)-5-charH-5, W, charH+10);
                         g.setColor(ALT_COLOR);
                         g.fillRect(0, H(1)-5-charH-5-2, W, 2);
-                        str = competition.getState() == CompetitionState.SETUP ? "SETUP TIME LEFT " :
-                                "TIME LEFT ";
+                        str = competition.getState() == CompetitionState.SETUP ? 
+                                TEXT_SETUP_TIME_LEFT + " " :
+                                TEXT_TIME_LEFT + " ";
                         int prevWidth = getTextWidth(str);
                         drawText(g, str, 5, H(1)-5-charH, false);
                         str = ((competition.getSession().getSecondsLeft()+1)/60) + ":" + 
@@ -751,8 +783,11 @@ public class DisplayFrame extends JFrame {
                         String.format("%.2f",
                                 (float)renderedFrames/((System.nanoTime()-beginTime)/1000000000.0))
                         + " fps";                
-                String strControlRenderTime = "control: " +
-                        String.format("%1$4s", cc.getControlFrame().getRenderTime()/1000000) + " ms";
+                String strControlRenderTime = 
+                        cc.getControlFrame() != null ?
+                        ("control: " +
+                        String.format("%1$4s", cc.getControlFrame().getRenderTime()/1000000) + " ms")
+                        : "";
                 
                 _g.setFont(new Font("Monospaced", Font.PLAIN, 14));
                 int txtHeight = _g.getFontMetrics().getHeight();

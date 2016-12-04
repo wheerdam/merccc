@@ -1,18 +1,17 @@
 /*
     Copyright 2016 Wira Mulia
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package org.osumercury.controlcenter;
 
@@ -69,7 +68,7 @@ public class Score {
             String[] tokens;
             
             for(Map.Entry<String, String> e : fields.entrySet()) {
-                Log.d(0, "Score.init: > " + e.getKey() + "=" + e.getValue());
+                Log.d(1, "Score.init: > " + e.getKey() + "=" + e.getValue());
                 tokens = e.getValue().split(",");
                 typeTemp = Integer.parseInt(tokens[2].trim());
                 description.put(e.getKey(), tokens[0].trim());
@@ -85,7 +84,7 @@ public class Score {
                 }
             }
 
-            Log.d(0, "Score.init: POSTFIX FORMULA: " + postfix);
+            Log.d(1, "Score.init: POSTFIX FORMULA: " + postfix);
             tokens = postfix.split("\\s+");
             for(String op : tokens) {
                 op = op.trim();
@@ -102,6 +101,7 @@ public class Score {
             }
             
             initialized = true;            
+            Log.d(0, "Score.init: scoring system is initialized");
             
         } catch(Exception e) {
             System.err.print("Score.init: Exception");
@@ -114,8 +114,8 @@ public class Score {
         
     public static boolean test(HashMap<String, String> map, String strResult) {
         try {
-            double result = Double.parseDouble(strResult);
-            if(map != null) {
+            if(map != null && strResult != null) {
+                double result = Double.parseDouble(strResult);
                 Score test = new Score();
                 Log.di(0, "Score.test: test values -> ");
                 for(Map.Entry<String, String> e : map.entrySet()) {

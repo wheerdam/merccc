@@ -1,18 +1,17 @@
 /*
     Copyright 2016 Wira Mulia
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package org.osumercury.controlcenter;
 
@@ -33,6 +32,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import org.osumercury.controlcenter.gui.ThumbnailFrame;
+import org.osumercury.controlcenter.misc.DisplayClient;
 
 /**
  *
@@ -64,7 +64,7 @@ public class ControlCenter {
     private boolean about = false;
     
     @Parameter(names = { "-f", "--format" })
-    private boolean confformat = false;
+    private boolean confFormat = false;
     
     @Parameter(names = { "-m", "--nosound" })
     private boolean nosound = false;
@@ -90,6 +90,12 @@ public class ControlCenter {
     @Parameter(names = { "-r", "--refreshrate" })
     private Long refreshRateMs = 100L;
     
+    @Parameter(names = { "-x" })
+    private String client = null;
+    
+    @Parameter(names = { "--client" })
+    private boolean clientModeHelp = false;
+    
     private Boolean GUI = true;
     
     private CompetitionState competition;
@@ -99,6 +105,10 @@ public class ControlCenter {
     private RefreshThread refresh;
     private SocketInterface socket;
     private SocketInterface loopback;
+    
+    private int displayNumber;
+    private String controlHost;
+    private int controlPort;
     
     private static JCommander jc;
     public static ControlCenter cc;
@@ -122,17 +132,23 @@ public class ControlCenter {
     }   
     
     public void run() {
-        System.out.println("Mercury Control Center v" +
-            Text.getVersion());
+        System.out.println("Mercury Control Center v" + Text.getVersion());
         String val;
+        
+        Log.debugLevel = debug;
         
         if(help) {
             printHelp();
             return;
         }
         
-        if(confformat) {
+        if(confFormat) {
             System.out.println(Text.getConfigFileSpecs());
+            return;
+        }
+        
+        if(clientModeHelp) {
+            printClientModeHelp();
             return;
         }
         
@@ -158,9 +174,33 @@ public class ControlCenter {
         
         if(zipFile != null && configFile != null) {
             Log.fatal(5, "'-c' and '-z' options are exclusive");
+        }        
+        
+        boolean fetchConfig = false;
+        if(client != null) {
+            Log.d(0, "- running in client mode");
+            String[] tokens = client.trim().split(":");
+            try {
+                displayNumber = Integer.parseInt(tokens[2].trim());
+                controlHost = tokens[0].trim();
+                controlPort = Integer.parseInt(tokens[1].trim());
+            } catch(NumberFormatException nfe) {
+                Log.fatal(100, "Unable to parse: " + client);
+            }
         }
         
-        if(configFile == null && zipFile == null && GUI) {
+        // client mode, and config was not provided, let's fetch it
+        if (client != null && configFile == null && zipFile == null) {
+            fetchConfig = true;
+            Log.d(0, "- no local config provided");
+            String configStr = DisplayClient.getConfigString(controlHost, controlPort);
+            if(configStr != null) {
+                Config.parse(configStr);
+            } else {
+                Log.fatal(101, "Unable to fetch config from server");
+            }
+            
+        } else if(configFile == null && zipFile == null && GUI) {
             String selectedFile;
             System.err.println("Configuration file was not specified");
             JFileChooser fc = new JFileChooser();
@@ -185,7 +225,6 @@ public class ControlCenter {
                 Log.fatal(1, "Failed to load configuration file " + Config.getConfigFile());
             }
         }
-        Log.debugLevel = debug;
         
         val = Config.getValue("tournament", "sortorder");
         if(val != null) {
@@ -246,8 +285,8 @@ public class ControlCenter {
             String resourceDir = (dirParent != null ? dirParent + File.separatorChar : "") + 
                     Config.getValue("system", "resourcedir");
             Log.d(0, "Checking " + resourceDir);
-            if(resourceDir == null || !(new File(resourceDir)).exists() ||
-                    !(new File(resourceDir).isDirectory())) {
+            if(!fetchConfig && (resourceDir == null || !(new File(resourceDir)).exists() ||
+                    !(new File(resourceDir).isDirectory()))) {
                 JOptionPane.showMessageDialog(null, "Resource directory is not specified or " + 
                         "was not found", "Resource directory", JOptionPane.ERROR_MESSAGE);
                 JFileChooser fileChooser = new JFileChooser();
@@ -281,34 +320,43 @@ public class ControlCenter {
                 }
             }
             
-            if(frameWidth > 0) {
-                ControlFrame.INITIAL_WIDTH = frameWidth;
-            }
+            DisplayFrame.DRAW_RENDER_TIME = drawRenderTime;
             
-            if(frameHeight > 0) {
-                ControlFrame.INITIAL_HEIGHT = frameHeight;
-            }
+            if(client == null) {
+                if(frameWidth > 0) {
+                    ControlFrame.INITIAL_WIDTH = frameWidth;
+                }
 
-            display = new DisplayFrame(this, sysFont);
-            control = new ControlFrame(this);
-            thumb = new ThumbnailFrame(this);
-            refresh = new RefreshThread(this, refreshRateMs);
-            SwingUtilities.invokeLater(() -> {
-                control.init();          
-                DisplayFrame.DRAW_RENDER_TIME = drawRenderTime;
-                display.init();
-                control.updateDataView();     
-                refresh.start();
-            });
-            
-            if(port > 0 && port <= 65535) {
-                socket = new SocketInterface(port, competition, control, false);
-                socket.start();
-            }
-            
-            if(localPort > 0 && localPort <= 65535) {
-                loopback = new SocketInterface(localPort, competition, control, true);
-                loopback.start();
+                if(frameHeight > 0) {
+                    ControlFrame.INITIAL_HEIGHT = frameHeight;
+                }
+
+                display = new DisplayFrame(this, sysFont);
+                control = new ControlFrame(this);
+                thumb = new ThumbnailFrame(this);
+                refresh = new RefreshThread(this, refreshRateMs);
+                SwingUtilities.invokeLater(() -> {
+                    control.init();          
+                    display.init();
+                    control.updateDataView();     
+                    refresh.start();
+                });
+
+                if(port > 0 && port <= 65535) {
+                    socket = new SocketInterface(port, competition, control, false);
+                    socket.start();
+                }
+
+                if(localPort > 0 && localPort <= 65535) {
+                    loopback = new SocketInterface(localPort, competition, control, true);
+                    loopback.start();
+                }
+            } else {
+                // display client mode (no control window)
+                display = new DisplayFrame(this, sysFont);
+                refresh = new RefreshThread(this, refreshRateMs);
+                DisplayClient.connect(this, controlHost, controlPort,
+                        displayNumber, fetchConfig);
             }
         }
     }    
@@ -391,6 +439,7 @@ public class ControlCenter {
                  "  -d, --debug LEVEL        set program verbosity for debugging\n"+
                  "  -r, --refreshrate TIME   set display refresh rate in milliseconds\n"+
                  "      --rendertime         display the time it took to render a frame\n"+
+                 "  -x HOST:PORT:DISPLAY     run merccc in client mode (--client for details)\n"+
                  "\n"+
                  "keyboard shortcuts:\n"+
                  "  CTRL+[1-4]               select active control tab\n"+
@@ -404,5 +453,19 @@ public class ControlCenter {
                  "  CTRL+M                   toggle sound playback\n"+
                  "  CTRL+F                   change display window font\n"+
                  "");
+    }
+    
+    public static void printClientModeHelp() {
+        Log.d(0, "\n"+
+                 "client mode: java -jar <jarfile> -x HOST:PORT:DISPLAY\n\n"+
+                 "  Connect to a remote instance of merccc running on the specified host. The\n"+
+                 "  local display window will reflect the state of the remote server and be\n"+
+                 "  displayed on a screen as specified by DISPLAY. DISPLAY is the index of the\n"+
+                 "  screen as enumerated by Java (0 to n).\n\n"+
+                 "  If neither '-c' nor '-z' were provided, merccc will attempt to fetch the\n"+
+                 "  configuration from the server. If a configuration was provided, merccc will\n"+
+                 "  check if the hash codes for the remote and local configurations match. If\n"+
+                 "  they do not match merccc will not start.\n"
+        );
     }
 }

@@ -1,18 +1,17 @@
 /*
     Copyright 2016 Wira Mulia
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package org.osumercury.controlcenter;
 
@@ -124,7 +123,6 @@ public class Data {
     
     public static void loadCSV(CompetitionState c, String f) {
         Log.d(0, "Data.loadCSV: " + f);
-        lock.writeLock().lock();
         try {
             BufferedReader r = new BufferedReader(new FileReader(f));
             String l;
@@ -151,19 +149,22 @@ public class Data {
                             String[] pair = t.trim().split("-");
                             int teamID = Integer.parseInt(pair[0]);
                             int tiebreaker = Integer.parseInt(pair[1]);
-                            c.getTeamByID(teamID).setTiebreaker(tiebreaker);
+                            Team team = c.getTeamByID(teamID);
+                            lock.writeLock().lock();
+                            try {       
+                                if(team != null) {
+                                    c.getTeamByID(teamID).setTiebreaker(tiebreaker);
+                                } else {
+                                    Log.d(0, "Data.loadCSV: team with ID " + teamID + " not found" +
+                                        ", ignoring line");
+                                }
+                            } finally {
+                                lock.writeLock().unlock();
+                            }
                         }
                     }
                 } else {
-                    tokens = l.trim().split(",");
-                    String ID = tokens[0].trim();
-                    Score s = new Score();
-                    for(int i = 3; i < 3+Score.getFields().size(); i++) {
-                        s.setValue(Config.getKeysInOriginalOrder("fields").get(i-3),
-                                Double.parseDouble(tokens[i].trim()));
-                    }
-                    s.setCompleted(true);
-                    c.getTeamByID(Integer.parseInt(ID)).addScore(s);
+                    parseCSVLine(c, l);
                 }
             }
             c.sort();
@@ -172,7 +173,33 @@ public class Data {
             dataWorkDir = parentDir == null ? new File(".") : new File(parentDir);
         } catch(Exception e) {
             System.err.println("Data.loadCSV: failed to import from " + f);
-            System.err.println("Data.loadCSV: reason = " + e.toString());
+            if(Log.debugLevel > 0) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    public static void parseCSVLine(CompetitionState c, String l) {
+        String[] tokens;
+        tokens = l.trim().split(",");
+        String ID = tokens[0].trim();
+        Score s = new Score();        
+        lock.writeLock().lock();
+        try {
+            for(int i = 3; i < 3+Score.getFields().size(); i++) {
+            s.setValue(Config.getKeysInOriginalOrder("fields").get(i-3),
+                    Double.parseDouble(tokens[i].trim()));
+            }
+            s.setCompleted(true);
+            Team t = c.getTeamByID(Integer.parseInt(ID));
+            if(t != null) {
+                t.addScore(s);
+            } else {
+                Log.d(0, "Data.parseCSVLine: team with ID " + ID + " not found" +
+                        ", ignoring line");
+            }
+        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            Log.d(0, "Data.parseCSVLine: failed to parse " + l);
             if(Log.debugLevel > 0) {
                 e.printStackTrace();
             }

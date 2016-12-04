@@ -1,21 +1,21 @@
 /*
     Copyright 2016 Wira Mulia
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package org.osumercury.controlcenter.gui;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
@@ -86,7 +86,7 @@ public class Assets {
                     Log.d(0, "Assets.load: asset '" + fileList[i] + "' is already defined.");
                 } else {
                     try {
-                        Log.d(0, "Assets.load: [img] " + fileList[i]);
+                        Log.d(1, "Assets.load: [img] " + fileList[i]);
                         rImages.put(fileList[i], ImageIO.read(new File(resourcePath + "/" + fileList[i])));
                     } catch(IOException ioe) {
                         Log.d(0, "Assets.load: I/O exception, the resource is not loaded: " + ioe.getMessage());
@@ -97,7 +97,7 @@ public class Assets {
                 if(rSounds.containsKey(fileList[i])) {
                     Log.d(0, "Assets.load: asset '" + fileList[i] + "' is already defined.");
                 } else {
-                    Log.d(0, "Assets.load: [wav] " + fileList[i]);
+                    Log.d(1, "Assets.load: [wav] " + fileList[i]);
                     rSounds.put(fileList[i], resourcePath + "/" + fileList[i]);
                 }
             }
@@ -115,13 +115,13 @@ public class Assets {
             return;
         }
         
-        Log.d(0, "Assets.theme: Checking for user-defined theme definitions");
+        Log.d(1, "Assets.theme: Checking for user-defined theme definitions");
         
         String val;
         val = theme.get("digitfont");
         if(val != null) {
             try {
-                Log.d(0, "Assets.theme: loading custom digits font " + val);
+                Log.d(1, "Assets.theme: loading custom digits font " + val);
                 BufferedImage digitFont = getAsset(val);
                 int digitW = Integer.parseInt(theme.get("digitW"));
                 int digitH = Integer.parseInt(theme.get("digitH"));
@@ -142,7 +142,7 @@ public class Assets {
         val = theme.get("font");
         if(val != null) {
             try {
-                Log.d(0, "Assets.theme: loading custom text font " + val);
+                Log.d(1, "Assets.theme: loading custom text font " + val);
                 BufferedImage font = getAsset(val);
                 int runeW = Integer.parseInt(theme.get("runeW"));
                 int runeH = Integer.parseInt(theme.get("runeH"));
@@ -306,7 +306,7 @@ public class Assets {
             int colonX, int colonW,
             int periodX, int periodW,
             int dashX, int dashW) {
-        Log.d(0, "Assets.populateDigits: clipping digits");
+        Log.d(1, "Assets.populateDigits: clipping digits");
         for(int i = 0; i < 10; i++) {
             blueDigits[i] = img.getSubimage(i*digitW, 0, digitW, digitH);
             redDigits[i] = img.getSubimage(i*digitW, digitH, digitW, digitH);
@@ -326,7 +326,7 @@ public class Assets {
     
     public static void populateFont(BufferedImage img,
             int runeW, int runeH, int row0, int row1, int row2, int row3) {
-        Log.d(0, "Assets.populateFont: clipping font runes");
+        Log.d(1, "Assets.populateFont: clipping font runes");
 
         int i;
 
@@ -439,6 +439,34 @@ public class Assets {
         BufferedImage result = Scalr.resize(src, Scalr.Method.SPEED, width, height);
 
         return result;
+    }
+    
+    public static Color parseHexColor(String hex) {
+        try {
+            if(hex.startsWith("#")) {
+                hex = hex.substring(1, hex.length());
+            }
+            Color c = null;
+            if(hex.length() == 6) {
+                c = new Color(
+                        Integer.parseInt(hex.substring(0, 2), 16),
+                        Integer.parseInt(hex.substring(2, 4), 16),
+                        Integer.parseInt(hex.substring(4, 6), 16)            
+                );
+            } else if(hex.length() == 8) {
+                c = new Color(
+                        Integer.parseInt(hex.substring(0, 2), 16),
+                        Integer.parseInt(hex.substring(2, 4), 16),
+                        Integer.parseInt(hex.substring(4, 6), 16),
+                        Integer.parseInt(hex.substring(6, 8), 16)
+                );
+            }
+
+            return c;
+        } catch(Exception e) {
+            // just return black if we failed to parse
+            return Color.BLACK;
+        }
     }
     
     public static String getAssetInfo() {

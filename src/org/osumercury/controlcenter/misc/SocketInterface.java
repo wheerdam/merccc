@@ -1,18 +1,17 @@
 /*
     Copyright 2016 Wira Mulia
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package org.osumercury.controlcenter.misc;
 
@@ -59,8 +58,11 @@ public class SocketInterface extends Thread {
                     broadcast("STATE_CHANGE_IDLE");
                     break;
                 case UserEvent.STATE_CHANGE_SETUP:
+                    p = (Object[]) param;
                     broadcast("STATE_CHANGE_SETUP " +
-                            c.getSession().getActiveTeam().getNumber());
+                            c.getSession().getActiveTeam().getNumber() + " " +
+                            (Integer)p[0] + " " + (Integer)p[1] + " " +
+                            (Integer)p[2]);
                     break;
                 case UserEvent.STATE_CHANGE_RUN:
                     broadcast("STATE_CHANGE_RUN");
@@ -116,6 +118,21 @@ public class SocketInterface extends Thread {
                     p = (Object[]) param;
                     broadcast("DATA_ADDED " + (Integer)p[0] + " " +
                             (Integer)p[1]);
+                    break;
+                case UserEvent.TEAM_PRE_SELECT:
+                    broadcast("TEAM_PRE_SELECT " + (Integer)param);
+                    break;
+                case UserEvent.DISPLAY_MODE_CHANGE:
+                    broadcast("DISPLAY_MODE_CHANGE " + (Integer)param);
+                    break;
+                case UserEvent.DISPLAY_HIDE:
+                    broadcast("DISPLAY_HIDE");
+                    break;
+                case UserEvent.DISPLAY_SHOW:
+                    broadcast("DISPLAY_SHOW");
+                    break;
+                case UserEvent.DISPLAY_RANK_START:
+                    broadcast("DISPLAY_RANK_START " + (Integer)param);
                     break;
             }
         });
@@ -238,11 +255,13 @@ public class SocketInterface extends Thread {
                                     str.delete(str.length()-2, str.length());
                                     send(str.toString());
                                 }
+                                send("DONE");
                                 break;
                             case "header":
                                 for(String s : Data.getColHeaders()) {
                                     send("HEADER " + s);
                                 }
+                                send("DONE");
                                 break;
                             case "teams":
                                 for(Team t : c.getTeams()) {
@@ -252,9 +271,11 @@ public class SocketInterface extends Thread {
                                             t.getLogoFileName() + ", " +
                                             (t.hasScore() ? t.getBestScore().getScore() : "DNF"));
                                 }
+                                send("DONE");
                                 break;
                             case "config":
                                 send(Config.getConfigString());
+                                send("DONE");
                                 break;
                             case "state":
                                 send("STATE " + c.getState() + 
@@ -276,6 +297,11 @@ public class SocketInterface extends Thread {
                                     str.delete(str.length()-2, str.length());
                                     send(str.toString());
                                 }
+                                send("DONE");
+                                break;
+                            case "hash":
+                                send("HASH " + String.valueOf(
+                                        Config.getConfigString().hashCode()));
                                 break;
                         }
                         sendPrompt();

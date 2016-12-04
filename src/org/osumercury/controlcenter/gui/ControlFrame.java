@@ -1,18 +1,17 @@
 /*
     Copyright 2016 Wira Mulia
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+        http://www.apache.org/licenses/LICENSE-2.0
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
  */
 package org.osumercury.controlcenter.gui;
 
@@ -216,6 +215,7 @@ public class ControlFrame extends JFrame {
         btnRefreshScreens.addActionListener((ActionEvent e) -> { refreshDisplayList(); } );
         cmbDisplayMode.addActionListener((ActionEvent e) -> {
             display.setMode(cmbDisplayMode.getSelectedIndex());
+            triggerEvent(UserEvent.DISPLAY_MODE_CHANGE, cmbDisplayMode.getSelectedIndex());
         });
         
         cmbDisplayScreen.addActionListener((ActionEvent e) -> {            
@@ -268,6 +268,10 @@ public class ControlFrame extends JFrame {
         btnStartTeamSession = new JButton("START SCORING SESSION");
         btnStartTeamSession.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
 
+        cmbTeamSelect.addActionListener((ActionEvent e) -> {
+            triggerEvent(UserEvent.TEAM_PRE_SELECT, getSelectedTeamID());
+        });
+        
         btnStartTeamSession.addActionListener((ActionEvent e) -> {
             if(competition.getState() == CompetitionState.IDLE) {
                 btnStartTeamSession.setText("END SCORING SESSION");
@@ -351,12 +355,12 @@ public class ControlFrame extends JFrame {
         });
 
         btnSkipSetup.addActionListener((ActionEvent e) -> {
-            if(competition.getState() != CompetitionState.SETUP) {
+            if(!confirmYesNo("Skip setup and start scoring window?",
+                    "Skip Setup")) {
                 return;
             }
             
-            if(!confirmYesNo("Skip setup and start scoring window?",
-                    "Skip Setup")) {
+            if(competition.getState() != CompetitionState.SETUP) {
                 return;
             }
 
@@ -578,7 +582,9 @@ public class ControlFrame extends JFrame {
         cmbStartingRank.addItem("31-40");
         cmbStartingRank.addItem("41-50");
         cmbStartingRank.addActionListener((ActionEvent e) -> {
-            display.setRankStart(cmbStartingRank.getSelectedIndex()*10+1);
+            int rankStart = cmbStartingRank.getSelectedIndex()*10+1;
+            triggerEvent(UserEvent.DISPLAY_RANK_START, rankStart);
+            display.setRankStart(rankStart);
         });
         
         JPanel paneDisplayStartingRank = new JPanel();
@@ -961,7 +967,7 @@ public class ControlFrame extends JFrame {
                 paneRunTimerControl.setVisible(false);
                 tglRedFlag.setSelected(false);
                 competition.setRedFlag(false);
-
+                triggerEvent(UserEvent.STATE_CHANGE_IDLE);
                 break;
 
             case CompetitionState.SETUP:   
@@ -980,13 +986,15 @@ public class ControlFrame extends JFrame {
                 if(timer != null) {
                     timer.stopTimer();
                 }
-                Team t = competition.getTeamByID(cmbTeamSelect.getSelectedIndex());
+                Team t = competition.getTeamByID(getSelectedTeamID());
                 competition.newSession(t,
                         maxAttempts, setupDuration*1000, windowDuration*1000);
                 timer = new SessionTimer(competition);
                 indicators.set(competition.getSession());
                 competition.getSession().start();
                 timer.start();
+                Object[] params = {maxAttempts, setupDuration, windowDuration};
+                triggerEvent(UserEvent.STATE_CHANGE_SETUP, params);
                 SoundPlayer.play("setup-start.wav");
                 break;
                 
@@ -1001,7 +1009,8 @@ public class ControlFrame extends JFrame {
                 paneRunScoringControlScroll.setVisible(true);
                 newScore();
                 validate();
-                competition.getSession().advance();
+                competition.getSession().endSetup();
+                triggerEvent(UserEvent.STATE_CHANGE_RUN);
                 SoundPlayer.play("window-start.wav");
                 break;
                 
@@ -1016,11 +1025,11 @@ public class ControlFrame extends JFrame {
                     timer.stopTimer();
                     timer = null;
                 }
+                triggerEvent(UserEvent.STATE_CHANGE_POSTRUN);
                 break;
             default:
                 break;
         }
-        triggerEvent(phase);
         repaintDisplay();
     }
     
@@ -1065,8 +1074,10 @@ public class ControlFrame extends JFrame {
         }
     }
     
-    public int getTeamSelectIndex() {
-        return cmbTeamSelect.getSelectedIndex();
+    public int getSelectedTeamID() {
+        return Integer.parseInt(
+                ((String)cmbTeamSelect.getSelectedItem()).split(":")[0]
+        );
     }
     
     public boolean populateScore(Score s, JTextField[] fields) {
@@ -1130,7 +1141,10 @@ public class ControlFrame extends JFrame {
                 return;
             }
             s.setCompleted(true);
-            Team t = competition.getTeamByID(cmbTeams.getSelectedIndex());
+            Team t = competition.getTeamByID(
+                    Integer.parseInt(
+                    ((String)cmbTeams.getSelectedItem()).split(":")[0])
+            );
             Data.lock().writeLock().lock();
             try {
                 t.addScore(s);
@@ -1167,23 +1181,7 @@ public class ControlFrame extends JFrame {
         // populate activeScore fields here
         if(!populateScore(activeScore, txtScoreFields)) {
             return;
-        }
-        
-        /*
-        int i = 0;
-        for(String key : Config.getKeysInOriginalOrder("fields")) {
-            try {
-                activeScore.setValue(key, Double.parseDouble(txtScoreFields[i].getText()));
-            } catch(NumberFormatException nfe) {
-                JOptionPane.showMessageDialog(this,
-                        "Failed to parse score for " + key + "\n" +
-                                "Offending value: " + txtScoreFields[i].getText(),
-                        "Score Commit Failed", JOptionPane.ERROR_MESSAGE);
-                return;
-            }
-            i++;
-        }
-        */
+        }        
         
         SessionState session = competition.getSession();
         
@@ -1261,10 +1259,11 @@ public class ControlFrame extends JFrame {
     
     private void outputDisplayToScreen() {                
         if(cmbDisplayScreen.getSelectedIndex() <= 0) {
+            triggerEvent(UserEvent.DISPLAY_HIDE);
             display.setVisible(false);
             return;
         }
-        
+        triggerEvent(UserEvent.DISPLAY_SHOW);
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gd = ge.getScreenDevices()[cmbDisplayScreen.getSelectedIndex()-1];
         display.setVisible(false);       

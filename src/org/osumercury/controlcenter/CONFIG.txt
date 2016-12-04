@@ -8,28 +8,13 @@ Revision History:
 0.9.3  2016/10/15  Added theming support
 0.9.7  2016/11/23  Added more theming options
 0.9.8b 2016/12/03  Classification table background color
+0.9.9  2016/12/04  Team IDs do not need to be in sequence any more
 
 ========
 OVERVIEW
 ========
 
-Mercury Control Center is a timing and scoring software for competitions. It is written for the Mercury Remote Robot Challenge competition, but can be configured to support other competitions and tournaments with similar timing and scoring format. The software is designed to fulfill the following requirements:
-
-1. To be the official score- and timekeeping software for a competition that consists of multiple teams with each team vying to score the highest points. Each team is given a time window to prepare and perform their runs during their turn
-
-2. Configurable scoring system with multiple variables
-
-3. Real time data entry as the competition is underway
-
-4. Data export/import and data manipulation features for corrections
-
-5. Sorting
-
-6. Attractive display to be shown to the teams and the audience during the competition showing: current run status, timing information, and temporary or final classification of teams based on points scored
-
-The software has two major GUI elements: the CONTROL WINDOW to be used by the operator, and a borderless full-screen DISPLAY WINDOW to display information about the competition to the audience and competitors. The typical usage of this software will require a computer with two display outputs, one for the operator, and another, preferrably a big one, for the audience (e.g. HDTVs or projectors). The operator can choose what to display on the DISPLAY WINDOW at any moment of time.
-
-The software is written in Java so it can be run on multiple platforms without recompilation.
+Mercury Control Center is a timing and scoring software for competitions. The software has two major GUI elements: the CONTROL WINDOW to be used by the operator, and a borderless full-screen DISPLAY WINDOW to display information about the competition to the audience and competitors. The typical usage of this software will require a computer with two display outputs, one for the operator, and another, preferrably a big one, for the audience (e.g. HDTVs or projectors). The operator can choose what to display on the DISPLAY WINDOW at any moment of time.
 
 =============
 CONFIGURATION
@@ -40,7 +25,7 @@ The software requires a configuration file to run. The configuration file reflec
 system     - general system-level settings
 formula    - the scoring formula that will be used by the software
 fields     - the variables and their parameters (default value, type, etc.)
-display    - options on how to display the score fields in the DISPLAY WINDOW
+display    - options on how to format the score fields in the DISPLAY WINDOW
 test       - some test values and expected result to ensure that the formula is correct
 tournament - default tournament parameters
 teams      - team entries
@@ -79,7 +64,7 @@ The following files are expected to be inside the resource directory:
 - window-start.wav - sound to play when run window period has started
 - window-end.wav - sound to play when the run window has ended
 
-Other files are user-defined within the configuration file. If a requested image is not found, a MISSING ASSET image will be displayed instead. No sound will play if the program could not find the above sound files.
+Other files are user-defined within the configuration file. If the logo image is not found, the default logo will be displayed instead. No sound will play if the program could not find the above sound files.
 
 ---------------
 FORMULA SECTION
@@ -160,11 +145,11 @@ The teams are sorted in descending order by default (higher score is better). If
 TEAMS SECTION
 -------------
 
-The teams section contains entries for all competing teams. Each team is assigned a unique team number. Team numbers have to be sequential starting from 0. The format for each entry is: 
+The teams section contains entries for all competing teams. Each team is assigned a unique team number. The format for each entry is: 
 
 	ID=NAME, INSTITUTION, TEAM_BADGE_FILE
 
- The following is an example of the section:
+The following is an example of the section (the ID numbers do not have to be in sequence):
 
 	[teams]
 	0=All Fun and Games, Pacific University, 0-all-fun-and-games.jpg
