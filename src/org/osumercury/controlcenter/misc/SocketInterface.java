@@ -206,6 +206,7 @@ public class SocketInterface extends Thread {
         private BufferedReader r;
         private boolean stop = false;
         private boolean monitor = false;
+        private boolean prompt = true;
         
         public ClientHandler(Socket s) {
             this.s = s;
@@ -303,6 +304,10 @@ public class SocketInterface extends Thread {
                                 send("HASH " + String.valueOf(
                                         Config.getConfigString().hashCode()));
                                 break;
+                            case "promptoff":
+                                prompt = false;
+                                send("PROMPT OFF");
+                                break;
                         }
                         sendPrompt();
                     }
@@ -336,7 +341,7 @@ public class SocketInterface extends Thread {
         }
         
         public void sendPrompt() {
-            if(stop) {
+            if(stop || !prompt) {
                 return;
             }
             

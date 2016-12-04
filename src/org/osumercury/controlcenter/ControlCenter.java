@@ -432,8 +432,8 @@ public class ControlCenter {
                  "      --about              display information about the software\n"+
                  "      --font FONT          use the specified FONT instead of the built-in font\n"+
                  "      --ask-font           list system fonts to use with font selection dialog\n"+
-                 "  -p, --port PORT          open tcp socket interface\n"+
-                 "      --localport PORT     open loopback only tcp socket interface\n"+
+                 "  -p, --port PORT          open tcp server socket interface\n"+
+                 "      --localport PORT     open loopback only tcp server socket interface\n"+
                  "  -m, --nosound            disable all audio playback\n"+
                  "  -t, --notheme            ignore user's theme defined in the configuration\n"+
                  "  -d, --debug LEVEL        set program verbosity for debugging\n"+
@@ -446,7 +446,7 @@ public class ControlCenter {
                  "  F1                       set output mode to logo and time\n"+
                  "  F3                       set output mode to run status\n"+
                  "  F4                       set output mode to classification\n"+
-                 "  F5                       show/hide thumbnailed view\n"+
+                 "  F5                       show/hide preview window\n"+
                  "  CTRL+S                   save recorded data set\n"+
                  "  CTRL+L                   load previously saved data set\n"+
                  "  CTRL+A                   add a score without running a scoring session\n"+
@@ -461,11 +461,16 @@ public class ControlCenter {
                  "  Connect to a remote instance of merccc running on the specified host. The\n"+
                  "  local display window will reflect the state of the remote server and be\n"+
                  "  displayed on a screen as specified by DISPLAY. DISPLAY is the index of the\n"+
-                 "  screen as enumerated by Java (0 to n).\n\n"+
+                 "  screen as enumerated by the Java Virtual Machine (indexed 0 to n).\n"+
+                 "\n"+
                  "  If neither '-c' nor '-z' were provided, merccc will attempt to fetch the\n"+
                  "  configuration from the server. If a configuration was provided, merccc will\n"+
                  "  check if the hash codes for the remote and local configurations match. If\n"+
-                 "  they do not match merccc will not start.\n"
+                 "  they do not match merccc will not start.\n"+
+                 "\n"+
+                 "  Resources will not be transferred. Local resources will be loaded if the\n"+
+                 "  local directory is found or if a ZIP file containing the resources is loaded\n"+
+                 "  using the '-z' option.\n"
         );
     }
 }

@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
 import org.osumercury.controlcenter.*;
 import org.osumercury.controlcenter.gui.DisplayFrame;
 
@@ -46,8 +47,10 @@ public class DisplayClient {
             ));
             w = new PrintWriter(s.getOutputStream());
             Log.d(1, r.readLine()); // shed header
+            send("promptoff");
+            r.readLine(); // shed prompt off response
             send("config");
-            while(!(d = trimPrompt(r.readLine())).equals("DONE")) {
+            while(!(d = r.readLine()).equals("DONE")) {
                 Log.d(1, d);
                 str.append(d);
                 str.append("\n");
@@ -75,11 +78,13 @@ public class DisplayClient {
             ));
             w = new PrintWriter(s.getOutputStream());
             Log.d(0, "- connection header: " + r.readLine());
+            send("promptoff");
+            r.readLine(); // shed prompt off response
             
             // check if config hashes match
             if(!fetchConfig) {
                 send("hash");
-                int serverHash = Integer.parseInt(trimPrompt(r.readLine()).split(" ")[1]);
+                int serverHash = Integer.parseInt(r.readLine().split(" ")[1]);
                 int localHash = Config.getConfigString().hashCode();
                 Log.d(0, "- server config hash: " + serverHash + " local hash: " +
                         localHash);
@@ -99,17 +104,19 @@ public class DisplayClient {
                 Log.fatal(103, "display " + displayNumber + " not found");
             }
             GraphicsDevice gd = ge.getScreenDevices()[displayNumber];
-            display.init();            
-            display.setVisible(false);       
-            display.setLocation(gd.getDefaultConfiguration().getBounds().x,
-                    gd.getDefaultConfiguration().getBounds().y);
-            display.setExtendedState(JFrame.MAXIMIZED_BOTH);
-            if(!display.isDisplayable()) {
-                display.setUndecorated(true);
-            }
-            display.setVisible(true);
-            cc.getRefreshThread().start();
-            display.setClassificationData(c.getSortedFinishedTeams());
+            SwingUtilities.invokeLater(() -> {
+                display.init();            
+                display.setVisible(false);       
+                display.setLocation(gd.getDefaultConfiguration().getBounds().x,
+                        gd.getDefaultConfiguration().getBounds().y);
+                display.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                if(!display.isDisplayable()) {
+                    display.setUndecorated(true);
+                }
+                display.setVisible(true);
+                cc.getRefreshThread().start();
+                display.setClassificationData(c.getSortedFinishedTeams());
+            });
             
             Log.d(0, "- going into monitor mode");
             send("monitor");
@@ -226,7 +233,7 @@ public class DisplayClient {
         }        
         Log.d(0, "- getting current data");            
         send("data");
-        while(!(d = trimPrompt(r.readLine())).equals("DONE")) {
+        while(!(d = r.readLine()).equals("DONE")) {
             Log.d(1, d);
             Data.parseCSVLine(c, d.split(" ", 2)[1]);
             num++;
@@ -240,14 +247,7 @@ public class DisplayClient {
             // flush response
             r.readLine(); 
         }
-    }
-    
-    public static String trimPrompt(String s) {
-        if(s.startsWith("> ")) {
-            s = s.substring(2);
-        }
-        return s;
-    }
+    }    
     
     private static void send(String str) {
         w.write(str + "\n");
