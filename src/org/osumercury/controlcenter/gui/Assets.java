@@ -271,6 +271,11 @@ public class Assets {
                 System.err.println("Assets.theme: " + e.toString());
             }
         }
+        
+        val = theme.get("banner");
+        if(val != null) {
+            DisplayFrame.BANNER_FILE = val;
+        }
     }
     
     public static BufferedImage getMercuryLogo(int height) {

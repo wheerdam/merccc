@@ -86,6 +86,7 @@ public class DisplayFrame extends JFrame {
     public static final int DASH = 12;
     
     // static options (common for all displays) and default values
+    public static String BANNER_FILE;
     
     public static int SCORE_FIELD_DIGITS = 2;
     public static int SCORE_FIELD_DECIMAL = 2;
@@ -331,12 +332,11 @@ public class DisplayFrame extends JFrame {
         }
         
         // banner image scaling
-        String bannerFile = Config.getValue("theme", "banner");
-        if(bannerFile != null && Assets.doesAssetExist(bannerFile)) {
+        if(BANNER_FILE != null && Assets.doesAssetExist(BANNER_FILE)) {
             int horizontalSpace = (int)(0.5*width-20);
             int verticalSpace = height - 
                     (int)(LOGO_Y_POSITION_PROPORTION*height+scaledLogo.getHeight()/2+digitH+40);
-            BufferedImage sponsorsImage = Assets.getAsset(bannerFile);
+            BufferedImage sponsorsImage = Assets.getAsset(BANNER_FILE);
             // try to fit the height first
             Log.d(1, "DisplayFrame.rescale: fitting banner height");
             int fitImageHeight = verticalSpace;
