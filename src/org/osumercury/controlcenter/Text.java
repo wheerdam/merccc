@@ -59,7 +59,7 @@ public class Text {
 "JCommander 1.58 by Cédric Beust\n" +
 "http://jcommander.org\n" +
 "Used under the Apache 2.0 license\n\n" + 
-"DSEG fonts (DSEG7 Classic Bold) by Keshikan けしかん\n" +
+"DSEG fonts by Keshikan けしかん\n" +
 "http://www.keshikan.net/fonts-e.html\n\n" +
 "Google Noto Fonts (Noto Mono)\n" +
 "https://www.google.com/get/noto/"            

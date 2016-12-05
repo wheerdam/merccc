@@ -51,7 +51,7 @@ public class Assets {
             digitsImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/digits.png"));
             fontImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/font.png"));
             
-            populateDigits(digitsImg, 204, 250, 2038, 54, 2124, 32, 2202, 204);
+            populateDigits(digitsImg, 204, 250, 2040, 70, 2110, 38, 2190, 204);
             populateFont(fontImg, 96, 176, 0, 176, 351, 527);
         } catch(Exception e) {
             // This should NOT happen
@@ -237,15 +237,25 @@ public class Assets {
             }
         }
         
-        String bgImageFile = theme.get("bgimage");
-        if(bgImageFile != null) {
-            DisplayFrame.BG_IMAGE = getAsset(bgImageFile);
+        val = theme.get("bgimage");
+        if(val != null) {
+            DisplayFrame.BG_IMAGE = val;
         }
         
-        String bgAlignment = theme.get("bgalignment");
-        if(bgAlignment != null) {
+        val = theme.get("bgscaling");
+        if(val != null) {
             try {
-                DisplayFrame.BG_ALIGNMENT = Integer.parseInt(bgAlignment);
+                DisplayFrame.BG_SCALING = Integer.parseInt(val);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse bg scaling");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
+        val = theme.get("bgalignment");
+        if(val != null) {
+            try {
+                DisplayFrame.BG_ALIGNMENT = Integer.parseInt(val);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse bg alignment");
                 System.err.println("Assets.theme: " + e.toString());

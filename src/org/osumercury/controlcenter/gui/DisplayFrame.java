@@ -51,6 +51,7 @@ public class DisplayFrame extends JFrame {
     private BufferedImage thumbnailImage;
     private BufferedImage scaledLogo;
     private BufferedImage scaledBannerImage;
+    private BufferedImage scaledBackgroundImage;
     private BufferedImage[] scaledBlueDigits = new BufferedImage[13];
     private BufferedImage[] scaledRedDigits = new BufferedImage[13];
     private BufferedImage[] scaledSmallDigits = new BufferedImage[13];
@@ -97,8 +98,9 @@ public class DisplayFrame extends JFrame {
     public static int BG_GREEN = 0;
     public static int BG_BLUE = 0;
     public static Color BG_COLOR;
-    public static BufferedImage BG_IMAGE;
+    public static String BG_IMAGE;
     public static int BG_ALIGNMENT = 0;
+    public static int BG_SCALING = 0;
     
     public static int PRIMARY_RED = 0x20;
     public static int PRIMARY_GREEN = 0xbb;
@@ -331,6 +333,28 @@ public class DisplayFrame extends JFrame {
             charW = scaledAlphabet[0].getWidth();
         }
         
+        // background image scaling
+        if(BG_IMAGE != null && Assets.doesAssetExist(BG_IMAGE)) {
+            BufferedImage bgImage = Assets.getAsset(BG_IMAGE);
+            switch(BG_SCALING) {
+                // no scaling
+                case 0:
+                    scaledBackgroundImage = bgImage;
+                    break;
+                // fit width
+                case 1:
+                    scaledBackgroundImage = Assets.scale(bgImage, width,
+                            (int)((float)width/bgImage.getWidth()*bgImage.getHeight()));
+                    break;
+                // fit height
+                case 2:
+                    scaledBackgroundImage = Assets.scale(bgImage,
+                            (int)((float)height/bgImage.getHeight()*bgImage.getWidth()),
+                            height);
+                    break;
+            }
+        }
+        
         // banner image scaling
         if(BANNER_FILE != null && Assets.doesAssetExist(BANNER_FILE)) {
             int horizontalSpace = (int)(0.5*width-20);
@@ -554,19 +578,38 @@ public class DisplayFrame extends JFrame {
             g.setColor(BG_COLOR);
             g.fillRect(0, 0, W, H);
             
-            if(BG_IMAGE != null) {
+            if(scaledBackgroundImage != null) {
                 switch(BG_ALIGNMENT) {
                     case 0:
-                        g.drawImage(BG_IMAGE, 0, 0, null);
+                        g.drawImage(scaledBackgroundImage, 0, 0, null);
                         break;
                     case 1:
-                        g.drawImage(BG_IMAGE, W(1)-BG_IMAGE.getWidth(), 0, null);
+                        g.drawImage(scaledBackgroundImage, 
+                                W(1)-scaledBackgroundImage.getWidth(), 0, null);
                         break;
                     case 2:
-                        g.drawImage(BG_IMAGE, W(1)-BG_IMAGE.getWidth(), H(1)-BG_IMAGE.getHeight(), null);
+                        g.drawImage(scaledBackgroundImage, 
+                                W(1)-scaledBackgroundImage.getWidth(), 
+                                H(1)-scaledBackgroundImage.getHeight(), null);
                         break;
                     case 3:
-                        g.drawImage(BG_IMAGE, 0, H(1)-BG_IMAGE.getHeight(), null);
+                        g.drawImage(scaledBackgroundImage, 0, 
+                                H(1)-scaledBackgroundImage.getHeight(), null);
+                        break;
+                    case 4:
+                        g.drawImage(scaledBackgroundImage, 
+                                centeredX(scaledBackgroundImage.getWidth()), 
+                                0, null);
+                        break;
+                    case 5:
+                        g.drawImage(scaledBackgroundImage, 
+                                centeredX(scaledBackgroundImage.getWidth()),
+                                H(1)-scaledBackgroundImage.getHeight(), null);
+                        break;
+                    case 6:
+                        g.drawImage(scaledBackgroundImage, 
+                                centeredX(scaledBackgroundImage.getWidth()),
+                                centeredY(scaledBackgroundImage.getHeight()), null);
                         break;
                 }
             }

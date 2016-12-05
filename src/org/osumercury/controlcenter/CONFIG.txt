@@ -179,7 +179,9 @@ The competition logo can be scaled and positioned relative to the current screen
 	logoheight=0.4
 	logoposition=0.4
 
-A wide logo will be scaled better than a tall one as to make good use of widescreen displays.
+A wide logo will be scaled better than a tall one as to make good use of widescreen displays. logoposition specifies where the vertical center point of the image will be located in terms of proportion of the screen. E.g. a logoposition of 0.5 will mean that the logo will be vertically placed in the middle. The logo will always be centered horizontally.
+
+The clock will always be drawn underneath the logo, so if the logo is scaled too tall or placed too low, the clock may be not visible.
 
 ------
 BANNER
@@ -257,6 +259,7 @@ merccc can display a background image in the DISPLAY WINDOW. The background imag
 
 	bgimage=file.jpg # must exist in the resources directory
 	bgalignment=0
+	bgscaling=0
 
-As with team badge pictures, the background image file must also be placed inside the resources directory. The bgalignment entry specifies where the background image will be located. 0 is top-left, 1 is top-right, 2 is bottom-right, and 3 is bottom-left.
+As with team badge pictures, the background image file must also be placed inside the resources directory. The bgalignment entry specifies where the background image will be located. 0 is top-left, 1 is top-right, 2 is bottom-right, 3 is bottom-left, 4 is top-centered, 5 is bottom-centered, and 6 is middle of the screen. bgscaling entry specifies how the image should be scaled: 0 is no scaling, 1 is fit width, and 2 is fit height.
 

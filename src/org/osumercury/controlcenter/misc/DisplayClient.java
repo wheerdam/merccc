@@ -107,6 +107,7 @@ public class DisplayClient {
             GraphicsDevice gd = ge.getScreenDevices()[displayNumber];
             SwingUtilities.invokeLater(() -> {
                 display.init();            
+                display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
                 display.setVisible(false);       
                 display.setLocation(gd.getDefaultConfiguration().getBounds().x,
                         gd.getDefaultConfiguration().getBounds().y);
