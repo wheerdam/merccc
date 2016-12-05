@@ -82,6 +82,13 @@ public class DisplayClient {
             send("promptoff");
             r.readLine(); // shed prompt off response
             
+            send("state");
+            int state = Integer.parseInt(r.readLine().split(" ")[1]);
+            if(state > -1) {
+                Log.fatal(104, "Server is not idle. Can only connect to an " +
+                        "idle server");
+            }
+            
             // check if config hashes match
             if(!fetchConfig) {
                 send("hash");
