@@ -9,6 +9,7 @@ Revision History:
 0.9.7  2016/11/23  Added more theming options
 0.9.8b 2016/12/03  Classification table background color
 0.9.9  2016/12/04  Arbitrary team IDs, logo sizing, and banner
+1.0.0  2016/12/05  Bitmap fonts are now colorized by the program
 
 ========
 OVERVIEW
@@ -197,7 +198,9 @@ The banner will be displayed on the bottom right portion of the screen, scaled a
 BITMAP FONTS
 ------------
 
-The bitmap digits and text fonts in the program can be replaced by the user using this section. The fonts have to be in .PNG format and placed within the resource directory. The font then can be used by using the entries below (it is not necessary to provide both, the user can just replace the digits OR the text if that is what is desired):
+The bitmap digits and text fonts in the program can be replaced by the user using this section. The fonts have to be in .PNG format with alpha channel and only having the color BLACK (the program will colorize the font). Having non-black color will result in weird colors.
+
+The image must be placed within the resource directory. The font then can be used by using the entries below (it is not necessary to provide both, the user can just replace the digits OR the text if that is what is desired):
 
 	digitfont=fontfile1.png
 	font=fontfile2.png
@@ -205,25 +208,22 @@ The bitmap digits and text fonts in the program can be replaced by the user usin
 The user then has to provide geometries to derive each character from the image file. For the digits, the program expects the following organization:
 
 rows
-  0:  0123456789:.-  (primary color)
-  1:  0123456789:.-  (secondary color)
-  2:  8              (blank digit)
+  0:  0123456789:.-  
+  1:  8              (blank digit)
 
 The following configuration entries will have to be provided by the user to inform the program on how to clip each character: digitW, digitH, colonX, colonW, periodX, periodW, dashX, and dashW.
 
-digitW and digitH define the width and height of each character, respectively. Row positions are derived by multiples of digitH with the top of the image being the origin of the y axis. Numerical character x-axis positions are derived by multiples of digitW. For example, the pixel position of the number 5 in secondary color would be (5*digitW, 1*digitH). The special blank digit's pixel position would be (0, 2*digitH).
+digitW and digitH define the width and height of each character, respectively. Row positions are derived by multiples of digitH with the top of the image being the origin of the y axis. Numerical character x-axis positions are derived by multiples of digitW. For example, the pixel position of the number 5 would be (5*digitW, 0). The special blank digit's pixel position would be (0, 1*digitH).
 
 colonX, colonW, periodX, periodW, dashX, and dashW define the x-axis position and clipping widths of the non-numerical characters. Their heights are defined by digitH.
 
 For the text font, the program expects the following organization:
 
 rows
-  0: ABCDEFGHIJKLMNOPQRSTUVWXYZ  (primary color)
-  1: 0123456789-:,.'"?!#         (primary color)
-  2: ABCDEFGHIJKLMNOPQRSTUVWXYZ  (secondary color)
-  3: 0123456789-:,.'"?!#         (secondary color)
+  0: ABCDEFGHIJKLMNOPQRSTUVWXYZ 
+  1: 0123456789-:,.'"?!# 
 
-The following configuration entries will be used to clip each character: runeW, runeH, row0, row1, row2, row3.
+The following configuration entries will be used to clip each character: runeW, runeH, row0, row1.
 
 The program assumes a monospaced font. runeW and runeH simply define the clipping box for each character. The x-axis position of each character is derived by multiplying runeW with the number of characters to skip to reach the desired position. The row entries define where in y-axis the program should look for the desired row. The y-axis' origin is on the top of the image, e.g. if the first row is aligned to the top of the image, row0 will be zero.
 
@@ -249,7 +249,7 @@ The theme section also allows the user to change the graphic colors used in the 
 	bgcolor=0,0,0 # background color
 	tablebgcolor=5,32,80 # class. table "light" background
 
-The values above are the default values used by the program internally. The primary color is light blue, the secondary color is bright orange, the alternate color is white, and table light background is dark blue. Bitmap fonts' colors are fixed and the user must replace the image files to use different colors.
+The values above are the default values used by the program internally. The primary color is light blue, the secondary color is bright orange, the alternate color is white, and table light background is dark blue. Bitmap fonts' colors are colorized by these settings (primary and secondary for digits, and primary and alternate for text).
 
 ----------------
 BACKGROUND IMAGE

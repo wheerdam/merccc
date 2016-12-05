@@ -16,6 +16,7 @@
 package org.osumercury.controlcenter.gui;
 
 import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,13 +34,16 @@ import org.osumercury.controlcenter.Log;
 public class Assets {
     private static HashMap<String, BufferedImage> rImages = new HashMap<>();
     private static HashMap<String, String> rSounds = new HashMap<>();
-    private static BufferedImage[] blueDigits = new BufferedImage[14];
-    private static BufferedImage[] redDigits = new BufferedImage[14];
+    private static BufferedImage[] primaryColorDigits = new BufferedImage[14];
+    private static BufferedImage[] secondaryColorDigits = new BufferedImage[14];
+    private static BufferedImage[] blackDigits = new BufferedImage[14];
     private static BufferedImage missingAsset;
-    private static BufferedImage[] alphabetBlue = new BufferedImage[26];
-    private static BufferedImage[] alphabetWhite = new BufferedImage[26];
-    private static BufferedImage[] nonAlphabetBlue = new BufferedImage[19];
-    private static BufferedImage[] nonAlphabetWhite = new BufferedImage[19];
+    private static BufferedImage[] blackAlphabet = new BufferedImage[26];
+    private static BufferedImage[] blackNonAlphabet = new BufferedImage[19];
+    private static BufferedImage[] primaryColorAlphabet = new BufferedImage[26];
+    private static BufferedImage[] alternativeColorAlphabet = new BufferedImage[26];
+    private static BufferedImage[] primaryColorNonAlphabet = new BufferedImage[19];
+    private static BufferedImage[] alternativeColorNonAlphabet = new BufferedImage[19];
     private static BufferedImage emptyDigit;
     private static BufferedImage mercuryLogo;
     
@@ -48,13 +52,16 @@ public class Assets {
         BufferedImage fontImg;
         try {
             missingAsset = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/missing-asset.png"));
-            digitsImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/digits.png"));
-            fontImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/font.png"));
+            digitsImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/digits-black.png"));
+            fontImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/font-black.png"));
             
             populateDigits(digitsImg, 204, 250, 2040, 70, 2110, 38, 2190, 204);
-            populateFont(fontImg, 96, 176, 0, 176, 351, 527);
+            populateFont(fontImg, 96, 176, 0, 176);
         } catch(Exception e) {
             // This should NOT happen
+            if(Log.debugLevel > 0) {
+                e.printStackTrace();
+            }
             Log.fatal(4, "Assets.load: failed to initialize internal assets: " + e.toString());
         }                
         
@@ -148,9 +155,7 @@ public class Assets {
                 int runeH = Integer.parseInt(theme.get("runeH"));
                 int row0 = Integer.parseInt(theme.get("row0"));
                 int row1 = Integer.parseInt(theme.get("row1"));
-                int row2 = Integer.parseInt(theme.get("row2"));
-                int row3 = Integer.parseInt(theme.get("row3"));
-                populateFont(font, runeW, runeH, row0, row1, row2, row3);
+                populateFont(font, runeW, runeH, row0, row1);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to load custom text font");
                 System.err.println("Assets.theme: " + e.toString());
@@ -167,6 +172,11 @@ public class Assets {
                 DisplayFrame.PRIMARY_RED = R;
                 DisplayFrame.PRIMARY_GREEN = G;
                 DisplayFrame.PRIMARY_BLUE = B;
+                // colorize our primary color digits and text font
+                Color color = new Color(R, G, B, 0);
+                colorize(color, blackDigits, primaryColorDigits);
+                colorize(color, blackAlphabet, primaryColorAlphabet);
+                colorize(color, blackNonAlphabet, primaryColorNonAlphabet);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
@@ -183,6 +193,9 @@ public class Assets {
                 DisplayFrame.SECONDARY_RED = R;
                 DisplayFrame.SECONDARY_GREEN = G;
                 DisplayFrame.SECONDARY_BLUE = B;
+                // colorize our secondary color digits
+                Color color = new Color(R, G, B, 0);
+                colorize(color, blackDigits, secondaryColorDigits);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
@@ -199,6 +212,10 @@ public class Assets {
                 DisplayFrame.ALT_RED = R;
                 DisplayFrame.ALT_GREEN = G;
                 DisplayFrame.ALT_BLUE = B;
+                // colorize our alternative text font
+                Color color = new Color(R, G, B, 0);
+                colorize(color, blackAlphabet, alternativeColorAlphabet);
+                colorize(color, blackNonAlphabet, alternativeColorNonAlphabet);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
@@ -215,6 +232,7 @@ public class Assets {
                 DisplayFrame.BG_RED = R;
                 DisplayFrame.BG_GREEN = G;
                 DisplayFrame.BG_BLUE = B;
+                ControlIndicatorsCanvas.BG_COLOR = new Color(R, G, B);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
@@ -288,6 +306,25 @@ public class Assets {
         }
     }
     
+    public static void colorize(Color color, BufferedImage[] black, BufferedImage[] target) {
+        int i = 0;
+        for(BufferedImage image : target) {
+            BufferedImage newImage = new BufferedImage(
+                    image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_ARGB
+            );
+            Graphics2D g = newImage.createGraphics();
+            
+            g.drawImage(black[i], null, 0, 0);
+            g.setXORMode(color);
+            g.drawImage(black[i], null, 0, 0);
+            g.dispose();
+            g = image.createGraphics();
+            g.drawImage(newImage, null, 0, 0);
+            g.dispose();
+            i++;
+        }
+    }
+    
     public static BufferedImage getMercuryLogo(int height) {
         if (mercuryLogo == null) {
             try {
@@ -336,76 +373,109 @@ public class Assets {
         return rSounds.get(key);
     }
     
-    public static void populateDigits(BufferedImage img, 
+    public static void populateDigits(BufferedImage img,
             int digitW, int digitH,
             int colonX, int colonW,
             int periodX, int periodW,
             int dashX, int dashW) {
         Log.d(1, "Assets.populateDigits: clipping digits");
         for(int i = 0; i < 10; i++) {
-            blueDigits[i] = img.getSubimage(i*digitW, 0, digitW, digitH);
-            redDigits[i] = img.getSubimage(i*digitW, digitH, digitW, digitH);
+            blackDigits[i] = img.getSubimage(i*digitW, 0*digitH, digitW, digitH);
+            primaryColorDigits[i] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);
+            secondaryColorDigits[i] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);
         }
 
-        blueDigits[10] = img.getSubimage(colonX, 0, colonW, digitH);
-        redDigits[10] = img.getSubimage(colonX, digitH, colonW, digitH);
-        blueDigits[11] = img.getSubimage(periodX, 0, periodW, digitH);
-        redDigits[11] = img.getSubimage(periodX, digitH, periodW, digitH);
-        blueDigits[12] = img.getSubimage(dashX, 0, dashW, digitH);
-        redDigits[12] = img.getSubimage(dashX, digitH, dashW, digitH);
+        blackDigits[10] = img.getSubimage(colonX, 0*digitH, colonW, digitH);
+        blackDigits[11] = img.getSubimage(periodX, 0*digitH, periodW, digitH);
+        blackDigits[12] = img.getSubimage(dashX, 0*digitH, dashW, digitH);
+        
+        primaryColorDigits[10] = new BufferedImage(colonW, digitH, BufferedImage.TYPE_INT_ARGB);
+        primaryColorDigits[11] = new BufferedImage(periodW, digitH, BufferedImage.TYPE_INT_ARGB);
+        primaryColorDigits[12] = new BufferedImage(dashW, digitH, BufferedImage.TYPE_INT_ARGB);
+        
+        secondaryColorDigits[10] = new BufferedImage(colonW, digitH, BufferedImage.TYPE_INT_ARGB);
+        secondaryColorDigits[11] = new BufferedImage(periodW, digitH, BufferedImage.TYPE_INT_ARGB);
+        secondaryColorDigits[12] = new BufferedImage(dashW, digitH, BufferedImage.TYPE_INT_ARGB);
 
-        emptyDigit = img.getSubimage(0, 2*digitH, digitW, digitH);
-        blueDigits[13] = emptyDigit;
-        redDigits[13] = emptyDigit;
+        emptyDigit = img.getSubimage(0, 1*digitH, digitW, digitH);
+        blackDigits[13] = emptyDigit;
+        primaryColorDigits[13] = emptyDigit;
+        secondaryColorDigits[13] = emptyDigit;
+        
+        Color primaryColor = new Color(
+                DisplayFrame.PRIMARY_RED, DisplayFrame.PRIMARY_GREEN,
+                DisplayFrame.PRIMARY_BLUE, 0
+        );
+        Color secondaryColor = new Color(
+                DisplayFrame.SECONDARY_RED, DisplayFrame.SECONDARY_GREEN,
+                DisplayFrame.SECONDARY_BLUE, 0
+        );
+        colorize(primaryColor, blackDigits, primaryColorDigits);
+        colorize(secondaryColor, blackDigits, secondaryColorDigits);
     }
     
     public static void populateFont(BufferedImage img,
-            int runeW, int runeH, int row0, int row1, int row2, int row3) {
+            int runeW, int runeH, int row0, int row1) {
         Log.d(1, "Assets.populateFont: clipping font runes");
 
         int i;
 
         for(i = 0; i < 26; i++) {
-            alphabetBlue[i] = img.getSubimage(i*runeW, row0, runeW, runeH);
-            alphabetWhite[i] = img.getSubimage(i*runeW, row2, runeW, runeH);
+            blackAlphabet[i] = img.getSubimage(i*runeW, row0, runeW, runeH);
+            primaryColorAlphabet[i] = new BufferedImage(runeW, runeH, BufferedImage.TYPE_INT_ARGB);
+            alternativeColorAlphabet[i] = new BufferedImage(runeW, runeH, BufferedImage.TYPE_INT_ARGB);
         }
 
         for(i = 0; i < 19; i++) {
-            nonAlphabetBlue[i] = img.getSubimage(i*runeW, row1, runeW, runeH);
-            nonAlphabetWhite[i] = img.getSubimage(i*runeW, row3, runeW, runeH);
+            blackNonAlphabet[i] = img.getSubimage(i*runeW, row1, runeW, runeH);
+            primaryColorNonAlphabet[i] = new BufferedImage(runeW, runeH, BufferedImage.TYPE_INT_ARGB);
+            alternativeColorNonAlphabet[i] = new BufferedImage(runeW, runeH, BufferedImage.TYPE_INT_ARGB);
         }
+        
+        Color primaryColor = new Color(
+                DisplayFrame.PRIMARY_RED, DisplayFrame.PRIMARY_GREEN,
+                DisplayFrame.PRIMARY_BLUE, 0
+        );
+        Color altColor = new Color(
+                DisplayFrame.ALT_RED, DisplayFrame.ALT_GREEN,
+                DisplayFrame.ALT_BLUE, 0
+        );
+        colorize(primaryColor, blackAlphabet, primaryColorAlphabet);
+        colorize(altColor, blackAlphabet, alternativeColorAlphabet);
+        colorize(primaryColor, blackNonAlphabet, primaryColorNonAlphabet);
+        colorize(altColor, blackNonAlphabet, alternativeColorNonAlphabet);
     }
     
     public static BufferedImage[] scaleFontH(int row, int height) {
         BufferedImage[] scaled = null;
-        int width = (int)((double)height/alphabetBlue[0].getHeight()*alphabetBlue[0].getWidth());
+        int width = (int)((double)height/primaryColorAlphabet[0].getHeight()*primaryColorAlphabet[0].getWidth());
         int i;
         switch(row) {
             case 0:
                 scaled = new BufferedImage[26];
                 for(i = 0; i < 26; i++) {
-                    scaled[i] = scale(alphabetBlue[i], width, height);
+                    scaled[i] = scale(primaryColorAlphabet[i], width, height);
                 }
                 
                 break;
             case 1:
                 scaled = new BufferedImage[19];
                 for(i = 0; i < 19; i++) {
-                    scaled[i] = scale(nonAlphabetBlue[i], width, height);
+                    scaled[i] = scale(primaryColorNonAlphabet[i], width, height);
                 }
                 
                 break;
             case 2:
                 scaled = new BufferedImage[26];
                 for(i = 0; i < 26; i++) {
-                    scaled[i] = scale(alphabetWhite[i], width, height);
+                    scaled[i] = scale(alternativeColorAlphabet[i], width, height);
                 }
                 
                 break;
             case 3:
                 scaled = new BufferedImage[19];
                 for(i = 0; i < 19; i++) {
-                    scaled[i] = scale(nonAlphabetWhite[i], width, height);
+                    scaled[i] = scale(alternativeColorNonAlphabet[i], width, height);
                 }
                 
                 break;
@@ -448,13 +518,13 @@ public class Assets {
         return scaled;
     }
     
-    public static BufferedImage scaleDigitW(int index, int width, boolean red) {
-        BufferedImage src = !red ? blueDigits[index] : redDigits[index];
+    public static BufferedImage scaleDigitW(int index, int width, boolean secondary) {
+        BufferedImage src = !secondary ? primaryColorDigits[index] : secondaryColorDigits[index];
         return scale(src, width, (int)((double)width/src.getWidth()*src.getHeight()));
     }
     
-    public static BufferedImage scaleDigitH(int index, int height, boolean red) {
-        BufferedImage src = !red ? blueDigits[index] : redDigits[index];
+    public static BufferedImage scaleDigitH(int index, int height, boolean secondary) {
+        BufferedImage src = !secondary ? primaryColorDigits[index] : secondaryColorDigits[index];
         return scale(src, (int)((double)height/src.getHeight()*src.getWidth()), height);
     }
     

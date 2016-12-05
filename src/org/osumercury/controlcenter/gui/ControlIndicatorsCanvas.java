@@ -40,6 +40,7 @@ public class ControlIndicatorsCanvas extends JPanel {
     private int smallH;
     private int smallW;
     private int yOffset;
+    public static Color BG_COLOR = Color.BLACK;
     
     public static final int COLON = 10;
     public static final int PERIOD = 11;
@@ -93,7 +94,7 @@ public class ControlIndicatorsCanvas extends JPanel {
         
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
                            RenderingHints.VALUE_ANTIALIAS_ON);
-        g.setColor(Color.BLACK);
+        g.setColor(BG_COLOR);
         g.fillRect(0, 0, W, H);
         
         int hours;
