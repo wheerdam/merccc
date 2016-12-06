@@ -46,13 +46,15 @@ public class Assets {
     private static BufferedImage[] alternativeColorNonAlphabet = new BufferedImage[19];
     private static BufferedImage emptyDigit;
     private static BufferedImage mercuryLogo;
+    private static BufferedImage digitsImg;
+    private static BufferedImage classicDigitsImg;
+    private static BufferedImage fontImg;
     
     public static void loadInternalAssets() {
-        BufferedImage digitsImg;
-        BufferedImage fontImg;
         try {
             missingAsset = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/missing-asset.png"));
             digitsImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/digits-black.png"));
+            classicDigitsImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/digits-classic.png"));
             fontImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/font-black.png"));
             
             populateDigits(digitsImg, 204, 250, 2040, 70, 2110, 38, 2190, 204);
@@ -399,8 +401,8 @@ public class Assets {
 
         emptyDigit = img.getSubimage(0, 1*digitH, digitW, digitH);
         blackDigits[13] = emptyDigit;
-        primaryColorDigits[13] = emptyDigit;
-        secondaryColorDigits[13] = emptyDigit;
+        primaryColorDigits[13] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);;
+        secondaryColorDigits[13] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);;
         
         Color primaryColor = new Color(
                 DisplayFrame.PRIMARY_RED, DisplayFrame.PRIMARY_GREEN,
@@ -444,6 +446,14 @@ public class Assets {
         colorize(altColor, blackAlphabet, alternativeColorAlphabet);
         colorize(primaryColor, blackNonAlphabet, primaryColorNonAlphabet);
         colorize(altColor, blackNonAlphabet, alternativeColorNonAlphabet);
+    }
+    
+    public static void setClassicDigits(boolean b) {
+        if(b) {
+            populateDigits(classicDigitsImg, 204, 250, 2040, 70, 2110, 38, 2190, 204);
+        } else {
+            populateDigits(digitsImg, 204, 250, 2040, 70, 2110, 38, 2190, 204);
+        }
     }
     
     public static BufferedImage[] scaleFontH(int row, int height) {

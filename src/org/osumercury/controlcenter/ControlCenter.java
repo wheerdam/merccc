@@ -102,6 +102,9 @@ public class ControlCenter {
     @Parameter(names = { "--lockmode" })
     private int lockMode = -1;
     
+    @Parameter(names = { "--classicdigits" })
+    private boolean classicDigits = false;
+    
     private Boolean GUI = true;
     
     private CompetitionState competition;
@@ -313,6 +316,7 @@ public class ControlCenter {
             if(!noTheme) {
                 Assets.theme(Config.getSectionAsMap("theme"));
             }
+            Assets.setClassicDigits(classicDigits);
             
             val = Config.getValue("theme", "systemfont");
             if(val != null) {

@@ -779,9 +779,9 @@ public class ControlFrame extends JFrame {
             SoundPlayer.setEnabled(menuOptsSounds.isSelected());
         });
         
-        menuOptsBanner.addActionListener(((ActionEvent e) -> {
+        menuOptsBanner.addActionListener((ActionEvent e) -> {
             DisplayFrame.SHOW_BANNER = menuOptsBanner.isSelected();
-        }));
+        });
         
         menuOpts.add(menuOptsSounds);
         menuOpts.add(menuOptsFont);
