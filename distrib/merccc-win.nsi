@@ -51,16 +51,20 @@ Section "Mercury Control Center Install (required)"
   SetOutPath $INSTDIR
   
   ; Put file there
-  File ".\merccc-MERCCCVERSION.jar"
+  ; File ".\merccc-MERCCCVERSION.jar"
   File ".\appicon.ico"
   File ".\appicon1.ico"
 
-  IfFileExists $INSTDIR\merccc.bat 0 +2
-    Delete $INSTDIR\merccc.bat    
-  Push `for /f tokens^=2^ delims^=^" %%i in ('reg query HKEY_CLASSES_ROOT\jarfile\shell\open\command /ve') do set JAVAW_PATH=%%i$\r$\nif "%JAVAW_PATH%"=="" exit$\r$\nset JAVA_HOME=%JAVA_HOME:\javaw.exe=%$\r$\ncd /D $INSTDIR$\r$\n"%JAVAW_PATH%" -Djava.library.path=. -jar merccc-MERCCCVERSION.jar %*$\r$\n`
-  Push `$INSTDIR\merccc.bat`
-  Call WriteToFile
+  ;IfFileExists $INSTDIR\merccc.bat 0 +2
+  ;  Delete $INSTDIR\merccc.bat    
+  ;Push `for /f tokens^=2^ delims^=^" %%i in ('reg query HKEY_CLASSES_ROOT\jarfile\shell\open\command /ve') do set JAVAW_PATH=%%i$\r$\nif "%JAVAW_PATH%"=="" exit$\r$\nset JAVA_HOME=%JAVA_HOME:\javaw.exe=%$\r$\ncd /D $INSTDIR$\r$\n"%JAVAW_PATH%" -Djava.library.path=. -jar merccc-MERCCCVERSION.jar %*$\r$\n`
+  ;Push `$INSTDIR\merccc.bat`
+  ;Call WriteToFile
   
+  ifFileExists $INSTDIR\merccc.exe 0 +2
+    Delete $INSTDIR\merccc.exe
+  File ".\merccc.exe"
+
   IfFileExists $INSTDIR\merccco.bat 0 +2
     Delete $INSTDIR\merccco.bat    
   Push `cd /D $INSTDIR$\r$\nmerccc -c %*$\r$\n`
@@ -73,11 +77,11 @@ Section "Mercury Control Center Install (required)"
   Push `$INSTDIR\mercccz.bat`
   Call WriteToFile
   
-  IfFileExists $INSTDIR\mercccserv.bat 0 +2
-    Delete $INSTDIR\mercccserv.bat    
-  Push `cd /D $INSTDIR$\r$\nmerccc -p 19000 %*$\r$\n`
-  Push `$INSTDIR\mercccserv.bat`
-  Call WriteToFile
+  ;IfFileExists $INSTDIR\mercccserv.bat 0 +2
+  ;  Delete $INSTDIR\mercccserv.bat    
+  ;Push `cd /D $INSTDIR$\r$\nmerccc -p 19000 %*$\r$\n`
+  ;Push `$INSTDIR\mercccserv.bat`
+  ;Call WriteToFile
   
   ; Write the installation path into the registry
   WriteRegStr HKLM SOFTWARE\merccc "Install_Dir" "$INSTDIR"
@@ -101,8 +105,9 @@ SectionEnd
 ; Optional section (can be disabled by the user)
 Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\Mercury Control Center"
-  CreateShortCut "$SMPROGRAMS\Mercury Control Center\Mercury Control Center.lnk" "$INSTDIR\merccc.bat" "" "$INSTDIR\appicon.ico" 0
-  CreateShortCut "$SMPROGRAMS\Mercury Control Center\merccc with server (port 19000).lnk" "$INSTDIR\mercccserv.bat" "" "$INSTDIR\appicon1.ico" 0
+  CreateShortCut "$SMPROGRAMS\Mercury Control Center\Mercury Control Center.lnk" "$INSTDIR\merccc.exe" "" "$INSTDIR\appicon.ico" 0
+  CreateShortCut "$SMPROGRAMS\Mercury Control Center\merccc with server (port 19000).lnk" "$INSTDIR\merccc.exe" "-p 19000" "$INSTDIR\appicon1.ico" 0
+  CreateShortCut "$SMPROGRAMS\Mercury Control Center\about.lnk" "$INSTDIR\merccc.exe" "--about" "$INSTDIR\appicon.ico" 0
   CreateShortCut "$SMPROGRAMS\Mercury Control Center\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0   
   
 SectionEnd
@@ -123,10 +128,9 @@ Section "Uninstall"
   
   ; Remove files and uninstaller
   Delete $INSTDIR\merccc-MERCCCVERSION.jar
-  Delete $INSTDIR\merccc.bat
+  Delete $INSTDIR\merccc.exe
   Delete $INSTDIR\merccco.bat
   Delete $INSTDIR\mercccz.bat
-  Delete $INSTDIR\mercccserv.bat
   Delete $INSTDIR\uninstall.exe
   Delete $INSTDIR\appicon.ico
   Delete $INSTDIR\appicon1.ico
