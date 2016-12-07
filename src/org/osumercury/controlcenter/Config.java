@@ -70,7 +70,7 @@ public class Config {
             Log.d(0, "Config.load: " + CONFIG_FILE.getAbsolutePath());
             StringBuilder str = new StringBuilder();
             InputStreamReader r = new InputStreamReader(
-                    new FileInputStream(CONFIG_FILE), "utf-8");
+                    new FileInputStream(CONFIG_FILE), "UTF-8");
             char[] buf = new char[4096];
             int nread;
             while((nread = r.read(buf)) != -1) {
