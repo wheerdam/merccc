@@ -69,7 +69,8 @@ public class Config {
             CONFIG_FILE = new File(f);            
             Log.d(0, "Config.load: " + CONFIG_FILE.getAbsolutePath());
             StringBuilder str = new StringBuilder();
-            FileReader r = new FileReader(CONFIG_FILE);
+            InputStreamReader r = new InputStreamReader(
+                    new FileInputStream(CONFIG_FILE), "utf-8");
             char[] buf = new char[4096];
             int nread;
             while((nread = r.read(buf)) != -1) {

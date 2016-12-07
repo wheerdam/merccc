@@ -10,6 +10,7 @@ Revision History:
 0.9.8b 2016/12/03  Classification table background color
 0.9.9  2016/12/04  Arbitrary team IDs, logo sizing, and banner
 1.0.0  2016/12/05  Bitmap fonts are now colorized by the program
+1.0.1  2016/12/07  File encoding specification
 
 ========
 OVERVIEW
@@ -44,6 +45,8 @@ The configuration file format is similar to Windows .INI format. Section headers
 	P=Penalties,0,1
 
 Identifiers and right hand side values may not contain the following characters: '#' (hash mark) and ',' (comma). Additionally, identifiers may not have '=' (equal sign). Hash marks (#) are used to write comments. Anything after the hash mark will be ignored by the program. Commas are used to separate right-hand side parameters for entries that require multiple values (such as the ones in the fields section example above).
+
+The configuration file must be in UTF-8 encoding. UTF-8 is backwards compatible with ASCII. If non-Latin characters are used in the file, the UTF-8 (without BOM) encoding *must* be used. Some editors save UTF-8 files *with* BOM. This will interfere with merccc unless the user inserts a blank line in the beginning of the file.
 
 ==============
 SYSTEM SECTION
