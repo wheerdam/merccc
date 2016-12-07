@@ -13,9 +13,11 @@ then
 	cd distrib
 fi
 echo "- generating debian control file"
+rm -rf ./deb
+mkdir ./deb
+mkdir ./deb/DEBIAN
 cat debian-control | sed "s/VERSION/`cat version`/" > deb/DEBIAN/control
 echo "- copying files to include in the package"
-rm -rf ./deb/usr
 mkdir ./deb/usr
 mkdir ./deb/usr/bin
 mkdir ./deb/usr/lib
