@@ -5,5 +5,4 @@ rm -vrf store
 cd distrib
 rm -v merccc-*`cat version`*
 rm -v md5sum*
-rm -vr deb/usr
-rm -v deb/DEBIAN/control
+rm -vr deb
