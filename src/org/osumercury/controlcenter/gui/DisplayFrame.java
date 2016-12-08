@@ -133,6 +133,10 @@ public class DisplayFrame extends JFrame {
     public static int THUMB_WIDTH = 300;
     public static int THUMB_INTERVAL = 2;
     
+    public static float DIGITS_H = 0.10f;
+    public static float DIGITS_SMALL_H = 0.07f;
+    public static float TEXT_H = 0.06f;
+    
     public DisplayFrame(ControlCenter cc, String nativeFont) {
         this.cc = cc;
         this.competition = cc.getCompetitionState();
@@ -307,9 +311,9 @@ public class DisplayFrame extends JFrame {
             canvas.getHeight()/2-charH/2-20, 40+strWidth, 40+charH
         );
         drawText(g, str, canvas.getWidth()/2-strWidth/2, canvas.getHeight()/2-charH/2, false);        
-        digitH = (int)(0.10*height);
-        smallH = (int)(0.07*height);
-        charH = (int)(0.06*height);
+        digitH = (int)(DIGITS_H*height);
+        smallH = (int)(DIGITS_SMALL_H*height);
+        charH = (int)(TEXT_H*height);
         scaledLogo = Assets.getLogoH((int)(LOGO_HEIGHT_PROPORTION*height));
         scaledBlueDigits = Assets.scaleDigitsH(digitH, false);
         scaledRedDigits = Assets.scaleDigitsH(digitH, true);

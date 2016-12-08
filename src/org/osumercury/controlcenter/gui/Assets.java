@@ -302,6 +302,36 @@ public class Assets {
             }
         }
         
+        val = theme.get("digitsheight");
+        if(val != null) {
+            try {
+                DisplayFrame.DIGITS_H = Float.parseFloat(val);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse digits height");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
+        val = theme.get("smalldigitsheight");
+        if(val != null) {
+            try {
+                DisplayFrame.DIGITS_SMALL_H = Float.parseFloat(val);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse small digits height");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
+        val = theme.get("textheight");
+        if(val != null) {
+            try {
+                DisplayFrame.TEXT_H = Float.parseFloat(val);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse text height");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
         val = theme.get("banner");
         if(val != null) {
             DisplayFrame.BANNER_FILE = val;
