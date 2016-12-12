@@ -18,6 +18,7 @@ package org.osumercury.controlcenter.misc;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -26,6 +27,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import org.osumercury.controlcenter.*;
 import org.osumercury.controlcenter.gui.DisplayFrame;
+import org.osumercury.controlcenter.gui.Assets;
 
 /**
  *
@@ -35,8 +37,9 @@ public class DisplayClient {
     private static PrintWriter w;
     private static BufferedReader r;
     private static Socket s;
+    private static File fetchedResources;
     
-    public static String getConfigString(String host, int port) {
+    public static String getConfigString(String host, int port, boolean copyResources) {
         StringBuilder str = new StringBuilder();
         try {
             Log.d(0, "- fetching config from " + host + ":" + port);
@@ -54,6 +57,21 @@ public class DisplayClient {
                 Log.d(1, d);
                 str.append(d);
                 str.append("\n");
+            }
+            if(copyResources) {
+                Log.d(0, "- fetching resources to ./merccc-remote-resources");
+                File f = new File("./merccc-remote-resources");
+                if(!f.exists()) {
+                    f.mkdir();
+                }
+                if(f.exists()) {
+                    w.println("resources");
+                    w.flush();
+                    SockCopy.getRecursive(s, f.getAbsolutePath(), null);
+                    fetchedResources = f;
+                } else {
+                    Log.d(0, "- failed to create ./merccc-remote-resources");
+                }
             }
             s.close();            
             return str.toString();
@@ -98,7 +116,10 @@ public class DisplayClient {
                         localHash);
                 if(serverHash != localHash) {
                     Log.fatal(102, "configuration hashes do not match");
-                }
+                }                
+            } else if(fetchedResources != null) {
+                Assets.load(fetchedResources.getAbsolutePath()
+                        + "/" + Config.getValue("system", "resourcedir"));
             }
             
             // get current scoring state from server

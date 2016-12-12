@@ -28,6 +28,9 @@ import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import javax.swing.JOptionPane;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
@@ -105,7 +108,11 @@ public class ControlCenter {
     @Parameter(names = { "--classicdigits" })
     private boolean classicDigits = false;
     
+    @Parameter(names = { "--copyresources" })
+    private boolean copyResources = false;
+    
     private Boolean GUI = true;
+    private File resourcePath;
     
     private CompetitionState competition;
     private DisplayFrame display;
@@ -207,9 +214,10 @@ public class ControlCenter {
         if (client != null && configFile == null && zipFile == null) {
             fetchConfig = true;
             Log.d(0, "- no local config provided");
-            String configStr = DisplayClient.getConfigString(controlHost, controlPort);
+            String configStr = DisplayClient.getConfigString(
+                    controlHost, controlPort, copyResources);
             if(configStr != null) {
-                Config.parse(configStr);
+                Config.parse(configStr);                
             } else {
                 Log.fatal(101, "Unable to fetch config from server");
             }
@@ -311,6 +319,9 @@ public class ControlCenter {
                     resourceDir = fileChooser.getSelectedFile().getAbsolutePath();
                 }
             }
+            if(resourceDir != null) {
+                resourcePath = new File(resourceDir);
+            }
             Assets.loadInternalAssets();
             Assets.load(resourceDir);
             if(!noTheme) {
@@ -358,12 +369,12 @@ public class ControlCenter {
                 });
 
                 if(port > 0 && port <= 65535) {
-                    socket = new SocketInterface(port, competition, control, false);
+                    socket = new SocketInterface(port, this, control, false, copyResources);
                     socket.start();
                 }
 
                 if(localPort > 0 && localPort <= 65535) {
-                    loopback = new SocketInterface(localPort, competition, control, true);
+                    loopback = new SocketInterface(localPort, this, control, true, copyResources);
                     loopback.start();
                 }
             } else {
@@ -402,6 +413,10 @@ public class ControlCenter {
     
     public SocketInterface getLoopbackSocketHandle() {
         return loopback;
+    }
+    
+    public File getResourcePath() {
+        return resourcePath;
     }
     
     public static void exit(int ret) {

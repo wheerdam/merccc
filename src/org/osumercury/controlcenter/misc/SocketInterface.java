@@ -34,17 +34,21 @@ import java.net.InetAddress;
 public class SocketInterface extends Thread {
     private int port;
     private CompetitionState c;
+    private ControlCenter cc;
     private ControlFrame f;
     private LinkedList<ClientHandler> clientHandlers;
     private ServerSocket ss;
     private boolean local;
+    private boolean allowResourceCopy;
     
-    public SocketInterface(int port, CompetitionState c, ControlFrame f,
-            boolean local) {
+    public SocketInterface(int port, ControlCenter cc, ControlFrame f,
+            boolean local, boolean allowResourceCopy) {
         this.port = port;
-        this.c = c;
+        this.cc = cc;
+        this.c = cc.getCompetitionState();
         this.f = f;
         this.local = local;
+        this.allowResourceCopy = allowResourceCopy;
         clientHandlers = new LinkedList();
         f.addScoreChangedHook((String key, int ID, String value) -> {
             broadcast("SCORE_CHANGE " + key + " " + ID + " " + value);
@@ -209,8 +213,7 @@ public class SocketInterface extends Thread {
         private boolean prompt = true;
         
         public ClientHandler(Socket s) {
-            this.s = s;
-            
+            this.s = s;            
         }
         
         @Override
@@ -307,6 +310,15 @@ public class SocketInterface extends Thread {
                             case "promptoff":
                                 prompt = false;
                                 send("PROMPT OFF");
+                                break;
+                            case "resources":
+                                if(allowResourceCopy) {
+                                    Log.d(0, "resource request");
+                                    SockCopy.putRecursive(s, cc.getResourcePath().getAbsolutePath(), null);
+                                } else {
+                                    Log.d(0, "resource request is not allowed");
+                                    SockCopy.send(s, "-1");
+                                }
                                 break;
                         }
                         sendPrompt();
