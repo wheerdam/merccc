@@ -1,0 +1,280 @@
+Mercury Control Center v1.1.0
+MERCURY CONTROL CENTER
+Configuration File Format Documentation
+
+Revision History:
+0      2016/10/12  Original version
+0.9.1  2016/10/14  Added sortorder option
+0.9.2  2016/10/14  Changed resourcedir to be relative to the config file path
+0.9.3  2016/10/15  Added theming support
+0.9.7  2016/11/23  Added more theming options
+0.9.8b 2016/12/03  Classification table background color
+0.9.9  2016/12/04  Arbitrary team IDs, logo sizing, and banner
+1.0.0  2016/12/05  Bitmap fonts are now colorized by the program
+1.0.1  2016/12/07  File encoding specification
+1.1.0  2016/12/08  Digits and text scaling
+
+========
+OVERVIEW
+========
+
+Mercury Control Center is a timing and scoring software for competitions. The software has two major GUI elements: the CONTROL WINDOW to be used by the operator, and a borderless full-screen DISPLAY WINDOW to display information about the competition to the audience and competitors. The typical usage of this software will require a computer with two display outputs, one for the operator, and another, preferrably a big one, for the audience (e.g. HDTVs or projectors). The operator can choose what to display on the DISPLAY WINDOW at any moment of time.
+
+=============
+CONFIGURATION
+=============
+
+The software requires a configuration file to run. The configuration file reflects the format and the participants of the competition and any other user-configurable parameters desired by the competition organizers. The configuration file is organized into the following sections:
+
+system     - general system-level settings
+formula    - the scoring formula that will be used by the software
+fields     - the variables and their parameters (default value, type, etc.)
+display    - options on how to format the score fields in the DISPLAY WINDOW
+test       - some test values and expected result to ensure that the formula is correct
+tournament - default tournament parameters
+teams      - team entries
+theme      - optional section to change the DISPLAY WINDOW's appearances
+
+===========
+FILE FORMAT
+===========
+
+The configuration file format is similar to Windows .INI format. Section headers are enclosed within square brackets. Entries within sections are defined by an identifier on the left, an equal sign, and parameters on the right. There must not be any space between the identifier and the equal sign. The following is an example of a section:
+
+	[fields]
+	A=Variable A,0,0
+	B=Variable B,0,3,30:15:0
+	P=Penalties,0,1
+
+Identifiers and right hand side values may not contain the following characters: '#' (hash mark) and ',' (comma). Additionally, identifiers may not have '=' (equal sign). Hash marks (#) are used to write comments. Anything after the hash mark will be ignored by the program. Commas are used to separate right-hand side parameters for entries that require multiple values (such as the ones in the fields section example above).
+
+The configuration file must be in UTF-8 encoding. UTF-8 is backwards compatible with ASCII. If non-Latin characters are used in the file, the UTF-8 (without BOM) encoding *must* be used. Some editors save UTF-8 files *with* BOM. This will interfere with merccc unless the user inserts a blank line in the beginning of the file.
+
+==============
+SYSTEM SECTION
+==============
+
+The system section has two entries:
+
+	[system]
+	resourcedir=<path>
+	debuglevel=<integer> # console output verbosity, optional
+
+resourcedir specifies the directory that contains user-defined resources such as team badges, event sounds, and competition logo. This directory is relative to the directory where the configuration file is located when it was loaded. If this entry is missing or the program can not open the specified directory, the program will prompt the user to provide a resource directory when it executes.
+
+The following files are expected to be inside the resource directory:
+- logo.png - competition logo, displayed in LOGO mode or when no run is in progress
+- setup-start.wav - sound to play when setup period has started
+- window-start.wav - sound to play when run window period has started
+- window-end.wav - sound to play when the run window has ended
+
+Other files are user-defined within the configuration file. If the logo image is not found, the default logo will be displayed instead. No sound will play if the program could not find the above sound files.
+	
+===============
+FORMULA SECTION
+===============
+
+The formula section specifies the formula that is going to be used to score a team. This section only has one valid entry "postfix". The scoring formula is defined in postfix notation. ALL variables used in the formula must also be defined in the "fields" section of the configuration file. Constants must be included as numerical values in the formula. The formula accepts floating point number constants and the following operators: +, -, *, /, ^ (exponent), SQRT (square root)
+
+For example, to use the following infix formula (0.5 * A + B) * (20 - P), the following entry can be given:
+
+	[formula]
+	postfix=0.5 A * B + 20 P - *
+
+==============
+FIELDS SECTION
+==============
+
+The fields section defines the variables used in the scoring formula. Each entry of the section contains the description, default value, type, and possible values (if applicable) of each scoring variable. The following is the format for each scoring variable in this section:
+
+	IDENTIFIER=DESCRIPTION, DEFAULT_VALUE, TYPE, POSSIBLE_VALUES
+
+Each variable used in the formula section MUST have an entry in this section, and the identifiers must match (case sensitive). DEFAULT_VALUE is used by the program to fill in the value of the score field at the start of a scoring session. TYPE defines the score field as one of the following:
+
+0 - real floating point number value (the program will bring up a dialog for the operator to enter the value during a scoring session)
+
+1 - discrete positive integer value (the program will have a +1/-1 button to modifiy this score during a scoring session)
+
+2 or greater - this variable can only have this number of possible values. For example, if TYPE=3, it means that the score field can only have 3 possible values as defined by the POSSIBLE_VALUES column
+
+POSSIBLE_VALUES only applies when TYPE is 2 or greater. POSSIBLE_VALUES is ':' or colon-delimited, and the number of possible values must match the TYPE. The following example is a scoring variable that can only take 0, 15, or 30 points with a default of 0:
+
+	B=Bolt pick-up, 0, 3, 30:15:0
+
+The program will have 3 buttons that correspond to the possible values for the operator to choose while in a scoring session.
+
+===============
+DISPLAY SECTION
+===============
+
+Each score field value can be displayed while a scored run is active. This section allows the organizers to format how each score field is displayed in the program. By default the program will display 2 digits and 2 decimal digits for each field. This default can be overridden in this section by using the following entries:
+
+	[display]
+	score_field_digits=2
+	score_field_decimal=1  # '00.0' format instead of the default '00.00' 
+
+To override the default for a specific field, just add an entry for the field and the number of digits and decimal digits, e.g:
+
+	P=2,0	# display the 'P' field as '00'	
+
+============
+TEST SECTION
+============
+
+The test section allows the user of the program to verify their formula. To use this feature, add an entry for each variable in the formula with a test value, and add an entry to assert the result with __RESULT. The program will give a warning during initialization if the expected value given in __RESULT and the calculated value do not match. The following is an example of a test section for the formula given in the formula section.
+
+	[test]
+	A=6
+	B=15
+	P=5
+	__RESULT=270
+
+If the calculated value does not equal 270, a warning will be given in the console window during program startup.
+
+==================
+TOURNAMENT SECTION
+==================
+
+The tournament section defines the default setup and window durations, the number of scored attempts the team can make during a run window, and whether the score is sorted in ascending or descending order. The timing and attempts parameters can be overidden during the running of the program. The following example defines a setup window of 5 minutes, run window of 10 minutes, and 3 maximum attempts (Mercury Remote Robot Competition timings). The setup period can be skipped by the operator during a scoring session if desired. 
+
+	[tournament]
+	setup=300
+	window=600
+	maxattempts=3
+	sortorder=0
+
+The teams are sorted in descending order by default (higher score is better). If sortorder is set to 1, the teams will be sorted in ascending order (lower score is better).
+
+=============
+TEAMS SECTION
+=============
+
+The teams section contains entries for all competing teams. Each team is assigned a unique team number. The format for each entry is: 
+
+	ID=NAME, INSTITUTION, TEAM_BADGE_FILE
+
+The following is an example of the section (the ID numbers do not have to be in sequence):
+
+	[teams]
+	0=All Fun and Games, Pacific University, 0-all-fun-and-games.jpg
+	1=ATLANTIS, NASA, 1-atlantis-jpg
+	2=Gollum Alpha, Atlantic University, 2-gollum.jpg
+
+If the specified image file exists in the resource directory, the program will display the graphic during the setup phase. Images can either be .PNG or .JPG format.
+
+=============
+THEME SECTION
+=============
+
+The theme section allows the user to modify how the DISPLAY WINDOW will appear. This section is completely optional.
+
+---------------
+CLOCK ALIGNMENT
+---------------
+
+The clock on the DISPLAY WINDOW during a run (setup and run windows) is aligned to the right by default. The user can change this aligment by adding the following option:
+
+	alignclockleft=1
+
+----------------------------
+LOGO SCALING AND POSITIONING
+----------------------------
+
+The competition logo can be scaled and positioned relative to the current screen height with the following options:
+
+	logoheight=0.4
+	logoposition=0.4
+
+A wide logo will be scaled better than a tall one as to make good use of widescreen displays. logoposition specifies where the vertical center point of the image will be located in terms of proportion of the screen from the top. E.g. a logoposition of 0.5 will mean that the logo will be vertically placed in the middle. The logo will always be centered horizontally.
+
+The clock will always be drawn underneath the logo, so if the logo is scaled too tall or placed too low, the clock may be not visible.
+
+------
+BANNER
+------
+
+The program can display a banner in logo mode (e.g. for sponsors). The image for the banner can either be in PNG or JPG format. The image must be placed inside the resources directory or it will not be displayed.
+
+	banner=banner.png
+
+The banner will be displayed on the bottom right portion of the screen, scaled appropriately as to not cover the clock and logo. The banner will also be displayed on the top right portion of the screen during setup period.
+
+------------
+BITMAP FONTS
+------------
+
+The bitmap digits and text fonts in the program can be replaced by the user using this section. The fonts have to be in .PNG format with alpha channel and only having the color BLACK (the program will colorize the font). Having non-black color will result in weird colors.
+
+The image must be placed within the resource directory. The font then can be used by using the entries below (it is not necessary to provide both, the user can just replace the digits OR the text if that is what is desired):
+
+	digitfont=fontfile1.png
+	font=fontfile2.png
+
+The user then has to provide geometries to derive each character from the image file. For the digits, the program expects the following organization:
+
+rows
+  0:  0123456789:.-  
+  1:  8              (blank digit)
+
+The following configuration entries will have to be provided by the user to inform the program on how to clip each character: digitW, digitH, colonX, colonW, periodX, periodW, dashX, and dashW.
+
+digitW and digitH define the width and height of each character, respectively. Row positions are derived by multiples of digitH with the top of the image being the origin of the y axis. Numerical character x-axis positions are derived by multiples of digitW. For example, the pixel position of the number 5 would be (5*digitW, 0). The special blank digit's pixel position would be (0, 1*digitH).
+
+colonX, colonW, periodX, periodW, dashX, and dashW define the x-axis position and clipping widths of the non-numerical characters. Their heights are defined by digitH.
+
+For the text font, the program expects the following organization:
+
+rows
+  0: ABCDEFGHIJKLMNOPQRSTUVWXYZ 
+  1: 0123456789-:,.'"?!# 
+
+The following configuration entries will be used to clip each character: runeW, runeH, row0, row1.
+
+The program assumes a monospaced font. runeW and runeH simply define the clipping box for each character. The x-axis position of each character is derived by multiplying runeW with the number of characters to skip to reach the desired position. The row entries define where in y-axis the program should look for the desired row. The y-axis' origin is on the top of the image, e.g. if the first row is aligned to the top of the image, row0 will be zero.
+
+-----------
+SYSTEM FONT
+-----------
+
+An alternative to using bitmap text fonts is to use system fonts (e.g. to render non-basic Latin characters). This can be specified by using the systemfont option:
+
+	systemfont=Times New Roman
+
+This option overrides bitmap font options. The systemfont option will not be used to render digits, only the text font.
+
+------
+COLORS
+------
+
+The theme section also allows the user to change the graphic colors used in the DISPLAY WINDOW. The entries are:
+
+	primarycolor=32,187,255 # color in 24-bit RGB
+	secondarycolor=255,126,48
+	altcolor=255,255,255
+	bgcolor=0,0,0 # background color
+	tablebgcolor=5,32,80 # class. table "light" background
+
+The values above are the default values used by the program internally. The primary color is light blue, the secondary color is bright orange, the alternate color is white, and table light background is dark blue. Bitmap fonts' colors are colorized by these settings (primary and secondary for digits, and primary and alternate for text).
+
+----------------
+BACKGROUND IMAGE
+----------------
+
+merccc can display a background image in the DISPLAY WINDOW. The background image is specified as follows:
+
+	bgimage=file.jpg # must exist in the resources directory
+	bgalignment=0
+	bgscaling=0
+
+As with team badge pictures, the background image file must also be placed inside the resources directory. The bgalignment entry specifies where the background image will be located. 0 is top-left, 1 is top-right, 2 is bottom-right, 3 is bottom-left, 4 is top-centered, 5 is bottom-centered, and 6 is middle of the screen. bgscaling entry specifies how the image should be scaled: 0 is no scaling, 1 is fit width, and 2 is fit height.
+
+-----------------------
+DIGITS AND TEXT SCALING
+-----------------------
+
+The digits and text can be scaled in proportion to the screen's height with the following options (with default values):
+
+	digitsheight=0.10 # clock digits
+	smalldigitsheight=0.07 # score digits
+	textheight=0.06
+

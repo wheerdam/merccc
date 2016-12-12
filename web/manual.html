@@ -1,0 +1,256 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="./appicon.png">
+<title>Mercury Control Center Operator's Manual</title>
+</head>
+<body>
+<div class="container">
+<h1 id="top"><img alt="[*]" src="./images/merccc-logo.png" height="50" style="background-color: black; vertical-align: middle"> merccc</h1>
+<p class="centered">Manual for v1.1.0</p>
+<p>&#9662; <a href="./index.html#GET">Download <strong>merccc</strong></a></p>
+<h2>Table of Contents</h2>
+<p class="indent0">&#9679; <a href="#config">Configuration</a></p>
+<p class="indent1">&#9679; <a href="#config-encoding">File Encoding</a></p>
+<p class="indent1">&#9679; <a href="#config-example">Example</a></p>
+<p class="indent1">&#9679; <a href="#config-resources">Graphics and Sounds Resources</a></p>
+<p class="indent1">&#9679; <a href="#config-variables">Formula Variables</a></p>
+<p class="indent1">&#9679; <a href="#config-teams">Team Definitions</a></p>
+<p class="indent0">&#9679; <a href="#running">Running merccc</a></p>
+<p class="indent1">&#9679; <a href="#running-cli">Command Line Options</a></p>
+<p class="indent0">&#9679; <a href="#display">Display Window Controls</a></p>
+<p class="indent0">&#9679; <a href="#scoring">Scoring Controls</a></p>
+<p class="indent1">&#9679; <a href="#scoring-setup">Setup State</a></p>
+<p class="indent1">&#9679; <a href="#scoring-run">Run State</a></p>
+<p class="indent0">&#9679; <a href="#data">Data Manipulation and Export/Import</a></p>
+<p class="indent0">&#9679; <a href="#classification">Classification Control</a></p>
+<p class="indent0">&#9679; <a href="#custom">Customization</a></p>
+<p class="indent1">&#9679; <a href="#custom-options">Options Menu</a></p>
+<p class="indent1">&#9679; <a href="#custom-fonts">Fonts</a></p>
+<p class="indent1">&#9679; <a href="#custom-scoreformat">Score Field Number Format</a></p>
+<p class="indent1">&#9679; <a href="#custom-banner">Banner</a></p>
+<p class="indent1">&#9679; <a href="#custom-colors">Colors</a></p>
+<p class="indent1">&#9679; <a href="#custom-background">Background Image</a></p>
+<p class="indent0">&#9679; <a href="#local">Localization</a></p>
+<p class="indent0">&#9679; <a href="#socket">TCP Server Socket Interface</a></p>
+<p class="indent1">&#9679; <a href="#socket-client">Display Client Mode</a></p>
+<p class="indent0">&#9679; <a href="#build">Building from Source</a></p>
+<h2 id="config">Configuration <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p><strong>merccc</strong> requires a configuration file to operate. This configuration file specifies the scoring formula and its variables, the competing teams, and other parameters to tailor <strong>merccc</strong> to the competition. The configuration file specifications can be viewed by running <strong>merccc</strong> with the <span class="mono">--about</span> (shown below) or <span class="mono">--format</span> options, or from this website: <a href="./config-format.txt">configuration specs</a> (<a href="./config-format-pretty.txt">pretty print</a>)</p>
+<p class="centered"><a href="./manual-images/about.png"><img alt="[About Window]" class="bordered" src="./manual-images/about.png" width="300" /></a></p>
+<h3 id="config-encoding">File Encoding</h3>
+<p><strong>merccc</strong> configuration files must be encoded in UTF-8. This encoding is backwards compatible with ASCII, so if the configuration file doesn't use any non-basic-Latin characters (i.e. everything is non-accented Latin alphabet), ASCII or Windows ANSI encoding will work. If the user <strong>does</strong> need to support non-basic-Latin characters, then the configuration file must be explicitly saved as UTF-8 (<em>without BOM</em>). UTF-8 is typically not a problem in Linux systems with proper locale setup.</p>
+<p>Windows users will need to use an editor such as <a href="http://notepad-plus-plus.org">Notepad++</a> to properly edit UTF-8 files. Although the built-in Notepad has an option to save text files as UTF-8, it does so in a way that may cause problems when used with <strong>merccc</strong>. If <a href="http://notepad-plus-plus.org">Notepad++</a> is used, the encoding can be changed using the Encoding menu:</p>
+<p class="centered"><a href="./manual-images/notepad-encoding.png"><img class="optimized-500" alt="[Changing File Encoding in Notepad++]" src="./manual-images/notepad-encoding.png" /></a></p>
+<p>The default bitmap text font also does not support non-basic-Latin characters. Refer to <a href="#custom-fonts">Customization | Fonts</a> on how to use different fonts for the display.</p>
+<h3 id="config-example">Example</h3>
+<p>Below is a very simple example of a <strong>merccc</strong> configuration file to score a competition with the following formula:</p>
+<p class="mono">(A-B) * Scaler</p>
+<p>This example is going to be used throughout the manual, copy and paste to your favorite text editor and save the file to start playing with the program. Note that the scoring formula has to be converted into postfix format:</p>
+<p class="mono">
+[system]<br />
+resourcedir=./resources<br />
+<br />
+[formula]<br />
+postfix=A B - Scaler *<br />
+<br />
+[fields]<br />
+A=Variable A, 0, 3, 30:15:0<br />
+B=Variable B, 0, 1<br />
+Scaler=Scaling Variable, 1, 0<br />
+<br />
+[tournament]<br />
+setup=300 &nbsp;# in seconds<br />
+window=600 # in seconds<br />
+maxattempts=3<br />
+<br />
+[teams]<br />
+5=BGP3 Perseus' Pride, B-G Robotics, 0-badge.jpg<br />
+15=A Little Debug Never Hurts, Accredited University, 1-badge.jpg<br />
+</p>
+<p><span style="color: red;">&#9656; <strong>Not all characters are valid for each configuration entry</strong></span>: identifiers and right hand side values may not contain the following characters: <span class="mono">#</span> (hash mark) and <span class="mono">,</span> (comma). Additionally, identifiers may not have <span class="mono">=</span> (equal sign). Hash marks (<span class="mono">#</span>) are used to write comments. Anything after the hash mark will be ignored by the program. Commas are used to separate right-hand side parameters for entries that require multiple values.</p>
+<h3 id="config-resources">Graphics and Sounds Resources</h3>
+<p>The <span class="mono">resourcedir</span> option specifies where <strong>merccc</strong> should look for media files associated with the competition. The user must place the following files inside the directory along with any team badges specified in the <span class="mono">[teams]</span> section:</p>
+<ul>
+<li><span class="mono"><strong>logo.png</strong></span> - competition logo</li>
+<li><span class="mono"><strong>setup-start.wav</strong></span> - sound file to play when the setup period has started</li>
+<li><span class="mono"><strong>window-start.wav</strong></span> - sound file to play when scoring window has started</li>
+<li><span class="mono"><strong>window-end.wav</strong></span> - sound file to play when the team runs out of time</li>
+</ul>
+<p><span style="color: red;">&#9656; <strong>A missing resources directory is <u>not</u> fatal to the program</strong></span>: <strong>merccc</strong> will use the default blue Mercury logo if <span class="mono">logo.png</span> is not found. If the sound files are missing, the program will still perform its functions, but no sound will be played. If a team badge image file is missing, the program will not display the image for the team.</p>
+<p>The specified resource directory is relative to where the configuration file is located. The directory tree should look like the following:</p>
+<p class="mono">
+config.merccc<br />
+resources/logo.png<br />
+resources/setup-start.wav<br />
+resources/window-start.wav<br />
+resources/window-end.wav<br />
+resources/0-badge.jpg<br />
+resources/1-badge.jpg<br />
+</p>
+<p>The configuration file and its resource directory can also be compressed into a ZIP file to simplify distribution and archival of the file. <strong>merccc</strong> can load the ZIP file directly.</p>
+<h3 id="config-variables">Formula Variables</h3>
+<p>The variables are defined in the <span class="mono">[fields]</span> section. All the variables used in the postfix formula must be specified in this section. The format for a variable entry is as follows:</p>
+<p class="mono">NAME=DESCRIPTION, DEFAULT_VALUE, TYPE, [POSSIBLE_VALUES]</p>
+<p><span class="mono">NAME</span> must correspond with the variable name used in the formula. <strong>merccc</strong> will use the <span class="mono">DEFAULT_VALUE</span> to fill in the value for the variable during scoring when the operator has not entered any other value.</p>
+<p><span class="mono">TYPE</span> specifies the kind of variable: <span class="mono">TYPE</span> of 0 is a floating point variable that can take any value. The program will bring up an input dialog for the operator to specify a value for the variable in a scoring session. <span class="mono">TYPE</span> of 1 is a discrete positive integer with minimum value of 0. The program will have +1 and UNDO buttons to modify this variable. <span class="mono">TYPE</span> of 2 or greater means that the variable has this many possible values. For example, a <span class="mono">TYPE</span> of 3 will need 3 possible values, delimited by colons, specified in the <span class="mono">POSSIBLE_VALUES</span> field. <span class="mono">POSSIBLE_VALUES</span> is not required for <span class="mono">TYPE</span> of 0 or 1.</p>
+<h3 id="config-teams">Team Definitions</h3>
+<p>The teams are defined in the <span class="mono">[teams]</span> section. Each entry has the following format:</p>
+<p class="mono">ID=NAME, INSTITUTION, BADGE_FILE</p>
+<p><span class="mono">ID</span> is the numeric ID for each team. Each team must have a unique ID number. <span class="mono">NAME</span> and <span class="mono">INSTITUTION</span> are for human-readability purposes. <span class="mono">BADGE_FILE</span> specifies the image file to display for the team. This file must be placed inside the resources directory as specified by the <span class="mono">resourcedir</span> entry in the <span class="mono">[system]</span> section.</p>
+<p>If no badge file is needed, the user can insert a dummy file name for the team.</p>
+<h2 id="running">Running merccc <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p><strong>merccc</strong> can be run by directly executing the JAR file using the Java Virtual Machine <span class="mono">java</span> program:</p>
+<p class="mono">java -jar &lt;merccc-jar-file&gt; [options]</p>
+<p>If the installer was used in Windows, the program can be launched from the Start Menu. The program will bring up a file open dialog that the user can use to choose a configuration file to load.</p>
+<p>If the <span class="mono">deb</span> package was used in Linux systems, an executable is installed as <span class="mono">/usr/bin/merccc</span>. Assuming that <span class="mono">/usr/bin</span> is in the user's <span class="mono">PATH</span> environment variable, the following command can be used to run and load a configuration file in a typical Linux system:</p>
+<p class="mono">merccc -c config.merccc</p>
+<p><strong>merccc</strong> can open the configuration file directly with the <span class="mono">-c</span> command line option or by using the file open dialog and opening a file with <strong>.merccc</strong> extension.</p>
+<p>The program can also open a ZIP file containing a configuration file and its associated resources directory with the <span class="mono">-z</span> command line option or by using the file open dialog and opening a file with <strong>.zip</strong> or <strong>.merccz</strong> extension. The file open dialog will be provided if neither <span class="mono">-c</span> nor <span class="mono">-z</span> options were provided.</p>
+<h3 id="running-cli">Command Line Options</h3>
+<p>Running <strong>merccc</strong> with the <span class="mono">--help</span> option will bring up a list of command line options and keyboard shortcuts (click for full resolution):</p>
+<p class="centered"><a href="./manual-images/cli-help.png"><img class="optimized" alt="[--help Output]" src="./manual-images/cli-help.png" /></a></p>
+<h2 id="display">Display Window Controls <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p>After <strong>merccc</strong> successfully loads the configuration file, the <strong>Control Window</strong>, shown below, will be brought up. The <strong>Control Window</strong> is used by the program's operator to control the state of the program, enter scores, manipulate scoring data, save and load scoring data, generate competition report, and control what the <strong>Display Window</strong> is displaying.</p>
+<p>The <strong>Display Window</strong> should be placed on an external display connected to the host computer. The external display can be an HDTV monitor or a projector to be shown to the audience of the competition.</p>
+<p class="centered"><a href="./manual-images/control-main.png"><img alt="[Control Window]" class="bordered" src="./manual-images/control-main.png" style="width: 90%" /></a></p>
+<p>The bottom of the <strong>Control Window</strong> has the controls for the <strong>Display Window</strong>. Click the "Detect" button to enumerate all active displays connected to the computer. The output list will contain all the detected displays and their resolution. When an output display is selected, the program will show the <strong>Display Window</strong> to the appropriate screen. Choose the "Hide" option to hide the <strong>Display Window</strong>.</p>
+<p>The "Mode" option has three entries: "Logo and Time", "Run Status", and "Classification". The "Logo and Time" will make the <strong>Display Window</strong> show the competition's logo (<span class="mono">logo.png</span> from the resources directory) and the current time in a stylish fashion. The "Run Status" mode will display the current status of the competition. The "Classification" mode will display the current standings of all teams in the competition.</p>
+<p>Below is an example output of "Logo and Time" and "Classification" output modes:</p>
+<p class="centered">
+<a href="./manual-images/display-idle.png"><img alt="[Idle Display Window]" class="bordered" src="./manual-images/display-idle.png" width="300" /></a> 
+<a href="./manual-images/display-classification.png"><img alt="[Classification Display Window]" class="bordered" src="./manual-images/display-classification.png" width="300" /></a>
+</p>
+<h2 id="scoring">Scoring Controls <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p class="centered"><a href="./manual-images/control-score-idle.png"><img alt="[Scoring Tab]" class="bordered" src="./manual-images/control-score-idle.png" style="width: 90%" /></a></p>
+<p>There are four scoring states for the program: IDLE, SETUP, RUN, and POST-RUN. When the program is idle, i.e. no team is active, the SCORING tab allows the operator to choose the next team to score and set the number attempts, setup time, and run window time. If the <strong>Display Window</strong> is currently in "Run Status" mode during the IDLE state, it will display the competition logo, the clock, and a notice of which team is running next (the currently selected team in the <strong>Control Window</strong>):</p>
+<p class="centered"><a href="./manual-images/run-idle.png"><img alt="[Display Window, next team]" class="bordered" src="./manual-images/run-idle.png" width="300" /></a></p>
+<h3 id="scoring-setup">Setup State</h3>
+<p>When the operator clicks on the "START SCORING SESSION" button, the program will play the <span class="mono">setup-start.wav</span> file and start the SETUP state:</p>
+<p class="centered"><a href="./manual-images/control-score-setup.png"><img alt="[Control Window Scoring Setup]" class="bordered" src="./manual-images/control-score-setup.png" style="width: 90%" /></a></p>
+<p>If the <strong>Display Window</strong> is in "Run Status" output mode, the following will be displayed (setup time left and the team badge):</p>
+<p class="centered"><a href="./manual-images/run-setup.png"><img alt="[Display Window in Setup State]" class="bordered" src="./manual-images/run-setup.png" width="300" /></a></p>
+<p>The setup phase can be skipped or paused. The operator can also add or deduct time (in seconds) for the setup if a correction is needed. The add/deduct function can also be done while the timer is paused. When the time is up (or the setup phase is skipped), the program will play <span class="mono">window-start.wav</span> and go into RUN state:</p>
+<h3 id="scoring-run">Run State</h3>
+<p class="centered"><a href="./manual-images/control-score-run.png"><img alt="[Control Window Scoring State]" class="bordered" src="./manual-images/control-score-run.png" style="width: 90%" /></a></p>
+<p>The operator can score the current performance of the team in this state. The scoring control fields will have the default value for each field. The operator can change this value by clicking the input buttons on the right side of these fields. Once the run is concluded, the operator can click "COMMIT" to have the score recorded by the program. If the team elects to discard the current run and try again for their next run, the operator must click "DISCARD" to nullify the current attempt and start scoring the next one.</p>
+<p>When the team runs out of time or attempts, the program will play <span class="mono">window-end.wav</span> and go into POST-RUN state. IF the time runs out before the operator can commit the score of the last completed attempt, the operator can do so in the POST-RUN state. The <strong>Display Window</strong> will show the current best score in "Run Status" mode while in RUN state and POST-RUN states.</p>
+<p class="centered"><a href="./manual-images/run-run.png"><img alt="[Display Window Scoring]" class="bordered" src="./manual-images/run-run.png" width="300" /></a> <a href="./manual-images/run-post.png"><img alt="[Display Window Post-run]" class="bordered" src="./manual-images/run-post.png" width="300" /></a></p>
+<h2 id="data">Data Manipulation and Export/Import <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p class="centered"><a href="./manual-images/control-data.png"><img alt="[Control Window Data Controls]" class="bordered" src="./manual-images/control-data.png" style="width: 90%" /></a></p>
+<p>The DATA tab displays all recorded scores. The operator can save the data as a .csv file, or load previously recorded data from a .csv file (useful for backing up the data). The operator can also make corrections with the EDIT and DELETE functions. Making frequent saves is recommended. Just in case. All the data functions can be done during any phase of the program.</p>
+<p>The operator can also ADD a new data entry from this control tab without having to run a scoring session:</p>
+<p class="centered"><a href="./manual-images/control-data-add.png"><img alt="[Control Window Data Controls - adding a score entry]" class="bordered" src="./manual-images/control-data-add.png" style="width: 90%" /></a></p>
+<h2 id="classification">Classification Control <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p class="centered"><a href="./manual-images/control-classification.png"><img alt="[Control Window Classification]" class="bordered" src="./manual-images/control-classification.png" style="width: 90%" /></a></p>
+<p>The final tab CLASSIFICATION shows the current standings in the competition and allows the operator to generate a report text file with final rankings of the teams, scoring data, and the configuration file that was used for the session. The operator can also set a tiebreaker for teams that did not complete a run in the competition (higher tiebreaker value will be placed higher, and the default is 0 for all teams). Finally, the operator can control the ranks that are displayed in the <strong>Display Window</strong> in "Classification" output mode.</p>
+<h2 id="custom">Customization <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p>Some aspects of <strong>merccc</strong> can customized to tailor the program to the competition better. This section only covers some customization options. Refer to the configuration file specifications for the full extent of what is possible.</p>
+<h3 id="custom-options">Options Menu</h3>
+<p>The <strong>Control Window</strong> has an options menu that can be used to change how the program behaves:</p>
+<p class="centered"><a href="./manual-images/options-menu.png"><img class="optimized" alt="[Options Menu]" src="./manual-images/options-menu.png" /></a></p>
+<p>Unchecking the "Play sounds" menu item will mute all audio playback by the program. The "Preview window" is a window that has a thumbnailed view of the output <strong>Display Window</strong>. The preview window can be useful to the operator if he or she can not actually see the output display while operating the program and still wanting to be aware of what the program is displaying.</p>
+<h3 id="custom-fonts">Fonts</h3>
+<p>By default, <strong>merccc</strong> will use the built-in bitmap fonts. The bitmap fonts do not support non-basic-Latin characters, and if such support is required, a font provided by the Operating System must be used. Fonts can be specified in the <span class="mono">[theme]</span> section of the configuration file with the <span class="mono">systemfont</span> option. It can also be specified from the command line by using the <span class="mono">--font &lt;font_name&gt;</span> or the <span class="mono">--ask-font</span> options. The font of the output display can also be changed by using the "Select font..." option from the options menu that will bring up the following font chooser dialog:</p>
+<p class="centered"><a href="./manual-images/fonts.png"><img alt="[Font Chooser Window]" class="bordered" src="./manual-images/fonts.png" width="300" /></a></p>
+<p>Fonts can be changed at anytime.</p>
+<h3 id="custom-scoreformat">Score Field Number Format</h3>
+<p>The format of the score fields in "Run Status" mode during a scoring run can be customized in the <span class="mono">[display]</span> section of the configuration file. For example, the following configuration will individually format a variable:</p>
+<p class="mono">[display]<br />
+A=2,0<br />
+B=2,0 # two digits and no decimal digits<br />
+Scaler=1,1 # one digit and a decimal digit<br />
+</p>
+<p>The configuration above will result in the following "Run Status" display:</p>
+<p class="centered"><a href="./manual-images/run-digits.png"><img alt="[Customizing Score Digits Format]" class="bordered" src="./manual-images/run-digits.png" width="300" /></a></p> 
+<h3 id="custom-banner">Banner</h3>
+<p>The program supports displaying a banner in the <strong>Display Window</strong>. The banner can be a sponsorship image or any miscellaneous art. The banner will be displayed when the program is idle and during setup period:</p>
+<p class="centered">
+<a href="./manual-images/banner-idle.png"><img alt="[Banner in Idle Mode]" class="bordered" src="./manual-images/banner-idle.png" width="300" /></a> 
+<a href="./manual-images/banner-setup.png"><img alt="[Banner in Setup Mode]" class="bordered" src="./manual-images/banner-setup.png" width="300" /></a>
+</p>
+<p>The banner is specified by the <span class="mono">banner</span> option in the <span class="mono">[theme]</span> section of the configuration file. The image file must then be placed in the resources directory. The banner will be scaled by the program accordingly.</p>
+<p>The banner can be hidden at anytime using the Options menu in the <strong>Control Window</strong></p>
+<h3 id="custom-colors">Colors</h3>
+<p>The colors used in the program can be changed using the <span class="mono">[theme]</span> section of the configuration file. The color configuration entry takes comma-separated RGB values in decimal (e.g. 127,0,255). The following table lists the colors used, the configuration entries, and the default colors:</p>
+<table style="width: 100%">
+<tr>
+<th>Color</th><th>Configuration Entry</th><th>Default</th>
+</tr>
+<tr>
+<td>Foreground Primary</td><td>primarycolor</td><td style="background-color: #000000;"><span style="color: #20bbff">32,187,255</span></td>
+</tr>
+<tr>
+<td>Foreground Secondary</td><td>secondarycolor</td><td style="background-color: #000000;"><span style="color: #ff7e30">255,126,48</span></td>
+</tr>
+<tr>
+<td>Foreground Alternate</td><td>altcolor</td><td style="background-color: #000000;"><span style="color: #ffffff">255,255,255</span></td>
+</tr>
+<tr>
+<td>Background</td><td>bgcolor</td><td style="background-color: #000000;"><span style="color: #ffffff">0,0,0</span></td>
+</tr>
+<tr>
+<td>Table Light Background</td><td>tablebgcolor</td><td style="background-color: #052050;"><span style="color: #ffffff">5,32,80</span></td>
+</tr>
+</table>
+<p>The foreground colors will also colorize the bitmap digits and text fonts. Table Light Background color is the color used to alternate row colors in Classification output mode table.</p>
+<h3 id="custom-background">Background Image</h3>
+<p><strong>merccc</strong> supports displaying a background image by using the following configuration entries in the <span class="mono">[theme]</span> section:</p>
+<p class="mono">
+bgimage=file.jpg<br />
+bgalignment={0 to 6}<br />
+bgscaling={0 to 2}<br />
+</p>
+<p>The image file must be placed inside the resources directory. The alignment option value corresponds to the following positions:</p>
+<p class="centered"><a href="./manual-images/bgalignment.png"><img alt="[Background Alignment Options]" class="bordered" src="./manual-images/bgalignment.png" width="300" /></a></p>
+<p>The scaling value of 0 means no scaling, 1 is fit the width of the image to the screen, 2 is fit the height of the image to the screen.</p>
+<h2 id="local">Localization <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p>The text in the <strong>Display Window</strong> is written in English by default. The configuration file can override the text with the <span class="mono">[localization]</span> section. Run the program with <span class="mono">--about</span> option and select "Localization Information" for details or run the program with <span class="mono">--localization</span> to print this information to the console.</p>
+<h2 id="socket">TCP Server Socket Interface <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
+<p><strong>merccc</strong> has a TCP socket interface that can be used to gather information about the program remotely. The interface also has a monitor mode where the remote client can listen to changes on the control software as it happens. Refer to the <a href="./tcp-socket.html">TCP Socket Interface Documentation</a> for details on the communications protocol.</p>
+<p>The server is invoked by using the <span class="mono">-p &lt;port_number&gt;</span> option for a publicly accessible connection, or <span class="mono">--localport &lt;port_number&gt;</span> for loopback only port.</p>
+<h3 id="socket-client">Display Client Mode</h3>
+<p>The TCP socket interface can be used by <strong>merccc</strong> itself to display information from a remote <strong>merccc</strong> instance running the TCP server socket interface. This is accomplished by using the <span class="mono">-x</span> command line option on the local machine:</p>
+<p class="mono">java -jar &lt;merccc-jar-file&gt; -x &lt;host&gt;:&lt;port_number&gt;:&lt;display_number&gt;</p>
+<p><span class="mono">&lt;host&gt;:&lt;port_number&gt;</span> is the address and port where the server instance is running (with the <span class="mono">-p</span> or <span class="mono">--localport</span> options). <span class="mono">&lt;display_number&gt;</span> is the <strong>local</strong> display number as numerated by the Java Virtual Machine (0 to n, where n+1 is the number of displays). The client will then try to attempt to connect and fetch the configuration from the server.</p>
+<p><strong>Resources will not be transferred!</strong> If connection is successful, the client instance will create a <strong>Display Window</strong> on the selected local display or screen and reflect everything the server instance (that is controlled by the operator) is doing.</p>
+<p>The client instance can load its configuration and resources locally, but the <strong>configurations between the local and remote instances must match!</strong> The client will perform a hash on its local configuration and request a hash of the servers configuration and make a test. If the hashes do not match, the client will refuse to run. The <span class="mono">-c</span> or <span class="mono">-z</span> options can be used to load a local configuration, e.g. with the server running <span class="mono">-p 19000</span>:</p>
+<p class="mono">java -jar &lt;merccc-jar-file&gt; -c config.merccc -x 192.168.1.177:19000:0</p>
+<p>or:</p>
+<p class="mono">java -jar &lt;merccc-jar-file&gt; -z config-archive.zip -x 192.168.1.177:19000:0</p>
+<p>The client display can also be locked into a specific display mode. While locked, the operator controlling the server instance can change the output display modes and the client will not change its own mode. The locking is accomplished using the <span class="mono">--lockmode &lt;mode&gt;</span> option where mode is 0 for "Logo and Time", 1 for "Run Status", and 2 for "Classification".</p>
+<p><strong>Caveat:</strong> the client can only connect to the server while the server is in IDLE state to prevent incoherent local state. The client will refuse to connect if the server is not in IDLE state.</p>
+<h2 id="build">Building from Source</h2>
+<p>The source to <strong>merccc</strong> can be obtained from <a href="https://github.com/wheerdam/merccc/">github</a>:</p>
+<p class="mono">
+git clone https://github.com/wheerdam/merccc
+</p>
+<p>To build the program using <a href="http://ant.apache.org">ant</a>:</p>
+<p class="mono">
+cd merccc<br />
+ant package-for-store<br />
+</p>
+<p>The built jar package will be located in <span class="mono">store/MercControl.jar</span>.</p>
+<p>The package build scripts require <span class="mono">bash</span>. To build the deb package (<span class="mono">fakeroot</span> is required to build the package):</p>
+<p class="mono">
+cd distrib<br />
+./build-deb.sh<br />
+</p>
+<p></p>
+<p>To build the Windows installer (requires <a href="http://launch4j.sourceforge.net/">launch4j</a> and <span class="mono">makensis</span> from <a href="http://nsis.sourceforge.net/Main_Page">NSIS</a>):</p>
+<p class="mono"># edit build-win.sh so $LAUNCH4J points to the directory that contains launch4j</p>
+<p class="mono">
+./build-win.sh
+</p>
+<p>To clean source directory of build files:</p>
+<p class="mono">
+./clean.sh
+</p>
+<hr />
+<p><a href="./index.html" class="plain">◄ Go Back</a> <a class="plain" title="Back to Top" href="#top">&#9650; Back to Top</a></p>
+</div>
+</body>
+</html>

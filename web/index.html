@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="./appicon.png">
+<title>Mercury Control Center</title>
+</head>
+<body>
+<div class="container">
+<h1><img alt="[*]" src="./images/merccc-logo.png" width="50" style="background-color: black; vertical-align: middle"> merccc</h1>
+<p class="centered"><a href="#GET">get merccc</a> - <a href="#CONFIG_FORMAT">configure</a> - <a href="./manual.html">manual</a> - <a href="tcp-socket.html">tcp socket</a> - <a href="#LICENSE">license</a></p>
+<p>Mercury Control Center (merccc) is a timing and scoring software for competitions. It is
+written for the <a href="http://mercury.okstate.edu">Mercury Remote Robot Challenge</a> competition, but can be
+configured to support other competitions and tournaments with similar timing
+and scoring format.</p>
+<p>The following is an example display output of the program. These display modes are meant for the teams and the audience during the competition.</p>
+<p class="centered"><a href="./images/logo.png"><img alt="[logo example]" class="bordered" src="./images/logo.png" width="230" /></a> <a href="./images/run-status.png"><img alt="[run status example]" class="bordered" src="./images/run-status.png" width="230" /></a> <a href="./images/classification.png"><img alt="[classification example]" class="bordered" src="./images/classification.png" width="230" /></a></p>
+<p>The following is an example control interface for the program operator during the competition:</p>
+<p class="centered"><a href="./images/run-control.png"><img alt="[run control example]" class="bordered" src="./images/run-control.png" width="230" /></a></p>
+<h2 id="GET">Download</h2>
+<p><strong>merccc</strong> is currently at version 1.1.0 (<a href="release-notes.txt">release notes</a>). Get the JAR archive, Linux <a href="http://unix.stackexchange.com/questions/159094/how-to-install-a-deb-file-by-dpkg-i-or-by-apt">deb package</a>, or the Windows installer below (each file is about 0.4 MB):</p>
+<p><img alt="[*]" src="./images/merccc-logo.png" width="50" style="background-color: black; vertical-align: middle"> <strong>merccc-1.1.0</strong> | &#9662; <a href="https://github.com/wheerdam/merccc/releases/download/1.1.0/merccc-1.1.0.jar">jar</a> | &#9662; <a href="https://github.com/wheerdam/merccc/releases/download/1.1.0/merccc-1.1.0.deb">deb</a> | &#9662; <a href="https://github.com/wheerdam/merccc/releases/download/1.1.0/merccc-1.1.0.exe">windows</a> | &#9642; <a href="./md5sum-1.1.0.txt">md5sum</a></p>
+<p>A Java Runtime Environment (JRE) 8 is required to run <strong>merccc</strong>.</p>
+<p>&#9656; <a href="http://java.com/download"><strong>Oracle JRE 8</strong></a> can be used in multiple platforms such as Windows or MacOS X. Download and install the appropriate JRE for your platform.</p>
+<p>&#9656; <a href="http://openjdk.java.net/install/"><strong>OpenJDK 8</strong></a> is an alternative for Linux and is included in most distributions.</p>
+<p>Useful link: <a href="https://java.com/en/download/help/version_manual.xml">How can I find which version of Java is installed?</a></p>
+<h2 id="CONFIG_FORMAT">Configuration</h2>
+<p><strong>merccc requires a configuration file to run</strong>. This configuration file defines the scoring formula, competing teams, and other information about the competition. The configuration file is specified in the following documentation:</p>
+<p><img alt="[*]" src="./images/merccc-logo.png" width="50" style="background-color: black; vertical-align: middle"> <a href="./config-format.txt">merccc config file specs</a> | &#9662; <a href="./config-format-pretty.txt">pretty print</a></p>
+<p>&#9656; <a href="./manual.html"><strong>Program Manual</strong></a> - details on how to configure and use the program.</p>
+<p>&#9662; <a href="./sample.zip">Download sample configuration and its associated files</a> (1.2 MB) - this archive can be used as a base configuration. This archive contains a sample configuration file that can be used as a template, and a resources directory containing example media files (logo and event sounds). The archive is in ZIP format, and can easily be uncompressed so it can be modified to suit the user's purposes.</p> 
+<h3>Running the Program</h3>
+<p>Run the program using the JRE's <span class="mono">java</span> program and the <span class="mono">-jar</span> option:</p>
+<p class="mono">java -jar merccc-1.1.0.jar</p>
+<p>If the Windows installer was used, <strong>merccc</strong> can be launched from the Start Menu. If the deb package was used, the <strong>merccc</strong> script to launch the program is installed in <span class="mono">/usr/bin</span>.</p>
+<p><strong>merccc</strong> can either open the configuration file (.merccc file extension) or a ZIP archive containing a configuration file and its resources (.zip or .merccz file extensions).</p>
+<h3>I need to use non-basic-Latin characters</h3>
+<p>Make sure that your configuration file is encoded as UTF-8 and you use system fonts for the display:</p>
+<p>&#9656; <a href="./manual.html#config-encoding">Configuration File Encoding</a></p>
+<p>&#9656; <a href="./manual.html#custom-fonts">Using System Fonts for non-basic Latin Characters</a></p>
+<h3>Why does the formula have to be in postfix?</h3>
+<p>Because it's easier to parse and process :) There are online infix-to-postfix converters such as <a href="http://www.mathblog.dk/tools/infix-postfix-converter/">this one</a> that you can use to generate the postfix expression.</p>
+<h2 id="LICENSE">License</h2>
+<p><strong>merccc</strong> is licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a>. The program also uses the following third party libraries and assets:</p>
+<ul>
+<li><a href="http://github.com/rkalla/imgscalr">imgscalr 4.2</a> by Riyad Kalla (used under the Apache 2.0 license)</li>
+<li><a href="http://jcommander.org">JCommander 1.58</a> by Cédric Beust (used under the Apache 2.0 license)</li>
+<li><a href="http://www.keshikan.net/fonts-e.html">DSEG fonts</a> by Keshikan / けしかん (used in accordance with the terms required by the author)</li>
+<li><a href="https://www.google.com/get/noto/">Noto Fonts</a> (Noto Mono) by Google (used under the SIL OFL 1.1)</li>
+</ul>
+<p>Contact me at wheerdam&lt;at&gt;gmail.com for any questions. The source code to the software <a href="https://github.com/wheerdam/merccc">is available on github</a>. Clone away.</p>
+<p>&#9656; <a href="./manual.html#build">Building merccc</a></p>
+<h2 id="OLD">Old Versions</h2>
+<p><strong>merccc-1.0.1</strong> | &#9662; <a href="https://github.com/wheerdam/merccc/releases/download/1.0.1/merccc-1.0.1.jar">jar</a> | &#9662; <a href="https://github.com/wheerdam/merccc/releases/download/1.0.1/merccc-1.0.1.deb">deb</a> | &#9662; <a href="https://github.com/wheerdam/merccc/releases/download/1.0.1/merccc-1.0.1.exe">windows</a> | &#9642; <a href="./md5sum-1.0.1.txt">md5sum</a></p>
+<p><strong>merccc-1.0.0</strong> | &#9662; <a href="./merccc-1.0.0.jar">jar</a> | &#9662; <a href="./merccc-1.0.0.deb">deb</a> | &#9662; <a href="./merccc-1.0.0.exe">windows</a> | &#9642; <a href="./md5sum-1.0.0.txt">md5sum</a></p>
+<p><strong>merccc-0.9.9</strong> | &#9662; <a href="./merccc-0.9.9.jar">jar</a> | &#9662; <a href="./merccc-0.9.9.deb">deb</a> | &#9662; <a href="./merccc-0.9.9.exe">windows</a> | &#9642; <a href="./md5sum-0.9.9.txt">md5sum</a></p>
+<p><strong>merccc-0.9.8c</strong> | &#9662; <a href="./merccc-0.9.8c.jar">jar</a> | &#9662; <a href="./merccc-0.9.8c.deb">deb</a> | &#9662; <a href="./merccc-0.9.8c.exe">windows</a> | &#9642; <a href="./md5sum-0.9.8c.txt">md5sum</a></p>
+<p><strong>merccc-0.9.7</strong> | &#9662; <a href="./merccc-0.9.7.jar">jar</a> | &#9662; <a href="./merccc-0.9.7.deb">deb</a> | &#9662; <a href="./merccc-0.9.7.exe">windows</a> | &#9642; <a href="./md5sum-0.9.7.txt">md5sum</a></p>
+<p><strong>merccc-0.9.6</strong> | &#9662; <a href="./merccc-0.9.6.jar">jar</a> | &#9662; <a href="./merccc-0.9.6.deb">deb</a> | &#9662; <a href="./merccc-0.9.6.exe">windows</a> | &#9642; <a href="./md5sum-0.9.6.txt">md5sum</a></p>
+<p><strong>merccc-0.9.5</strong> | &#9662; <a href="./merccc-0.9.5.jar">jar</a> | &#9662; <a href="./merccc-0.9.5.exe">windows</a> | &#9642; <a href="./md5sum-0.9.5.txt">md5sum</a></p>
+<p><strong>merccc-0.9.4</strong> | &#9662; <a href="./merccc-0.9.4.jar">jar</a> | &#9662; <a href="./merccc-0.9.4.exe">windows</a> | &#9642; <a href="./md5sum-0.9.4.txt">md5sum</a></p>
+<p><strong>merccc-0.9.3</strong> | &#9662; <a href="./merccc-0.9.3.jar">jar</a> | &#9662; <a href="./merccc-0.9.3.exe">windows</a> | &#9642; <a href="./md5sum-0.9.3.txt">md5sum</a></p>
+<p><strong>merccc-0.9.2</strong> | &#9662; <a href="./merccc-0.9.2.jar">jar</a> | &#9662; <a href="./merccc-0.9.2.exe">windows</a> | &#9642; <a href="./md5sum-0.9.2.txt">md5sum</a></p>
+<p><strong>merccc-0.9.1</strong> | &#9662; <a href="./merccc-0.9.1.jar">jar</a> | &#9642; <a href="./md5sum-0.9.1.txt">md5sum</a></p>
+<p><strong>merccc-0.9</strong> | &#9662; <a href="./merccc-0.9.jar">jar</a> | &#9642; <a href="./md5sum-0.9.txt">md5sum</a></p>
+<hr />
+<p><a href="https://creativecommons.org/licenses/by-sa/4.0/legalcode">CC-BY-SA 4.0</a></p>
+</div>
+</body>
+</html>

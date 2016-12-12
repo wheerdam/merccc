@@ -1,0 +1,77 @@
+1.1.1
+- allow fetch resources from remote merccc with --copyresources option for both client and server
+
+1.1.0
+- digits and text scaling in theme section: digitsheight, smalldigitsheight, and textheight
+
+1.0.1
+- config file is now always treated as utf-8 (instead of depending on the host system's settings). the previous method prevents a Windows instance of merccc to actually use anything other than the encoding that is being set by Windows localization setting. now Windows users can also use non-Latin characters by saving the configuration file in UTF-8 (*without* BOM, so don't use Notepad if you need to use non-Latin characters)
+
+1.0.0
+- bitmap fonts are now colorized with color theme settings
+- option for classic and modern digit fonts (--classicdigits)
+
+0.9.9
+- team id numbers now can be arbitrary (no need to be in sequence from 0)
+- display client mode, control merccc display remotely
+- console output is now quieter (moved to debug level 1)
+- added banner support (e.g. for sponsorship)
+- some localization support
+- additional background image positions
+- added background image scaling
+
+0.9.8
+- added new score dialog to allow score entry without running a session
+- added options menu to change how the program behaves while running
+- new options menu: ability to change the display font while the program is running
+- new options menu: added thumbnail window so the operator can see what's being output
+- update: nicer render time info
+- update: nicer font selection dialog
+- improved drawing routine, less cpu usage
+- (rev b) fixed null error if resources directory was not found / specified
+- (rev b) merccc will now use built-in default mercury logo if logo.png is not found
+- (rev b) background color of the "light" role in classification table with "tablebgcolor" option
+- (rev b) bugfix: display window default score values not initialized properly 
+- (rev c) bugfix: display window team badge scaling issue
+- (rev c) changed the term ROBOT to TEAM in display window to be more general
+
+0.9.7
+- ability to specify system fonts from config file ("systemfont" in the theme section)
+- the session clock is now aligned to the right, can be changed from the theme section of the config file with "alignclockleft=1"
+- background color of the DISPLAY WINDOW can now be changed from the theme section
+- added background image support ("bgimage" and "bgalign" options)
+- run status display will now only show the current best score
+- added keyboard shortcuts (run with "--help" for a listing)
+- bugfix: loadZip now closes the file properly
+
+0.9.6
+- ability to use system fonts (e.g. for charset more than just ascii)
+- data save/load will now remember the working directory
+- .merccz is now designated as the merccc config/resource archive extension
+- bugfix: using '-l' to load saved .csv will now be reflected on the classification display immediately
+
+0.9.5
+- zip file support ('-z archive.zip' where the archive has a .merccc file)
+- number input dialog now selects the whole text after invalid input 
+- added loopback / localhost only tcp socket support (--localport option)
+- closing main control window now allows the user to exit the program
+- added read/write locks to access competition and score data for thread safety
+- bugfix: load config file with no parent dir (e.g. '-c config.merccc') will not throw null pointer exception on resource dir load anymore
+- bugfix: display and classification table now update on all data change/commits (recalculate button is removed)
+
+0.9.4
+- message dialogs for errors for GUI mode
+- tcp socket interface
+
+0.9.3
+- config format: theming support
+
+0.9.2
+- config format: resourcedir is now relative to config file load path
+
+0.9.1
+- bugfixes
+- config format: sortorder
+
+0.9
+- initial release
