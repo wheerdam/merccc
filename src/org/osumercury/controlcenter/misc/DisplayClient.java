@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import org.osumercury.controlcenter.*;
 import org.osumercury.controlcenter.gui.DisplayFrame;
@@ -59,18 +61,28 @@ public class DisplayClient {
                 str.append("\n");
             }
             if(copyResources) {
-                Log.d(0, "- fetching resources to ./merccc-remote-resources");
-                File f = new File("./merccc-remote-resources");
-                if(!f.exists()) {
-                    f.mkdir();
-                }
-                if(f.exists()) {
-                    w.println("resources");
-                    w.flush();
-                    SockCopy.getRecursive(s, f.getAbsolutePath(), null);
-                    fetchedResources = f;
+                Log.d(0, "- fetching resources");
+                JOptionPane.showMessageDialog(null, "Choose destination directory " +
+                        "for downloaded resources", "Resource directory",
+                        JOptionPane.INFORMATION_MESSAGE);
+                File f;
+                JFileChooser fileChooser = new JFileChooser();
+                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                fileChooser.setCurrentDirectory(new File("."));
+                fileChooser.showOpenDialog(null);
+                if(fileChooser.getSelectedFile() != null) {
+                    f = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                    if(!f.exists()) {
+                        f.mkdir();
+                    }
+                    if(f.exists()) {
+                        w.println("resources");
+                        w.flush();
+                        Sock.get(s, f.getAbsolutePath(), null);
+                        fetchedResources = f;
+                    }
                 } else {
-                    Log.d(0, "- failed to create ./merccc-remote-resources");
+                    Log.d(0, "- failed to download resources");
                 }
             }
             s.close();            

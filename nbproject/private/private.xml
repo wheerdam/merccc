@@ -4,7 +4,7 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/misc/DisplayClient.java</file>
-            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/misc/SockCopy.java</file>
+            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/misc/Sock.java</file>
             <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/misc/SocketInterface.java</file>
             <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/ControlCenter.java</file>
         </group>

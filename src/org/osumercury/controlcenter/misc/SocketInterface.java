@@ -314,10 +314,10 @@ public class SocketInterface extends Thread {
                             case "resources":
                                 if(allowResourceCopy) {
                                     Log.d(0, "resource request");
-                                    SockCopy.putRecursive(s, cc.getResourcePath().getAbsolutePath(), null);
+                                    Sock.put(s, cc.getResourcePath().getAbsolutePath(), null);
                                 } else {
                                     Log.d(0, "resource request is not allowed");
-                                    SockCopy.send(s, "-1");
+                                    Sock.send(s, "-1");
                                 }
                                 break;
                         }

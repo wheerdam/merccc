@@ -20,22 +20,19 @@ import org.osumercury.controlcenter.gui.Assets;
 import org.osumercury.controlcenter.gui.DisplayFrame;
 import org.osumercury.controlcenter.gui.ControlFrame;
 import org.osumercury.controlcenter.gui.FontSelectDialog;
+import org.osumercury.controlcenter.gui.ThumbnailFrame;
 import org.osumercury.controlcenter.misc.SocketInterface;
+import org.osumercury.controlcenter.misc.DisplayClient;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import com.beust.jcommander.*;
-import java.awt.BorderLayout;
-import java.awt.event.ActionEvent;
-import javax.swing.JOptionPane;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import org.osumercury.controlcenter.gui.ThumbnailFrame;
-import org.osumercury.controlcenter.misc.DisplayClient;
+import javax.swing.JOptionPane;
+import com.beust.jcommander.*;
+import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.io.File;
 
 /**
  *

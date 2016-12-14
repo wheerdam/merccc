@@ -31,6 +31,7 @@
 <p class="indent1">&#9679; <a href="#custom-options">Options Menu</a></p>
 <p class="indent1">&#9679; <a href="#custom-fonts">Fonts</a></p>
 <p class="indent1">&#9679; <a href="#custom-scoreformat">Score Field Number Format</a></p>
+<p class="indent1">&#9679; <a href="#custom-fontscaling">Font Scaling</a></p>
 <p class="indent1">&#9679; <a href="#custom-banner">Banner</a></p>
 <p class="indent1">&#9679; <a href="#custom-colors">Colors</a></p>
 <p class="indent1">&#9679; <a href="#custom-background">Background Image</a></p>
@@ -42,7 +43,7 @@
 <p><strong>merccc</strong> requires a configuration file to operate. This configuration file specifies the scoring formula and its variables, the competing teams, and other parameters to tailor <strong>merccc</strong> to the competition. The configuration file specifications can be viewed by running <strong>merccc</strong> with the <span class="mono">--about</span> (shown below) or <span class="mono">--format</span> options, or from this website: <a href="./config-format.txt">configuration specs</a> (<a href="./config-format-pretty.txt">pretty print</a>)</p>
 <p class="centered"><a href="./manual-images/about.png"><img alt="[About Window]" class="bordered" src="./manual-images/about.png" width="300" /></a></p>
 <h3 id="config-encoding">File Encoding</h3>
-<p><strong>merccc</strong> configuration files must be encoded in UTF-8. This encoding is backwards compatible with ASCII, so if the configuration file doesn't use any non-basic-Latin characters (i.e. everything is non-accented Latin alphabet), ASCII or Windows ANSI encoding will work. If the user <strong>does</strong> need to support non-basic-Latin characters, then the configuration file must be explicitly saved as UTF-8 (<em>without BOM</em>). UTF-8 is typically not a problem in Linux systems with proper locale setup.</p>
+<p><strong>merccc</strong> configuration files must be encoded in UTF-8. This encoding is backwards compatible with ASCII, so if the configuration file doesn't use any non-basic-Latin characters (i.e. everything is non-accented Latin alphabet), ASCII or Windows ANSI encoding will work. If the user <strong>does</strong> need to support non-basic-Latin characters, then the configuration file must be explicitly saved as UTF-8 (<em><u>without BOM</u></em>). UTF-8 is typically not a problem in Linux systems with proper locale setup.</p>
 <p>Windows users will need to use an editor such as <a href="http://notepad-plus-plus.org">Notepad++</a> to properly edit UTF-8 files. Although the built-in Notepad has an option to save text files as UTF-8, it does so in a way that may cause problems when used with <strong>merccc</strong>. If <a href="http://notepad-plus-plus.org">Notepad++</a> is used, the encoding can be changed using the Encoding menu:</p>
 <p class="centered"><a href="./manual-images/notepad-encoding.png"><img class="optimized-500" alt="[Changing File Encoding in Notepad++]" src="./manual-images/notepad-encoding.png" /></a></p>
 <p>The default bitmap text font also does not support non-basic-Latin characters. Refer to <a href="#custom-fonts">Customization | Fonts</a> on how to use different fonts for the display.</p>
@@ -166,6 +167,14 @@ Scaler=1,1 # one digit and a decimal digit<br />
 </p>
 <p>The configuration above will result in the following "Run Status" display:</p>
 <p class="centered"><a href="./manual-images/run-digits.png"><img alt="[Customizing Score Digits Format]" class="bordered" src="./manual-images/run-digits.png" width="300" /></a></p> 
+<h3 id="custom-fontscaling">Font Scaling</h3>
+<p>The following options in the <span class="mono">[theme]</span> section will scale the text and digits in the <strong>Display Window</strong> (default values shown):</p>
+<p class="mono">
+digitsheight=0.10<br />
+smalldigitsheight=0.07<br />
+textheight=0.06</p>
+<p>The values are in proportion to the screen height.</p>
+<p class="centered"><a href="./manual-images/font-scaling.png"><img alt="[Font Scaling]" class="optimized-500" src="./manual-images/font-scaling.png" /></a></p> 
 <h3 id="custom-banner">Banner</h3>
 <p>The program supports displaying a banner in the <strong>Display Window</strong>. The banner can be a sponsorship image or any miscellaneous art. The banner will be displayed when the program is idle and during setup period:</p>
 <p class="centered">
