@@ -32,6 +32,7 @@
 <p class="indent1">&#9679; <a href="#custom-fonts">Fonts</a></p>
 <p class="indent1">&#9679; <a href="#custom-scoreformat">Score Field Number Format</a></p>
 <p class="indent1">&#9679; <a href="#custom-fontscaling">Font Scaling</a></p>
+<p class="indent1">&#9679; <a href="#custom-logo">Logo Positioning and Scaling</a></p>
 <p class="indent1">&#9679; <a href="#custom-banner">Banner</a></p>
 <p class="indent1">&#9679; <a href="#custom-colors">Colors</a></p>
 <p class="indent1">&#9679; <a href="#custom-background">Background Image</a></p>
@@ -168,13 +169,19 @@ Scaler=1,1 # one digit and a decimal digit<br />
 <p>The configuration above will result in the following "Run Status" display:</p>
 <p class="centered"><a href="./manual-images/run-digits.png"><img alt="[Customizing Score Digits Format]" class="bordered" src="./manual-images/run-digits.png" width="300" /></a></p> 
 <h3 id="custom-fontscaling">Font Scaling</h3>
-<p>The following options in the <span class="mono">[theme]</span> section will scale the text and digits in the <strong>Display Window</strong> (default values shown):</p>
+<p>The following options in the <span class="mono">[theme]</span> section will scale the text and digits in the <strong>Display Window</strong> (default values shown, values are in proportion to the screen height):</p>
 <p class="mono">
 digitsheight=0.10<br />
 smalldigitsheight=0.07<br />
 textheight=0.06</p>
-<p>The values are in proportion to the screen height.</p>
+<p>The following screenshot shows what elements get scaled by each option:</p>
 <p class="centered"><a href="./manual-images/font-scaling.png"><img alt="[Font Scaling]" class="optimized-500" src="./manual-images/font-scaling.png" /></a></p> 
+<h3 id="custom-logo">Logo Positioning and Scaling</h3>
+<p>The following options in the <span class="mono">[theme]</span> section will position and scale the logo <strong>Display Window</strong> in "Logo and Time" display mode (default values shown, values are in proportion to the screen height):</p>
+<p class="mono">
+logoheight=0.40<br />
+logoposition=0.40<br />
+<p class="centered"><a href="./manual-images/logo-scaling.png"><img alt="[Logo Scaling]" class="optimized-500" src="./manual-images/logo-scaling.png" /></a></p> 
 <h3 id="custom-banner">Banner</h3>
 <p>The program supports displaying a banner in the <strong>Display Window</strong>. The banner can be a sponsorship image or any miscellaneous art. The banner will be displayed when the program is idle and during setup period:</p>
 <p class="centered">
