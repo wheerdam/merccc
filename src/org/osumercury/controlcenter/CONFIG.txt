@@ -12,6 +12,7 @@ Revision History:
 1.0.0  2016/12/05  Bitmap fonts are now colorized by the program
 1.0.1  2016/12/07  File encoding specification
 1.1.0  2016/12/08  Digits and text scaling
+1.2.0  2017/01/10  Digits background, pause bar height and clock margin
 
 ========
 OVERVIEW
@@ -167,13 +168,17 @@ THEME SECTION
 
 The theme section allows the user to modify how the DISPLAY WINDOW will appear. This section is completely optional.
 
----------------
-CLOCK ALIGNMENT
----------------
+-----------------
+CLOCK POSITIONING
+-----------------
 
 The clock on the DISPLAY WINDOW during a run (setup and run windows) is aligned to the right by default. The user can change this aligment by adding the following option:
 
 	alignclockleft=1
+	clockmargin=0.074
+	pausebarheight=0.1
+
+Clock margin specifies how far the clock should be placed from the edge of the screen in proportion to the screen width. The pause bar height specifies the height of the pause / red flag indication bar in proportion to the screen height. These settings only apply to the run status mode.
 
 ----------------------------
 LOGO SCALING AND POSITIONING
@@ -220,6 +225,12 @@ The following configuration entries will have to be provided by the user to info
 digitW and digitH define the width and height of each character, respectively. Row positions are derived by multiples of digitH with the top of the image being the origin of the y axis. Numerical character x-axis positions are derived by multiples of digitW. For example, the pixel position of the number 5 would be (5*digitW, 0). The special blank digit's pixel position would be (0, 1*digitH).
 
 colonX, colonW, periodX, periodW, dashX, and dashW define the x-axis position and clipping widths of the non-numerical characters. Their heights are defined by digitH.
+
+The program also draws a faded white background '8' for the digits to emulate an 'off' segment in an LCD display. The intensity of the background can be modified using the following entry:
+
+	digitfade=10
+
+The value is between 0 (no background) to 255 (full white).
 
 For the text font, the program expects the following organization:
 

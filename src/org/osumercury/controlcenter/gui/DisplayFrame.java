@@ -72,6 +72,14 @@ public class DisplayFrame extends JFrame {
     private Font systemFont;
     private String systemFontName;                
     private HashMap<String, String> text;
+    private int spacingXSPx;
+    private int spacingSPx;
+    private int spacingMPx;
+    private int spacingLPx;
+    private int spacingXLPx;
+    private int clockMarginPx;
+    private int timeBarHPx;
+    private int horizBarHPx;
     
     private long beginTime = -1;
     private long renderTime = 0;
@@ -136,6 +144,17 @@ public class DisplayFrame extends JFrame {
     public static float DIGITS_H = 0.10f;
     public static float DIGITS_SMALL_H = 0.07f;
     public static float TEXT_H = 0.06f;
+    
+    public static float SPACING_XS = 0.0066f;
+    public static float SPACING_S  = 0.0131f;
+    public static float SPACING_M  = 0.0197f;
+    public static float SPACING_L  = 0.0262f;
+    public static float SPACING_XL = 0.0522f;
+    public static float CLOCK_MARGIN = 0.0740f;
+    
+    public static float PAUSE_BAR_H = 0.1f;
+    public static float TIME_BAR_H = 0.008f;
+    public static float HORIZ_BAR_H = 0.003f;
     
     public DisplayFrame(ControlCenter cc, String nativeFont) {
         this.cc = cc;
@@ -320,6 +339,14 @@ public class DisplayFrame extends JFrame {
         scaledSmallDigits = Assets.scaleDigitsH(smallH, true);
         digitW = scaledBlueDigits[0].getWidth();
         smallW = scaledSmallDigits[0].getWidth();
+        spacingXSPx = (int)(SPACING_XS * height);
+        spacingSPx  = (int)(SPACING_S * height);
+        spacingMPx  = (int)(SPACING_M * height);
+        spacingLPx  = (int)(SPACING_L * height);
+        spacingXLPx = (int)(SPACING_XL * height);
+        clockMarginPx = (int)(CLOCK_MARGIN * width);
+        timeBarHPx = (int)(TIME_BAR_H * height);
+        horizBarHPx = (int)(HORIZ_BAR_H * height);
                
         if(systemFontName != null) {
             int fontSize = 0;
@@ -361,9 +388,9 @@ public class DisplayFrame extends JFrame {
         
         // banner image scaling
         if(BANNER_FILE != null && Assets.doesAssetExist(BANNER_FILE)) {
-            int horizontalSpace = (int)(0.5*width-20);
+            int horizontalSpace = (int)(0.5*width-spacingLPx);
             int verticalSpace = height - 
-                    (int)(LOGO_Y_POSITION_PROPORTION*height+scaledLogo.getHeight()/2+digitH+40);
+                    (int)(LOGO_Y_POSITION_PROPORTION*height+scaledLogo.getHeight()/2+digitH+spacingXLPx);
             BufferedImage sponsorsImage = Assets.getAsset(BANNER_FILE);
             // try to fit the height first
             Log.d(1, "DisplayFrame.rescale: fitting banner height");
@@ -441,10 +468,6 @@ public class DisplayFrame extends JFrame {
     
     public void refresh() {
         canvas.repaint();
-    }
-    
-    public void stopRefreshThread() {
-        // refresh.stopThread();
     }
     
     private int getTextWidth(String str) {
@@ -640,13 +663,13 @@ public class DisplayFrame extends JFrame {
                         } else {
                             g.setColor(BG_COLOR);
                         }
-                        g.fillRect(0, 0, W, H(0.1));
-                        g.fillRect(0, H(0.9), W, H(0.1));
-                        yOffset += H(0.1)+15;
+                        g.fillRect(0, 0, W, H(PAUSE_BAR_H));
+                        g.fillRect(0, H(1-PAUSE_BAR_H), W, H(PAUSE_BAR_H));
+                        yOffset += H(PAUSE_BAR_H)+timeBarHPx+spacingSPx;
                         str = text.get("TEAM") + " #" + teamID;
                         str2 = " " + teamName;
-                        drawText(g, str, 10, yOffset, true);
-                        drawText(g, str2, 10+getTextWidth(str), yOffset, false);
+                        drawText(g, str, spacingSPx, yOffset, true);
+                        drawText(g, str2, spacingSPx+getTextWidth(str), yOffset, false);
                         yOffset += charH;
                         if(competition.getState() != CompetitionState.POST_RUN) {
                             double ratio = (double)s.getElapsedTimeMilliseconds()/
@@ -658,59 +681,61 @@ public class DisplayFrame extends JFrame {
                                     PRIMARY_GREEN-(int)(ratio*(PRIMARY_GREEN-SECONDARY_GREEN)),
                                     PRIMARY_BLUE-(int)(ratio*(PRIMARY_BLUE-SECONDARY_BLUE))
                             ));
-                            g.fillRect(0, H(0.1), (int)(ratio*W), 6);
+                            g.fillRect(0, H(PAUSE_BAR_H), (int)(ratio*W), timeBarHPx);
                             
                             drawClock(g,
                                     (int)((s.getSecondsLeft()+1)/60),
                                     (int)((s.getSecondsLeft()+1)%60),
                                     s.getMinutesLeft() < 2,
-                                    ALIGN_CLOCK_LEFT ? 10+2*digitW+10 : 
-                                            W(1)-100-2*digitW-10,
-                                    H(0.9)-15-charH-20-digitH
+                                    ALIGN_CLOCK_LEFT ? clockMarginPx+spacingSPx+2*digitW+spacingSPx : 
+                                            W(1)-clockMarginPx-2*digitW-spacingSPx,
+                                    H(1-PAUSE_BAR_H)-spacingMPx-charH-spacingLPx-digitH
                             );
                             g.drawImage(s.getMinutesLeft() < 2 ? scaledRedDigits[COLON] : scaledBlueDigits[COLON],
-                                    ALIGN_CLOCK_LEFT ? 10+2*digitW+10-scaledRedDigits[COLON].getWidth()/2 :
-                                            W(1)-100-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
-                                    H(0.9)-15-charH-20-digitH, this);
+                                    ALIGN_CLOCK_LEFT ? clockMarginPx+spacingSPx+2*digitW+spacingSPx-scaledRedDigits[COLON].getWidth()/2 :
+                                            W(1)-clockMarginPx-2*digitW-spacingSPx-scaledRedDigits[COLON].getWidth()/2,
+                                    H(1-PAUSE_BAR_H)-spacingMPx-charH-spacingLPx-digitH, this);
                         } else {
                             drawClock(g,
                                     0, 0, true,
-                                    ALIGN_CLOCK_LEFT ? 10+2*digitW+10 : 
-                                            W(1)-100-2*digitW-10,
-                                    H(0.9)-15-charH-20-digitH
+                                    ALIGN_CLOCK_LEFT ? clockMarginPx+spacingSPx+2*digitW+spacingSPx : 
+                                            W(1)-clockMarginPx-2*digitW-spacingSPx,
+                                    H(1-PAUSE_BAR_H)-spacingMPx-charH-spacingLPx-digitH
                             );
                             g.drawImage(scaledRedDigits[COLON],
-                                    ALIGN_CLOCK_LEFT ? 10+2*digitW+10-scaledRedDigits[COLON].getWidth()/2 :
-                                            W(1)-100-2*digitW-10-scaledRedDigits[COLON].getWidth()/2,
-                                    H(0.9)-15-charH-20-digitH, this);
+                                    ALIGN_CLOCK_LEFT ? clockMarginPx+spacingSPx+2*digitW+
+                                            spacingSPx-scaledRedDigits[COLON].getWidth()/2 :
+                                            W(1)-clockMarginPx-2*digitW-spacingSPx-scaledRedDigits[COLON].getWidth()/2,
+                                    H(1-PAUSE_BAR_H)-spacingMPx-charH-spacingLPx-digitH, this);
                         }
                         int scoreWidth;
                         scoreWidth = 6*smallW+scaledSmallDigits[PERIOD].getWidth();                          
                         switch (competition.getState()) {
                             case CompetitionState.SETUP:
                                 str = text.get("SETUP_PERIOD");
-                                y = H(0.9)-15-charH;
+                                y = H(1-PAUSE_BAR_H)-spacingMPx-charH;
                                 drawText(g, str, 
-                                        ALIGN_CLOCK_LEFT ? 10 : W(1)-100-getTextWidth(str),
+                                        ALIGN_CLOCK_LEFT ? clockMarginPx+spacingSPx : W(1)-clockMarginPx-getTextWidth(str),
                                         y, false);
                                 if(teamBadges.get(teamID) != null) {
                                     g.setColor(PRIMARY_COLOR);
                                     BufferedImage badge = teamBadges.get(teamID);
                                     g.drawRect(
-                                            ALIGN_CLOCK_LEFT ? W(1)-12-badge.getWidth() :
-                                                    8, 
-                                            H(0.9)-12-badge.getHeight(),
-                                            badge.getWidth()+3, 
-                                            badge.getHeight()+3);
+                                            ALIGN_CLOCK_LEFT ? 
+                                                    W(1)-spacingSPx-spacingXSPx-badge.getWidth() :
+                                                    spacingSPx-spacingXSPx, 
+                                            (int)(H(1-PAUSE_BAR_H)-spacingSPx-spacingXSPx-badge.getHeight()),
+                                            badge.getWidth()+2*spacingXSPx, 
+                                            badge.getHeight()+2*spacingXSPx);
                                     g.drawImage(badge,
-                                            ALIGN_CLOCK_LEFT ? W(1)-10-badge.getWidth() :
-                                                    10,
-                                            H(0.9)-10-badge.getHeight(), this);
+                                            ALIGN_CLOCK_LEFT ? W(1)-spacingSPx-badge.getWidth() :
+                                                    spacingSPx,
+                                            H(1-PAUSE_BAR_H)-spacingSPx-badge.getHeight(), this);
                                 }
                                 if(SHOW_BANNER && scaledBannerImage != null) {
                                     g.drawImage(scaledBannerImage,
-                                            W(1)-10-scaledBannerImage.getWidth(),
-                                            H(0.1)+10, null);
+                                            W(1)-spacingSPx-scaledBannerImage.getWidth(),
+                                            H(PAUSE_BAR_H)+spacingSPx, null);
                                 }
 
                                 break OUTER;
@@ -719,44 +744,46 @@ public class DisplayFrame extends JFrame {
                                 str2 = "" + competition.getSession().getRunNumber() + 
                                         " " + text.get("OF") + " " + 
                                         competition.getSession().getMaxAttempts();
-                                y = H(0.9)-15-charH;
+                                y = H(1-PAUSE_BAR_H)-spacingMPx-charH;
                                 drawText(g, str, 
-                                        ALIGN_CLOCK_LEFT ? 10 : W(1)-100-
+                                        ALIGN_CLOCK_LEFT ? clockMarginPx+spacingSPx :
+                                                W(1)-clockMarginPx-
                                                 getTextWidth(str)-getTextWidth(str2),
                                         y, false);                                
                                 drawText(g, str2,
-                                        ALIGN_CLOCK_LEFT ? 10+getTextWidth(str)
-                                                 : W(1)-100-getTextWidth(str2),
+                                        ALIGN_CLOCK_LEFT ? clockMarginPx+spacingSPx+getTextWidth(str)
+                                                 : W(1)-clockMarginPx-getTextWidth(str2),
                                         y, true);                              
                                 i = 0;
                                 int colW;
-                                int rowH = 40+smallH+10+charH;
-                                x = 10;
-                                yOffset += 15;
+                                int rowH = spacingXLPx+smallH+spacingSPx+charH;
+                                x = spacingSPx;
+                                yOffset += spacingMPx;
                                 for(String key : Config.getKeysInOriginalOrder("fields")) {
-                                    int colW_a = 40+scoreDigits[i]*smallW +
+                                    int colW_a = spacingXLPx+scoreDigits[i]*smallW +
                                            (scoreDecimal[i] == 0 ? 0 : 
                                            scoreDecimal[i]*smallW+scaledSmallDigits[PERIOD].getWidth());
-                                    int colW_b = 40+getTextWidth(key);
+                                    int colW_b = spacingXLPx+getTextWidth(key);
                                     colW = colW_a > colW_b ? colW_a : colW_b;
-                                    if(x + colW > W(1) - 20) {
-                                        x = 10;
+                                    if(x + colW > W(1) - spacingLPx) {
+                                        x = spacingSPx;
                                         yOffset += rowH;
                                     }                                    
                                     g.setColor(PRIMARY_COLOR);
-                                    g.drawRect(x+5, yOffset+5, colW-10, rowH-10);
+                                    g.drawRect(x+spacingXSPx, yOffset+spacingXSPx,
+                                               colW-spacingSPx, rowH-spacingSPx);
                                     str = key;
-                                    drawText(g, str, x+20, yOffset+20, false);
+                                    drawText(g, str, x+spacingLPx, yOffset+spacingLPx, false);
                                     drawScoreField(g, scores[i],
                                             scoreDigits[i], scoreDecimal[i],
-                                            x+20, yOffset+20+charH+10);
+                                            x+spacingLPx, yOffset+spacingLPx+charH+spacingSPx);
                                     i++;
                                     x += colW;
                                 }
                                 str = text.get("CURRENT") + " ";
                                 str2 = String.format("%.2f", Score.calculate(currentScore));
-                                x = W(1)-10-getTextWidth(str2);
-                                y = H(0.1) + 15;
+                                x = W(1)-spacingSPx-getTextWidth(str2);
+                                y = H(PAUSE_BAR_H) + spacingMPx;
                                 drawText(g, str2, x, y, true);
                                 x -= getTextWidth(str);
                                 drawText(g, str, x, y, false);
@@ -766,19 +793,20 @@ public class DisplayFrame extends JFrame {
                                 if(highestScore != null) {
                                     str = text.get("BEST_SCORE");
                                     drawText(g, str,
-                                            ALIGN_CLOCK_LEFT ? W(1)-getTextWidth(str)-10 : 100,
-                                            H(0.9)-15-charH, false);
+                                            ALIGN_CLOCK_LEFT ? W(1)-clockMarginPx-getTextWidth(str)-spacingSPx : 
+                                            clockMarginPx,
+                                            H(1-PAUSE_BAR_H)-spacingMPx-charH, false);
                                     drawScore(g, highestScore, 
                                             ALIGN_CLOCK_LEFT ?
-                                                    W(1)-scoreWidth-10 :
-                                                    100,
-                                            H(0.9)-15-charH-20-smallH);
+                                                    W(1)-clockMarginPx-scoreWidth-spacingSPx :
+                                                    clockMarginPx,
+                                            H(1-PAUSE_BAR_H)-spacingMPx-charH-spacingLPx-smallH);
                                 } else {
                                     str = "NO SCORE";
                                     drawText(g, str,
-                                            ALIGN_CLOCK_LEFT ? W(1)-getTextWidth(str)-10 :
-                                                    100,
-                                            H(0.9)-15-charH, true);
+                                            ALIGN_CLOCK_LEFT ? W(1)-clockMarginPx-getTextWidth(str)-spacingSPx :
+                                                    clockMarginPx,
+                                            H(1-PAUSE_BAR_H)-spacingMPx-charH, true);
                                 }
                                 break OUTER;
                             default:
@@ -791,11 +819,11 @@ public class DisplayFrame extends JFrame {
                         if(nextTeamID >= 0) {
                             Team t = competition.getTeamByID(nextTeamID);
                             str = text.get("NEXT") + ":";
-                            drawText(g, str, 10, H(1)-15-3*charH, false);
+                            drawText(g, str, spacingSPx, H(1)-spacingMPx-3*charH, false);
                             str = "#" + nextTeamID + " " + t.getName();
-                            drawText(g, str, 10, H(1)-15-2*charH, true);
+                            drawText(g, str, spacingSPx, H(1)-spacingMPx-2*charH, true);
                             str = t.getInstitution();
-                            drawText(g, str, 10, H(1)-15-1*charH, false);
+                            drawText(g, str, spacingSPx, H(1)-spacingMPx-1*charH, false);
                         }
                     }
                 case OUTPUT_LOGO:
@@ -806,7 +834,7 @@ public class DisplayFrame extends JFrame {
                             this);
                     int hours = Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
                     int minutes = Calendar.getInstance().get(Calendar.MINUTE);
-                    y =  H(LOGO_Y_POSITION_PROPORTION) + scaledLogo.getHeight()/2 + 10;
+                    y =  H(LOGO_Y_POSITION_PROPORTION) + scaledLogo.getHeight()/2 + spacingSPx;
                     if((Calendar.getInstance().get(Calendar.SECOND) % 2) != 1) {
                         g.drawImage(scaledBlueDigits[COLON],
                                 (int)(W(0.5)-scaledBlueDigits[COLON].getWidth()/2),
@@ -814,8 +842,8 @@ public class DisplayFrame extends JFrame {
                     }
                     drawClock(g, hours, minutes, false, W(0.5), y);
                     if(SHOW_BANNER && scaledBannerImage != null) {
-                        y = H(1)-scaledBannerImage.getHeight()-10;
-                        g.drawImage(scaledBannerImage, W(1)-10-scaledBannerImage.getWidth(), y, null);
+                        y = H(1)-scaledBannerImage.getHeight()-spacingSPx;
+                        g.drawImage(scaledBannerImage, W(1)-spacingSPx-scaledBannerImage.getWidth(), y, null);
                     }
                         
                     break;
@@ -823,54 +851,54 @@ public class DisplayFrame extends JFrame {
                     y = 5;
                     str = text.get("CLASSIFICATION");
                     drawText(g, str, centeredX(getTextWidth(str)), y, false);
-                    y += charH + 5;
+                    y += charH + spacingXSPx;
                     str = text.get("POSITION");
-                    drawText(g, str, 20, y, false);
+                    drawText(g, str, spacingLPx, y, false);
                     str = text.get("TEAM");
                     drawText(g, str, W(0.1), y, false);
                     str = text.get("ID");
                     drawText(g, str, W(0.6), y, false);
                     str = text.get("SCORE");
                     drawText(g, str, W(0.8), y, false);
-                    y += charH + 5;
+                    y += charH + spacingXSPx;
                     g.setColor(SECONDARY_COLOR);
-                    g.fillRect(0, y, W(1), 2);
-                    y += 2;
+                    g.fillRect(0, y, W(1), horizBarHPx);
+                    y += horizBarHPx;
                     boolean background = true;
                     int latchRankStart = rankStart;
-                    for(i = 0; i < 10; i++) {
+                    for(i = 0; i < spacingSPx; i++) {
                         if(i+(latchRankStart-1) >= classificationRows.size()) {
                             break;
                         }
                         if(background) {
                             g.setColor(TABLE_BG_COLOR);
-                            g.fillRect(0, y, W(1), charH+10);
+                            g.fillRect(0, y, W(1), charH+spacingSPx);
                         }
                         y += 5;
                         
                         String[] row = classificationRows.get(i+(latchRankStart-1));
-                        drawText(g, row[0], 20, y, true);
+                        drawText(g, row[0], spacingLPx, y, true);
                         drawText(g, row[1], W(0.1), y, true);
                         drawText(g, row[2], W(0.6), y, true);
                         drawText(g, row[3], W(0.8), y, true);
-                        y += charH + 5;
+                        y += charH + spacingXSPx;
                         background = !background;
                     }
                     
                     if(competition.getState() == CompetitionState.SETUP ||
                             competition.getState() == CompetitionState.RUN) {
                         g.setColor(BG_COLOR);
-                        g.fillRect(0, H(1)-5-charH-5, W, charH+10);
+                        g.fillRect(0, H(1)-spacingXSPx-charH-spacingXSPx, W, charH+spacingSPx);
                         g.setColor(ALT_COLOR);
-                        g.fillRect(0, H(1)-5-charH-5-2, W, 2);
+                        g.fillRect(0, H(1)-spacingXSPx-charH-spacingXSPx-horizBarHPx, W, horizBarHPx);
                         str = competition.getState() == CompetitionState.SETUP ? 
                                 text.get("SETUP_TIME_LEFT") + " " :
                                 text.get("TIME_LEFT") + " ";
                         int prevWidth = getTextWidth(str);
-                        drawText(g, str, 5, H(1)-5-charH, false);
+                        drawText(g, str, spacingXSPx, H(1)-spacingXSPx-charH, false);
                         str = ((competition.getSession().getSecondsLeft()+1)/60) + ":" + 
                                 String.format("%02d", ((competition.getSession().getSecondsLeft()+1) % 60));
-                        drawText(g, str, 5+prevWidth, H(1)-5-charH, true);
+                        drawText(g, str, spacingXSPx+prevWidth, H(1)-spacingXSPx-charH, true);
                     } 
                     
                     break;
@@ -933,13 +961,13 @@ public class DisplayFrame extends JFrame {
             int digit3 = low % 10;
             
             g.drawImage(!red ? scaledBlueDigits[digit0] : scaledRedDigits[digit0],
-                    x-2*digitW-10, y, this);
+                    x-2*digitW-spacingSPx, y, this);
             g.drawImage(!red ? scaledBlueDigits[digit1] : scaledRedDigits[digit1],
-                    x-1*digitW-10, y, this);
+                    x-1*digitW-spacingSPx, y, this);
             g.drawImage(!red ? scaledBlueDigits[digit2] : scaledRedDigits[digit2],
-                    x+10, y, this);
+                    x+spacingSPx, y, this);
             g.drawImage(!red ? scaledBlueDigits[digit3] : scaledRedDigits[digit3],
-                    x+digitW+10, y, this);
+                    x+digitW+spacingSPx, y, this);
         }
         
         private void drawScoreField(Graphics2D g, double score, int digits, int decimal, int x, int y) {
@@ -977,10 +1005,6 @@ public class DisplayFrame extends JFrame {
                 }
                 x += smallW;
             }
-        }
-        
-        private int getClockWidth() {
-            return 4 * scaledBlueDigits[0].getWidth() + 20;
         }
         
         private void drawScore(Graphics2D g, Score score, int x, int y) {

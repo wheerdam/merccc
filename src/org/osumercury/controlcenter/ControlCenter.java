@@ -322,9 +322,11 @@ public class ControlCenter {
             Assets.loadInternalAssets();
             Assets.load(resourceDir);
             if(!noTheme) {
+                if(classicDigits) {
+                    Assets.setClassicDigits();
+                }
                 Assets.theme(Config.getSectionAsMap("theme"));
             }
-            Assets.setClassicDigits(classicDigits);
             
             val = Config.getValue("theme", "systemfont");
             if(val != null) {

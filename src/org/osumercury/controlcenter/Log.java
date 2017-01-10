@@ -45,4 +45,12 @@ public class Log {
         }
         ControlCenter.exit(error);
     }
+    
+    public static void err(String str) {
+        System.err.println("ERROR: " + str);
+        if(errorDialogBox) {
+            JOptionPane.showMessageDialog(null, str, "ERROR",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
 }

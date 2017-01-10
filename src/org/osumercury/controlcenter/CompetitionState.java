@@ -58,17 +58,28 @@ public class CompetitionState {
         
         Team t;
         String[] tokens;
-        for(Map.Entry<String, String> e : teamsMap.entrySet()) {
-            Log.d(1, "CompetitionState: adding team entry "
-                    + e.getKey() + " -> " + e.getValue());
-            tokens = e.getValue().trim().split(",");
-            t = new Team(Integer.parseInt(e.getKey()),
-                        tokens[0].trim(),
-                        tokens[1].trim(),
-                        tokens[2].trim()
-                    );
-            teams.add(t);
-            teamByID.put(Integer.parseInt(e.getKey()), t);
+        for(Map.Entry<String, String> entry : teamsMap.entrySet()) {
+            try {
+                Log.d(1, "CompetitionState: adding team entry "
+                        + entry.getKey() + " -> " + entry.getValue());
+                tokens = entry.getValue().trim().split(",");
+                t = new Team(Integer.parseInt(entry.getKey()),
+                            tokens[0].trim(),
+                            tokens[1].trim(),
+                            tokens[2].trim()
+                        );
+                teams.add(t);
+                teamByID.put(Integer.parseInt(entry.getKey()), t);
+            } catch(Exception e) {
+                if(Log.debugLevel > 1) {
+                    e.printStackTrace();
+                }
+                String key = entry.getKey();
+                String value = entry.getValue() == null ?
+                                    "null" : entry.getValue();
+                Log.fatal(40, "Failed to parse team entry: " + 
+                              key + "=" + value);
+            }
         }
     }
     

@@ -1,5 +1,8 @@
-1.1.1
+1.2.0
 - allow fetch resources from remote merccc with --copyresources option for both client and server
+- parameterized padding dimensions for better display screen scaling
+- background fade for digit fonts (digitfade option)
+- clock positioning and pause bar height options (clockmargin and pausebarheight)
 
 1.1.0
 - digits and text scaling in theme section: digitsheight, smalldigitsheight, and textheight
