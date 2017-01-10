@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Wira Mulia
+    Copyright 2016-2017 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class Text {
                 REV;
     }
     
-    public static final String AUTHORS = "Copyright ©2016 Wira D. Mulia, Fernando Cavazos, Carl D. Latino";
+    public static final String AUTHORS = "Copyright ©2016-2017 Wira D. Mulia, Fernando Cavazos, Carl D. Latino";
     
     public static final String LICENSE = 
 "Licensed under the Apache License, Version 2.0 (the \"License\")\n" +

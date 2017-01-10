@@ -287,3 +287,15 @@ The digits and text can be scaled in proportion to the screen's height with the 
 	digitsheight=0.10 # clock digits
 	smalldigitsheight=0.07 # score digits
 	textheight=0.06
+
+------
+OTHERS
+------
+
+This subsection lists miscellaneous minor entries for completeness and for those who really like to tweak everything.
+
+Define spacing between elements in the DISPLAY WINDOW in proportion to the screen height:
+
+	spacing=0.005, 0.010, 0.015, 0.020, 0.040
+
+The first four entries should be multiples of the first entry (i.e. 1*X, 2*X, 3*X, and 4*X), and the last entry should be 8 times the first entry.

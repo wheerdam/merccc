@@ -10,7 +10,7 @@
 <body>
 <div class="container">
 <h1 id="top"><img alt="[*]" src="./images/merccc-logo.png" height="50" style="background-color: black; vertical-align: middle"> merccc</h1>
-<p class="centered">Manual for v1.1.0</p>
+<p class="centered">Manual for v1.2.0</p>
 <p>&#9662; <a href="./index.html#GET">Download <strong>merccc</strong></a></p>
 <h2>Table of Contents</h2>
 <p class="indent0">1. <a href="#config">Configuration</a></p>
@@ -230,13 +230,14 @@ bgscaling={0 to 2}<br />
 <p>The server is invoked by using the <span class="mono">-p &lt;port_number&gt;</span> option for a publicly accessible connection, or <span class="mono">--localport &lt;port_number&gt;</span> for loopback only port.</p>
 <h3 id="socket-client">9.1 Display Client Mode</h3>
 <p>The TCP socket interface can be used by <strong>merccc</strong> itself to display information from a remote <strong>merccc</strong> instance running the TCP server socket interface. This is accomplished by using the <span class="mono">-x</span> command line option on the local machine:</p>
-<p class="mono">java -jar &lt;merccc-jar-file&gt; -x &lt;host&gt;:&lt;port_number&gt;:&lt;display_number&gt;</p>
-<p><span class="mono">&lt;host&gt;:&lt;port_number&gt;</span> is the address and port where the server instance is running (with the <span class="mono">-p</span> or <span class="mono">--localport</span> options). <span class="mono">&lt;display_number&gt;</span> is the <strong>local</strong> display number as numerated by the Java Virtual Machine (0 to n, where n+1 is the number of displays). The client will then try to attempt to connect and fetch the configuration from the server.</p>
-<p><strong>Resources will not be transferred!</strong> If connection is successful, the client instance will create a <strong>Display Window</strong> on the selected local display or screen and reflect everything the server instance (that is controlled by the operator) is doing.</p>
+<p class="mono">java -jar &lt;merccc-jar-file&gt; -x &lt;host&gt;:&lt;port_number&gt;</p>
+<p><span class="mono">&lt;host&gt;:&lt;port_number&gt;</span> is the address and port where the server instance is running (with the <span class="mono">-p</span> or <span class="mono">--localport</span> options). The client will then try to attempt to connect and fetch the configuration from the server and ask the user to select which active display should be used for the output. The active displays and their resolutions will be listed.</p>
+<p><strong>Resources will not be transferred by default!</strong> If connection is successful, the client instance will create a <strong>Display Window</strong> on the selected local display or screen and reflect everything the server instance (that is controlled by the operator) is doing.</p>
 <p>The client instance can load its configuration and resources locally, but the <strong>configurations between the local and remote instances must match!</strong> The client will perform a hash on its local configuration and request a hash of the server's configuration and make a test. If the hashes do not match, the client will refuse to run. The <span class="mono">-c</span> or <span class="mono">-z</span> options can be used to load a local configuration, e.g. with the server running <span class="mono">-p 19000</span>:</p>
-<p class="mono">java -jar &lt;merccc-jar-file&gt; -c config.merccc -x 192.168.1.177:19000:0</p>
+<p class="mono">java -jar &lt;merccc-jar-file&gt; -c config.merccc -x 192.168.1.177:19000</p>
 <p>or:</p>
-<p class="mono">java -jar &lt;merccc-jar-file&gt; -z config-archive.zip -x 192.168.1.177:19000:0</p>
+<p class="mono">java -jar &lt;merccc-jar-file&gt; -z config-archive.zip -x 192.168.1.177:19000</p>
+<p>To enable transferring of resources, the <span class="mono">--copyresources</span> option must be used on <strong>both</strong> the server and client. If both ends use this option, the client will ask the user where to put the copied resources and load the resources after they are download.</p>
 <p>The client display can also be locked into a specific display mode. While locked, the operator controlling the server instance can change the output display modes and the client will not change its own mode. The locking is accomplished using the <span class="mono">--lockmode &lt;mode&gt;</span> option where mode is 0 for "Logo and Time", 1 for "Run Status", and 2 for "Classification".</p>
 <p><strong>Caveat:</strong> the client can only connect to the server while the server is in IDLE state to prevent incoherent local state. The client will refuse to connect if the server is not in IDLE state.</p>
 <h2 id="build">10. Building from Source</h2>

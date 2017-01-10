@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Wira Mulia
+    Copyright 2016-2017 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -375,6 +375,21 @@ public class Assets {
                 DisplayFrame.CLOCK_MARGIN = Float.parseFloat(val);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse clock margin");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
+        val = theme.get("spacing");
+        if(val != null) {
+            try {
+                String[] tokens = val.split(",");
+                DisplayFrame.SPACING_XS = Float.parseFloat(tokens[0]);
+                DisplayFrame.SPACING_S = Float.parseFloat(tokens[1]);
+                DisplayFrame.SPACING_M = Float.parseFloat(tokens[2]);
+                DisplayFrame.SPACING_L = Float.parseFloat(tokens[3]);
+                DisplayFrame.SPACING_XL = Float.parseFloat(tokens[4]);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse spacing");
                 System.err.println("Assets.theme: " + e.toString());
             }
         }
