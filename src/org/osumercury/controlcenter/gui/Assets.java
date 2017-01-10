@@ -194,12 +194,13 @@ public class Assets {
                 // colorize our primary color digits and text font
                 Color color = new Color(R, G, B, 0);
                 DisplayFrame.PRIMARY_COLOR = color;
-                colorizeDigits(color, DisplayFrame.SECONDARY_COLOR, digitFade, digitFadeColor);
+                colorizePrimaryDigits(color, digitFade, digitFadeColor);
                 colorize(color, null, blackAlphabet, primaryColorAlphabet);
                 colorize(color, null, blackNonAlphabet, primaryColorNonAlphabet);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
+                e.printStackTrace();
             }
         }
         
@@ -216,10 +217,11 @@ public class Assets {
                 // colorize our secondary color digits
                 Color color = new Color(R, G, B, 0);
                 DisplayFrame.SECONDARY_COLOR = color;
-                colorizeDigits(DisplayFrame.PRIMARY_COLOR, color, digitFade, digitFadeColor);
+                colorizeSecondaryDigits(color, digitFade, digitFadeColor);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
+                e.printStackTrace();
             }
         }
         
@@ -240,6 +242,7 @@ public class Assets {
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
+                e.printStackTrace();
             }
         }
         
@@ -501,13 +504,13 @@ public class Assets {
                 DisplayFrame.SECONDARY_RED, DisplayFrame.SECONDARY_GREEN,
                 DisplayFrame.SECONDARY_BLUE, 0
         );
-        colorizeDigits(primaryColor, secondaryColor, bgFadeIntensity, bgFadeColorHexRGB);        
+        colorizePrimaryDigits(primaryColor, bgFadeIntensity, bgFadeColorHexRGB);
+        colorizeSecondaryDigits(secondaryColor, bgFadeIntensity, bgFadeColorHexRGB);
     }
     
-    public static void colorizeDigits(Color primaryColor,
-                                      Color secondaryColor,
-                                      int bgFadeIntensity,
-                                      int bgFadeColorHexRGB) {
+    public static void colorizePrimaryDigits(Color primaryColor,
+                                             int bgFadeIntensity,
+                                             int bgFadeColorHexRGB) {
         // let's make a background 8
         BufferedImage background = null;
         if(bgFadeIntensity > 0) {
@@ -516,23 +519,44 @@ public class Assets {
         }
         for(int i = 0; i < 10; i++) {
             colorize(primaryColor, background, blackDigits[i], primaryColorDigits[i]);
-            colorize(secondaryColor, background, blackDigits[i], secondaryColorDigits[i]);
         }
         
         // colorize period, colon, and dash
         colorize(primaryColor, null, blackDigits[10], primaryColorDigits[10]);
-        colorize(secondaryColor, null, blackDigits[10], secondaryColorDigits[10]);
         colorize(primaryColor, null, blackDigits[11], primaryColorDigits[11]);
-        colorize(secondaryColor, null, blackDigits[11], secondaryColorDigits[11]);
         background = bgFadeIntensity == 0 ? null :
                      getBackgroundDigit(bgFadeIntensity, bgFadeColorHexRGB,
                                         blackDigits[8]);
         colorize(primaryColor, background, blackDigits[12], primaryColorDigits[12]);
-        colorize(secondaryColor, background, blackDigits[12], secondaryColorDigits[12]);
         background = bgFadeIntensity == 0 ? null :
                      getBackgroundDigit(bgFadeIntensity, bgFadeColorHexRGB,
                                         blackDigits[8]);
         colorize(primaryColor, background, blackDigits[13], primaryColorDigits[13]);
+    }
+    
+    public static void colorizeSecondaryDigits(Color secondaryColor,
+                                               int bgFadeIntensity,
+                                               int bgFadeColorHexRGB) {
+        // let's make a background 8
+        BufferedImage background = null;
+        if(bgFadeIntensity > 0) {
+            background = getBackgroundDigit(bgFadeIntensity, bgFadeColorHexRGB, 
+                                            blackDigits[8]);
+        }
+        for(int i = 0; i < 10; i++) {
+            colorize(secondaryColor, background, blackDigits[i], secondaryColorDigits[i]);
+        }
+        
+        // colorize period, colon, and dash
+        colorize(secondaryColor, null, blackDigits[10], secondaryColorDigits[10]);
+        colorize(secondaryColor, null, blackDigits[11], secondaryColorDigits[11]);
+        background = bgFadeIntensity == 0 ? null :
+                     getBackgroundDigit(bgFadeIntensity, bgFadeColorHexRGB,
+                                        blackDigits[8]);
+        colorize(secondaryColor, background, blackDigits[12], secondaryColorDigits[12]);
+        background = bgFadeIntensity == 0 ? null :
+                     getBackgroundDigit(bgFadeIntensity, bgFadeColorHexRGB,
+                                        blackDigits[8]);
         colorize(secondaryColor, background, blackDigits[13], secondaryColorDigits[13]);
     }
     

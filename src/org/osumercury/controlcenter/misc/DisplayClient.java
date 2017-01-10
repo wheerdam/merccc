@@ -94,7 +94,7 @@ public class DisplayClient {
     }
     
     public static void connect(ControlCenter cc, 
-            String host, int port, int displayNumber, boolean fetchConfig,
+            String host, int port, boolean fetchConfig,
             int lockMode) {
         CompetitionState c = cc.getCompetitionState();
         DisplayFrame display = cc.getDisplayFrame();        
@@ -138,9 +138,24 @@ public class DisplayClient {
             getScoreData(cc, false);
             
             // setup display
-            Log.d(0, "- displaying on screen " + displayNumber);
+            int displayNumber = 0;
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-            int numScreens = ge.getScreenDevices().length;
+            GraphicsDevice[] screens = ge.getScreenDevices();
+            int numScreens = screens.length;
+            Log.d(0, "- active displays:");
+            for(int i = 0; i < screens.length; i++) {
+                Log.d(0, i + ": " + screens[i].getIDstring() + " (" +
+                         screens[i].getDisplayMode().getWidth() + "x" +
+                         screens[i].getDisplayMode().getHeight() + ")");
+            }
+            Log.di(0, "- select display to output to (type in the index and press enter): ");
+            try {
+                BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+                displayNumber = Integer.parseInt(r.readLine());
+            } catch(Exception e) {
+                Log.err("failed to parse input");
+                ControlCenter.exit(1);
+            }
             if(displayNumber < 0 || displayNumber >= numScreens) {
                 Log.fatal(103, "display " + displayNumber + " not found");
             }

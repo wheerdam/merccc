@@ -63,11 +63,21 @@ public class CompetitionState {
                 Log.d(1, "CompetitionState: adding team entry "
                         + entry.getKey() + " -> " + entry.getValue());
                 tokens = entry.getValue().trim().split(",");
-                t = new Team(Integer.parseInt(entry.getKey()),
-                            tokens[0].trim(),
-                            tokens[1].trim(),
-                            tokens[2].trim()
-                        );
+                if(tokens.length > 2) {
+                    t = new Team(Integer.parseInt(entry.getKey()),
+                                tokens[0].trim(),
+                                tokens[1].trim(),
+                                tokens[2].trim()
+                            );
+                } else {
+                    Log.d(0, "CompetitionState: badge not specified for #" +
+                             entry.getKey());
+                    t = new Team(Integer.parseInt(entry.getKey()),
+                                tokens[0].trim(),
+                                tokens[1].trim(),
+                                "no-logo-for-this-team"
+                            );
+                }
                 teams.add(t);
                 teamByID.put(Integer.parseInt(entry.getKey()), t);
             } catch(Exception e) {

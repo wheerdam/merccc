@@ -216,17 +216,17 @@ public class Score {
                 stack.push(val);
                 Log.d(5, "Score.calculate: push " + val);
             } catch(EmptyStackException ese) {
-                Log.fatal(54, "Score.calculate: Oops! looks like scoring failed, " + 
-                          "there are too many variables and not enough operators\n" +
-                          "Is your formula correct?\nPostfix formula = " + 
+                Log.fatal(54, "Oops! Stack underflow!\n" + 
+                          "There are too many operators and not enough variables\n" +
+                          "Check if your formula is correct: " + 
                           Config.getValue("formula", "postfix"));
             }            
         }
         if(stack.size() > 1) {
-            Log.fatal(55, "Score.calculate: Oops! looks like scoring failed, " + 
-                          "there are too many operators and not enough " +
-                          "variables\n" +
-                          "Is your formula correct?\nPostfix formula = " + 
+            Log.fatal(55, "Oops! Looks like scoring failed, " + 
+                          "there are too many variables and not enough " +
+                          "operators!\n" +
+                          "Check if your formula is correct: " + 
                           Config.getValue("formula", "postfix"));
         }
         

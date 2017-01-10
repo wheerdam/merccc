@@ -119,7 +119,6 @@ public class ControlCenter {
     private SocketInterface socket;
     private SocketInterface loopback;
     
-    private int displayNumber;
     private String controlHost;
     private int controlPort;
     
@@ -199,7 +198,6 @@ public class ControlCenter {
             Log.d(0, "- running in client mode");
             String[] tokens = client.trim().split(":");
             try {
-                displayNumber = Integer.parseInt(tokens[2].trim());
                 controlHost = tokens[0].trim();
                 controlPort = Integer.parseInt(tokens[1].trim());
             } catch(NumberFormatException nfe) {
@@ -381,7 +379,7 @@ public class ControlCenter {
                 display = new DisplayFrame(this, sysFont);
                 refresh = new RefreshThread(this, refreshRateMs);
                 DisplayClient.connect(this, controlHost, controlPort,
-                        displayNumber, fetchConfig, lockMode);
+                        fetchConfig, lockMode);
             }
         }
     }    
@@ -469,7 +467,7 @@ public class ControlCenter {
                  "  -d, --debug LEVEL        set program verbosity for debugging\n"+
                  "  -r, --refreshrate TIME   set display refresh rate in milliseconds\n"+
                  "      --rendertime         display the time it took to render a frame\n"+
-                 "  -x HOST:PORT:DISPLAY     run merccc in client mode (--client for details)\n"+
+                 "  -x HOST:PORT             run merccc in client mode (--client for details)\n"+
                  "\n"+
                  "keyboard shortcuts:\n"+
                  "  CTRL+[1-4]               select active control tab\n"+
@@ -487,20 +485,21 @@ public class ControlCenter {
     
     public static void printClientModeHelp() {
         Log.d(0, "\n"+
-                 "client mode: java -jar <jarfile> -x HOST:PORT:DISPLAY [options]\n\n"+
+                 "client mode: java -jar <jarfile> -x HOST:PORT [options]\n\n"+
                  "  Connect to a remote instance of merccc running on the specified host. The\n"+
-                 "  local display window will reflect the state of the remote server and be\n"+
-                 "  displayed on a screen as specified by DISPLAY. DISPLAY is the index of the\n"+
-                 "  screen as enumerated by the Java Virtual Machine (indexed 0 to n).\n"+
+                 "  local display window will reflect the state of the remote server. The\n"+
+                 "  program running as the client will prompt the user which display to output\n"+
+                 "  to.\n"+
                  "\n"+
                  "  If neither '-c' nor '-z' were provided, merccc will attempt to fetch the\n"+
                  "  configuration from the server. If a configuration was provided, merccc will\n"+
                  "  check if the hash codes for the remote and local configurations match. If\n"+
                  "  they do not match merccc will not start.\n"+
                  "\n"+
-                 "  Resources will not be transferred. Local resources will be loaded if the\n"+
-                 "  local directory is found or if a ZIP file containing the resources is loaded\n"+
-                 "  using the '-z' option.\n"+
+                 "  Resources will not be transferred by default unless *both* the server and\n"+
+                 "  the client were run with the '--copyresources' option. Local resources will\n"+
+                 "  be loaded if the local directory is found or if a ZIP file containing the\n"+
+                 "  resources is loaded using the '-z' option.\n"+
                  "\n"+
                  "client mode specific options:\n"+
                  "      --lockmode MODE      lock the display window in a specific MODE:\n"+
