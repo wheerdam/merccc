@@ -19,6 +19,7 @@ import org.osumercury.controlcenter.gui.RefreshThread;
 import org.osumercury.controlcenter.gui.Assets;
 import org.osumercury.controlcenter.gui.DisplayFrame;
 import org.osumercury.controlcenter.gui.ControlFrame;
+import org.osumercury.controlcenter.gui.DisplayOptionsFrame;
 import org.osumercury.controlcenter.gui.FontSelectDialog;
 import org.osumercury.controlcenter.gui.ThumbnailFrame;
 import org.osumercury.controlcenter.misc.SocketInterface;
@@ -115,6 +116,7 @@ public class ControlCenter {
     private DisplayFrame display;
     private ControlFrame control;    
     private ThumbnailFrame thumb;
+    private DisplayOptionsFrame displayOptions;
     private RefreshThread refresh;
     private SocketInterface socket;
     private SocketInterface loopback;
@@ -357,11 +359,13 @@ public class ControlCenter {
                 display = new DisplayFrame(this, sysFont);
                 control = new ControlFrame(this);
                 thumb = new ThumbnailFrame(this);
+                displayOptions = new DisplayOptionsFrame(this);
                 refresh = new RefreshThread(this, refreshRateMs);
                 SwingUtilities.invokeLater(() -> {
                     control.init();          
                     display.init();
                     control.updateDataView();     
+                    displayOptions.init();
                     refresh.start();
                 });
 
@@ -398,6 +402,10 @@ public class ControlCenter {
     
     public ThumbnailFrame getThumbnailFrame() {
         return thumb;
+    }
+    
+    public DisplayOptionsFrame getDisplayOptionsFrame() {
+        return displayOptions;
     }
     
     public RefreshThread getRefreshThread() {

@@ -4,6 +4,7 @@
 - parameterized padding dimensions for better display screen scaling
 - background fade for digit fonts (digitfade option)
 - clock positioning and pause bar height options (clockmargin and pausebarheight)
+- ability to adjust appearances / display theme in runtime
 - display client mode: output display selection is now interactive
 - optimization: reduced the number of score calculations during runtime
 

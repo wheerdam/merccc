@@ -167,11 +167,7 @@ public class DisplayFrame extends JFrame {
     
     public void init() {
         Log.d(0, "DisplayFrame: init");
-        PRIMARY_COLOR = new Color(PRIMARY_RED, PRIMARY_GREEN, PRIMARY_BLUE);
-        SECONDARY_COLOR = new Color(SECONDARY_RED, SECONDARY_GREEN, SECONDARY_BLUE);
-        ALT_COLOR = new Color(ALT_RED, ALT_GREEN, ALT_BLUE);
-        BG_COLOR = new Color(BG_RED, BG_GREEN, BG_BLUE);
-        TABLE_BG_COLOR = new Color(TABLE_BG_RED, TABLE_BG_GREEN, TABLE_BG_BLUE);
+        recolor();
         canvas = new DisplayCanvas();
         add(canvas);
         classificationRows = new ArrayList();
@@ -491,7 +487,15 @@ public class DisplayFrame extends JFrame {
     
     public void setMode(int mode) {
         this.mode = mode;
-    }        
+    } 
+    
+    public void recolor() {
+        PRIMARY_COLOR = new Color(PRIMARY_RED, PRIMARY_GREEN, PRIMARY_BLUE);
+        SECONDARY_COLOR = new Color(SECONDARY_RED, SECONDARY_GREEN, SECONDARY_BLUE);
+        ALT_COLOR = new Color(ALT_RED, ALT_GREEN, ALT_BLUE);
+        BG_COLOR = new Color(BG_RED, BG_GREEN, BG_BLUE);
+        TABLE_BG_COLOR = new Color(TABLE_BG_RED, TABLE_BG_GREEN, TABLE_BG_BLUE);
+    }
     
     public int getMode() {
         return mode;

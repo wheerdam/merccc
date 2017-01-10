@@ -192,7 +192,7 @@ public class Assets {
                 DisplayFrame.PRIMARY_GREEN = G;
                 DisplayFrame.PRIMARY_BLUE = B;
                 // colorize our primary color digits and text font
-                Color color = new Color(R, G, B, 0);
+                Color color = new Color(R, G, B);
                 DisplayFrame.PRIMARY_COLOR = color;
                 colorizePrimaryDigits(color, digitFade, digitFadeColor);
                 colorize(color, null, blackAlphabet, primaryColorAlphabet);
@@ -215,7 +215,7 @@ public class Assets {
                 DisplayFrame.SECONDARY_GREEN = G;
                 DisplayFrame.SECONDARY_BLUE = B;
                 // colorize our secondary color digits
-                Color color = new Color(R, G, B, 0);
+                Color color = new Color(R, G, B);
                 DisplayFrame.SECONDARY_COLOR = color;
                 colorizeSecondaryDigits(color, digitFade, digitFadeColor);
             } catch(Exception e) {
@@ -236,7 +236,8 @@ public class Assets {
                 DisplayFrame.ALT_GREEN = G;
                 DisplayFrame.ALT_BLUE = B;
                 // colorize our alternative text font
-                Color color = new Color(R, G, B, 0);
+                Color color = new Color(R, G, B);
+                DisplayFrame.ALT_COLOR = color;
                 colorize(color, null, blackAlphabet, alternativeColorAlphabet);
                 colorize(color, null, blackNonAlphabet, alternativeColorNonAlphabet);
             } catch(Exception e) {
@@ -257,6 +258,7 @@ public class Assets {
                 DisplayFrame.BG_GREEN = G;
                 DisplayFrame.BG_BLUE = B;
                 ControlIndicatorsCanvas.BG_COLOR = new Color(R, G, B);
+                DisplayFrame.BG_COLOR = new Color(R, G, B);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
@@ -273,6 +275,7 @@ public class Assets {
                 DisplayFrame.TABLE_BG_RED = R;
                 DisplayFrame.TABLE_BG_GREEN = G;
                 DisplayFrame.TABLE_BG_BLUE = B;
+                DisplayFrame.TABLE_BG_COLOR = new Color(R, G, B);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());

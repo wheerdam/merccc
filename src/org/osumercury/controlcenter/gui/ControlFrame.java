@@ -61,6 +61,7 @@ public class ControlFrame extends JFrame {
     private JCheckBoxMenuItem menuOptsThumbnail;
     private JCheckBoxMenuItem menuOptsSounds;
     private JCheckBoxMenuItem menuOptsBanner;
+    private JMenuItem menuOptsAppearances;
     
     /** GLOBAL UI ELEMENTS **/
     private JLabel lblDisplayScreen;
@@ -745,6 +746,7 @@ public class ControlFrame extends JFrame {
         menuOptsSounds = new JCheckBoxMenuItem("Play sounds");
         menuOptsBanner = new JCheckBoxMenuItem("Show banner");
         menuOptsBanner.setSelected(DisplayFrame.SHOW_BANNER);
+        menuOptsAppearances = new JMenuItem("Adjust appearances...");
         
         if(ControlCenter.SOUND_DISABLED) {
             menuOptsSounds.setEnabled(false);
@@ -783,11 +785,19 @@ public class ControlFrame extends JFrame {
             DisplayFrame.SHOW_BANNER = menuOptsBanner.isSelected();
         });
         
+        menuOptsAppearances.addActionListener((ActionEvent e) -> {
+            if(!cc.getDisplayOptionsFrame().isVisible()) {
+                cc.getDisplayOptionsFrame().reset();
+                cc.getDisplayOptionsFrame().setVisible(true);
+            }
+        });
+        
         menuOpts.add(menuOptsSounds);
         menuOpts.add(menuOptsFont);
         menuOpts.add(menuOptsThumbnail);
-        menuOpts.add(new JSeparator());
         menuOpts.add(menuOptsBanner);
+        menuOpts.add(new JSeparator());
+        menuOpts.add(menuOptsAppearances);
         menuOpts.add(menuOptsRenderTime);
         
         //</editor-fold>
