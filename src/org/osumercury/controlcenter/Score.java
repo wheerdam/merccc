@@ -159,6 +159,8 @@ public class Score {
             return -1;
         }
         
+        Log.d(4, "Score.calculate: called");
+
         double val, op1, op2;
         Stack<Double> stack = new Stack();
         

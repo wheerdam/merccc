@@ -63,7 +63,7 @@ public class Team implements Comparable {
     
     public void addScore(Score s) {
         Log.d(0, "Team.addScore(" + teamNumber + "=" + teamName +
-                "): result=" + Score.calculate(s));
+                "): result=" + s.getScore());
         scores.add(s);
     }
     

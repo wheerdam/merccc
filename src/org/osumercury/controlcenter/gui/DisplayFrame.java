@@ -80,6 +80,8 @@ public class DisplayFrame extends JFrame {
     private int clockMarginPx;
     private int timeBarHPx;
     private int horizBarHPx;
+    private double currentScoreVal;
+    private double bestScoreVal;
     
     private long beginTime = -1;
     private long renderTime = 0;
@@ -209,8 +211,29 @@ public class DisplayFrame extends JFrame {
                     (String key, int scoreID, String scoreValue) -> {
                         scores[scoreID] = Double.parseDouble(scoreValue);
                         currentScore.setValue(key, scores[scoreID]);
+                        currentScoreVal = currentScore.getScore();
                     }
-            );        
+            );
+            
+            cc.getControlFrame().addUserEventHook((int ID, Object param) -> {
+                CompetitionState c = cc.getCompetitionState();
+                switch(ID) {
+                    case UserEvent.STATE_CHANGE_RUN:
+                    case UserEvent.SESSION_ATTEMPT_COMMITTED:
+                    case UserEvent.DATA_ADDED:
+                    case UserEvent.DATA_CHANGED:
+                    case UserEvent.DATA_CLEARED:
+                    case UserEvent.DATA_IMPORTED:
+                    case UserEvent.DATA_RECORD_EXPUNGED:
+                        SessionState s = c.getSession();
+                        Team t = s.getActiveTeam();
+                        if(!t.hasScore()) {
+                            return;
+                        }
+                        bestScoreVal = s.getActiveTeam().getBestScore().getScore();
+                        break;
+                }
+            });
         }
         String val;
         if((val = Config.getValue("display", "score_field_digits")) != null) {
@@ -286,6 +309,7 @@ public class DisplayFrame extends JFrame {
             currentScore.setValue(key, Score.getDefaultValue(key));
             i++;
         }
+        currentScoreVal = currentScore.getScore();
     }
     
     public void setScore(String key, int id, double value) {
@@ -294,6 +318,13 @@ public class DisplayFrame extends JFrame {
         
         scores[id] = value;
         currentScore.setValue(key, value);
+        currentScoreVal = currentScore.getScore();
+    }
+    
+    public void setBestScore(Score score) {
+        if(score != null) {
+            bestScoreVal = score.getScore();
+        }
     }
     
     public void setNextTeamID(int id) {
@@ -785,7 +816,7 @@ public class DisplayFrame extends JFrame {
                                     x += colW;
                                 }
                                 str = text.get("CURRENT") + " ";
-                                str2 = String.format("%.2f", Score.calculate(currentScore));
+                                str2 = String.format("%.2f", currentScoreVal);
                                 x = W(1)-spacingSPx-getTextWidth(str2);
                                 y = H(PAUSE_BAR_H) + spacingMPx;
                                 drawText(g, str2, x, y, true);
@@ -793,14 +824,13 @@ public class DisplayFrame extends JFrame {
                                 drawText(g, str, x, y, false);
                             case CompetitionState.POST_RUN:
                                 Team t = competition.getSession().getActiveTeam();
-                                Score highestScore = t.getBestScore();                                
-                                if(highestScore != null) {
+                                if(t.hasScore()) {
                                     str = text.get("BEST_SCORE");
                                     drawText(g, str,
                                             ALIGN_CLOCK_LEFT ? W(1)-clockMarginPx-getTextWidth(str)-spacingSPx : 
                                             clockMarginPx,
                                             H(1-PAUSE_BAR_H)-spacingMPx-charH, false);
-                                    drawScore(g, highestScore, 
+                                    drawScore(g, bestScoreVal, 
                                             ALIGN_CLOCK_LEFT ?
                                                     W(1)-clockMarginPx-scoreWidth-spacingSPx :
                                                     clockMarginPx,
@@ -1011,7 +1041,7 @@ public class DisplayFrame extends JFrame {
             }
         }
         
-        private void drawScore(Graphics2D g, Score score, int x, int y) {
+        private void drawScore(Graphics2D g, Double score, int x, int y) {
             // not gonna bother with rounding
             if(score == null) {
                 g.drawImage(scaledSmallDigits[DASH], x, y, this);
@@ -1023,7 +1053,7 @@ public class DisplayFrame extends JFrame {
                 g.drawImage(scaledSmallDigits[DASH], x+5*smallW+scaledSmallDigits[PERIOD].getWidth(), y, this);
                 return;
             }
-            int scoreInt = (int)(score.getScore()*100);
+            int scoreInt = (int)(score*100);
             if(scoreInt < 0) {
                 g.drawImage(scaledSmallDigits[12], x, y, this);
                 scoreInt *= -1;

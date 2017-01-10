@@ -183,6 +183,7 @@ public class DisplayClient {
             // flush response
             r.readLine();
             Score score = new Score();
+            Team t;
             while((d = r.readLine()) != null) {
                 Log.d(0, d);
                 String[] tokens = d.split(" ", 2);
@@ -204,7 +205,7 @@ public class DisplayClient {
                         int attempts = Integer.parseInt(tokens[1]);
                         int setup = Integer.parseInt(tokens[2])*1000;
                         int run = Integer.parseInt(tokens[3])*1000;
-                        Team t = c.getTeamByID(teamID);
+                        t = c.getTeamByID(teamID);
                         c.setState(CompetitionState.SETUP);
                         c.newSession(t, attempts, setup, run);
                         c.getSession().start();
@@ -214,6 +215,8 @@ public class DisplayClient {
                         c.getSession().endSetup();
                         score = new Score();
                         display.newScore();
+                        t = c.getSession().getActiveTeam();
+                        display.setBestScore(t.getBestScore());
                         break;
                     case "SCORE_CHANGE":
                         tokens = tokens[1].split(" ");
@@ -239,12 +242,14 @@ public class DisplayClient {
                         break;
                     case "SESSION_ATTEMPT_COMMITTED":
                         score.setCompleted(true);
-                        c.getSession().getActiveTeam().addScore(score);
+                        t = c.getSession().getActiveTeam();
+                        t.addScore(score);
                         c.sort();
                         display.setClassificationData(c.getSortedFinishedTeams());
                         c.getSession().advance();
                         score = new Score();
                         display.newScore();
+                        display.setBestScore(t.getBestScore());
                         break;
                     case "SESSION_ATTEMPT_DISCARDED":
                         c.getSession().advance();

@@ -1349,7 +1349,7 @@ public class ControlFrame extends JFrame {
                 Score s = t.getScores().get(scoreID);
                 s.setValue(field, dialog.getValueDouble());
                 m.setValueAt(dialog.getValueDouble() + "", row, column);
-                m.setValueAt(Score.calculate(s) + "", row, 3+Score.getFields().size());
+                m.setValueAt(s.getScore() + "", row, 3+Score.getFields().size());
                 Object[] params = {teamID, scoreID, field, dialog.getValueDouble()};
                 triggerEvent(UserEvent.DATA_CHANGED, params);
                 updateDataView();

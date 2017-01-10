@@ -105,7 +105,8 @@ public class CompetitionState {
         stateChangeHooks.add(hook);
     }
     
-    public synchronized void sort() {     
+    public synchronized void sort() {
+        Log.d(3, "CompetitionState.sort: sorting teams");
         teamsFinished = new ArrayList();
         teamsDNF = new ArrayList();
         for(Team t : teams) {
@@ -123,6 +124,7 @@ public class CompetitionState {
         teamsDNF.sort((Team a, Team b) -> (int) (b.getTiebreaker() - a.getTiebreaker()));
         
         sorted = true;
+        Log.d(3, "CompetitionState.sort: sorting done");
     }
     
     public void setState(int state) {

@@ -17,6 +17,7 @@ package org.osumercury.controlcenter.gui;
 
 import java.awt.*;
 import java.awt.image.*;
+import java.util.ArrayList;
 import javax.swing.*;
 import java.util.Calendar;
 import org.osumercury.controlcenter.CompetitionState;
@@ -40,6 +41,7 @@ public class ControlIndicatorsCanvas extends JPanel {
     private int smallH;
     private int smallW;
     private int yOffset;
+    private ArrayList<Double> scores;
     public static Color BG_COLOR = Color.BLACK;
     
     public static final int COLON = 10;
@@ -51,6 +53,20 @@ public class ControlIndicatorsCanvas extends JPanel {
     public ControlIndicatorsCanvas(CompetitionState c, ControlFrame f) {
         this.c = c;
         this.f = f;
+        scores = new ArrayList<>();
+        
+        f.addUserEventHook((int ID, Object params) -> {
+            switch(ID) {
+                case UserEvent.STATE_CHANGE_RUN:
+                    scores = new ArrayList<>();
+                    break;
+                case UserEvent.SESSION_ATTEMPT_COMMITTED:
+                    scores.clear();
+                    for(Score s : c.getSession().getActiveScoreList()) {
+                        scores.add(s.getScore());
+                    }
+            }
+        });
     }
     
     public void set(SessionState session) {
@@ -160,10 +176,10 @@ public class ControlIndicatorsCanvas extends JPanel {
                         g.setColor(new Color(55, 55, 55));
                     }
                     g.fillRect(15, yOffset, 8, smallH);
-                    Score s = i < c.getSession().getActiveScoreList().size() ? c.getSession().getActiveScoreList().get(i) : null;
+                    Double s = i < scores.size() ? scores.get(i) : null;
                     int score;
                     if(s != null) {
-                        score = (int) (s.getScore()*100);
+                        score = (int) (s*100);
                         if(score > 99999 | score < 0) {
                             drawDashes(g);
                         } else {
@@ -213,10 +229,10 @@ public class ControlIndicatorsCanvas extends JPanel {
                         g.setColor(new Color(55, 55, 55));
                     }
                     g.fillRect(15, yOffset, 8, smallH);
-                    Score s = i < c.getSession().getActiveScoreList().size() ? c.getSession().getActiveScoreList().get(i) : null;
+                    Double s = i < scores.size() ? scores.get(i) : null;
                     int score;
                     if(s != null) {
-                        score = (int) (s.getScore()*100);
+                        score = (int) (s*100);
                         if(score > 99999 | score < 0) {
                             drawDashes(g);
                         } else {
