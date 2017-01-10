@@ -445,6 +445,10 @@ public class DisplayFrame extends JFrame {
         }
     }
     
+    public void rescale() {
+        rescale(getWidth(), getHeight());
+    }
+    
     public void setFont(String fontName) {
         systemFontName = fontName;
         rescale(getWidth(), getHeight());

@@ -228,9 +228,9 @@ colonX, colonW, periodX, periodW, dashX, and dashW define the x-axis position an
 
 The program also draws a faded white background '8' for the digits to emulate an 'off' segment in an LCD display. The intensity of the background can be modified using the following entry:
 
-	digitfade=10
+	digitfade=ffffff0a
 
-The value is between 0 (no background) to 255 (full white).
+The value is hex-encoded 32-bit RGBA value.
 
 For the text font, the program expects the following organization:
 

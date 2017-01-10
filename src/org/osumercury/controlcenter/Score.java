@@ -96,6 +96,10 @@ public class Score {
                               key + "=" + value);
             }
         }
+        
+        if(postfix == null) {
+            Log.fatal(52, "Score.init: postfix formula was not provided");
+        }
 
         Log.d(1, "Score.init: POSTFIX FORMULA: " + postfix);
         tokens = postfix.split("\\s+");
@@ -105,7 +109,7 @@ public class Score {
                      && !op.equals("-")  && !op.equals("SQRT")
                      && !op.equals("^") && !isNumeric(op) &&
                     !fields.containsKey(op)) {
-                Log.fatal(52, "Score.init: variable \"" + op + "\"" +
+                Log.fatal(53, "Score.init: variable \"" + op + "\"" +
                               " used in the formula is not defined");
             } else {
                 postfixFormula.add(op);
@@ -131,7 +135,7 @@ public class Score {
                 if(result != test.getScore()) {
                     Log.err("WARNING: calculated score did not " +
                             "match the expected score from the config. file!\n" +
-                            "Expected: " + result + ", Calculated: " + test.getScore());
+                            "Expected: " + result + ", calculated: " + test.getScore());
                     return false;
                 } else {
                     Log.di(0, " OK\n");
@@ -159,67 +163,67 @@ public class Score {
         Stack<Double> stack = new Stack();
         
         for(String op : postfixFormula) {
-            Log.d(3, "Score.calculate: postfix process " + op);
+            Log.d(5, "Score.calculate: postfix process " + op);
             try {
                 switch (op) {
                     case "+":
                         op2 = stack.pop();
                         op1 = stack.pop();
-                        Log.d(3, "Score.calculate: " + op1 + " + " + op2);
+                        Log.d(5, "Score.calculate: " + op1 + " + " + op2);
                         val = op1 + op2;
                         break;
                     case "-":
                         op2 = stack.pop();
                         op1 = stack.pop();
-                        Log.d(3, "Score.calculate: " + op1 + " - " + op2);
+                        Log.d(5, "Score.calculate: " + op1 + " - " + op2);
                         val = op1 - op2;
                         break;
                     case "/":
                         op2 = stack.pop();
                         op1 = stack.pop();
-                        Log.d(3, "Score.calculate: " + op1 + " / " + op2);
+                        Log.d(5, "Score.calculate: " + op1 + " / " + op2);
                         val = op1 / op2;
                         break;
                     case "*":
                         op2 = stack.pop();
                         op1 = stack.pop();
-                        Log.d(3, "Score.calculate: " + op1 + " * " + op2);
+                        Log.d(5, "Score.calculate: " + op1 + " * " + op2);
                         val = op1 * op2;                   
                         break;
                     case "SQRT":
                         op1 = stack.pop();
                         val = Math.sqrt(op1);
-                        Log.d(3, "Score.calculate: sqrt(" + op1 + ")");
+                        Log.d(5, "Score.calculate: sqrt(" + op1 + ")");
                         break;
                     case "^":
                         op2 = stack.pop();
                         op1 = stack.pop();
-                        Log.d(3, "Score.calculate: " + op1 + " ^ " + op2);
+                        Log.d(5, "Score.calculate: " + op1 + " ^ " + op2);
                         val = Math.pow(op1, op2);             
                         break;
                     default:
                         if(isNumeric(op)) {
                             val = Double.parseDouble(op);
-                            Log.d(3, "Score.calculate: " + val + " [literal]");
+                            Log.d(5, "Score.calculate: " + val + " [literal]");
                         } else if(!s.containsKey(op)) {
                             val = defaultValue.get(op);
-                            Log.d(3, "Score.calculate: " + val + " [default]");
+                            Log.d(5, "Score.calculate: " + val + " [default]");
                         } else {
                             val = s.getValue(op);
                         }
                         break;
                 }
                 stack.push(val);
-                Log.d(3, "Score.calculate: push " + val);
+                Log.d(5, "Score.calculate: push " + val);
             } catch(EmptyStackException ese) {
-                Log.fatal(53, "Score.calculate: Oops! looks like scoring failed, " + 
+                Log.fatal(54, "Score.calculate: Oops! looks like scoring failed, " + 
                           "there are too many variables and not enough operators\n" +
                           "Is your formula correct?\nPostfix formula = " + 
                           Config.getValue("formula", "postfix"));
             }            
         }
         if(stack.size() > 1) {
-            Log.fatal(54, "Score.calculate: Oops! looks like scoring failed, " + 
+            Log.fatal(55, "Score.calculate: Oops! looks like scoring failed, " + 
                           "there are too many operators and not enough " +
                           "variables\n" +
                           "Is your formula correct?\nPostfix formula = " + 

@@ -813,8 +813,8 @@ public class ControlFrame extends JFrame {
 
         int i = 0;
         for(String key : Config.getKeysInOriginalOrder("fields")) {
-            lblScoreFields[i] = new JLabel(key + " " +
-                    Score.getDescription(key));
+            lblScoreFields[i] = new JLabel(key + " (" +
+                    Score.getDescription(key) + ")");
             scoreFields[i] = new JTextField("" + Score.getDefaultValue(key));
             scoreFields[i].setEditable(editable);
             paneScoreFieldContainer[i] = new JPanel();

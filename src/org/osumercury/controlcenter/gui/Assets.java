@@ -50,6 +50,7 @@ public class Assets {
     private static BufferedImage classicDigitsImg;
     private static BufferedImage fontImg;
     public static final int DEFAULT_BG_FADE = 10;
+    public static final int DEFAULT_BG_COLOR = 0xffffff;
     
     public static void loadInternalAssets() {
         try {
@@ -58,7 +59,7 @@ public class Assets {
             classicDigitsImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/digits-classic.png"));
             fontImg = ImageIO.read(Assets.class.getResource("/org/osumercury/controlcenter/gui/font-black.png"));
             
-            populateDigits(digitsImg, DEFAULT_BG_FADE);
+            populateDigits(digitsImg, DEFAULT_BG_FADE, DEFAULT_BG_COLOR);
             populateFont(fontImg, 96, 176, 0, 176);
         } catch(Exception e) {
             // This should NOT happen
@@ -125,15 +126,17 @@ public class Assets {
             return;
         }
         
-        Log.d(1, "Assets.theme: Checking for user-defined theme definitions");
+        Log.d(1, "Assets.theme: Applying user theme definitions");
         
         String val;
         int digitFade = DEFAULT_BG_FADE;
+        int digitFadeColor = DEFAULT_BG_COLOR;
         val = theme.get("digitfade");
         if(val != null) {
             try {
-                digitFade = Integer.parseInt(val);
-                populateDigits(digitsImg, digitFade);
+                long intVal = Long.parseLong(val, 16);
+                populateDigits(digitsImg, (int)(intVal & 0xffL),
+                               (int)((intVal >> 8) & 0xffffffL));
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse digit fade");
                 System.err.println("Assets.theme: " + e.toString());
@@ -154,7 +157,8 @@ public class Assets {
                 int dashX = Integer.parseInt(theme.get("dashX"));
                 int dashW = Integer.parseInt(theme.get("dashW"));
                 populateDigits(digitFont, digitW, digitH,
-                        colonX, colonW, periodX, periodW, dashX, dashW, digitFade);
+                        colonX, colonW, periodX, periodW, dashX, dashW,
+                        digitFade, digitFadeColor);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to load custom digit font");
                 System.err.println("Assets.theme: " + e.toString());
@@ -189,12 +193,8 @@ public class Assets {
                 DisplayFrame.PRIMARY_BLUE = B;
                 // colorize our primary color digits and text font
                 Color color = new Color(R, G, B, 0);
-                // let's make a background 8
-                BufferedImage background = null;
-                if(digitFade > 0) {
-                    background = getBackgroundDigit(digitFade, blackDigits[8]);
-                }
-                colorize(color, background, blackDigits, primaryColorDigits);
+                DisplayFrame.PRIMARY_COLOR = color;
+                colorizeDigits(color, DisplayFrame.SECONDARY_COLOR, digitFade, digitFadeColor);
                 colorize(color, null, blackAlphabet, primaryColorAlphabet);
                 colorize(color, null, blackNonAlphabet, primaryColorNonAlphabet);
             } catch(Exception e) {
@@ -215,12 +215,8 @@ public class Assets {
                 DisplayFrame.SECONDARY_BLUE = B;
                 // colorize our secondary color digits
                 Color color = new Color(R, G, B, 0);
-                // let's make a background 8
-                BufferedImage background = null;
-                if(digitFade > 0) {
-                    background = getBackgroundDigit(digitFade, blackDigits[8]);
-                }
-                colorize(color, background, blackDigits, secondaryColorDigits);
+                DisplayFrame.SECONDARY_COLOR = color;
+                colorizeDigits(DisplayFrame.PRIMARY_COLOR, color, digitFade, digitFadeColor);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse color information");
                 System.err.println("Assets.theme: " + e.toString());
@@ -401,9 +397,13 @@ public class Assets {
         g.drawImage(black, null, 0, 0);
         g.dispose();
         g = image.createGraphics();
-        if(bg != null && bg.getWidth() == image.getWidth() &&
-                         bg.getHeight() == image.getHeight()) {
-            g.drawImage(bg, null, 0, 0);
+        if(bg != null) {
+            if(bg.getWidth() == image.getWidth() &&
+               bg.getHeight() == image.getHeight()) {
+                g.drawImage(bg, null, 0, 0);
+            } else {
+                Log.d(0, "Assets.colorize: background dimensions mismatch");
+            }
         }
         g.drawImage(fg, null, 0, 0);
         g.dispose();
@@ -458,16 +458,18 @@ public class Assets {
     }
     
     // populate digits clipped with default font dimensions
-    public static void populateDigits(BufferedImage img, int bgFadeIntensity) {
-        populateDigits(img, 204, 250, 2040, 70, 2110, 38, 2190, 204, bgFadeIntensity);
+    public static void populateDigits(BufferedImage img, int bgFadeIntensity, int bgFadeColorHexRGB) {
+        populateDigits(img, 204, 250, 2040, 70, 2110, 38, 2190, 204, bgFadeIntensity, bgFadeColorHexRGB);
     }
     
     public static void populateDigits(BufferedImage img,
             int digitW, int digitH,
             int colonX, int colonW,
             int periodX, int periodW,
-            int dashX, int dashW, int bgFadeIntensity) {
-        Log.d(1, "Assets.populateDigits: clipping digits (bg=" + bgFadeIntensity + ")");
+            int dashX, int dashW,
+            int bgFadeIntensity, int bgFadeColorHexRGB) {
+        Log.d(1, "Assets.populateDigits: clipping digits (bg=" + bgFadeIntensity + ", " +
+                 String.format("%06X", bgFadeColorHexRGB) + ")");
         for(int i = 0; i < 10; i++) {
             blackDigits[i] = img.getSubimage(i*digitW, 0*digitH, digitW, digitH);
             primaryColorDigits[i] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);
@@ -488,8 +490,8 @@ public class Assets {
 
         emptyDigit = img.getSubimage(0, 1*digitH, digitW, digitH);
         blackDigits[13] = emptyDigit;
-        primaryColorDigits[13] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);;
-        secondaryColorDigits[13] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);;
+        primaryColorDigits[13] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);
+        secondaryColorDigits[13] = new BufferedImage(digitW, digitH, BufferedImage.TYPE_INT_ARGB);
         
         Color primaryColor = new Color(
                 DisplayFrame.PRIMARY_RED, DisplayFrame.PRIMARY_GREEN,
@@ -499,78 +501,113 @@ public class Assets {
                 DisplayFrame.SECONDARY_RED, DisplayFrame.SECONDARY_GREEN,
                 DisplayFrame.SECONDARY_BLUE, 0
         );
+        colorizeDigits(primaryColor, secondaryColor, bgFadeIntensity, bgFadeColorHexRGB);        
+    }
+    
+    public static void colorizeDigits(Color primaryColor,
+                                      Color secondaryColor,
+                                      int bgFadeIntensity,
+                                      int bgFadeColorHexRGB) {
         // let's make a background 8
         BufferedImage background = null;
         if(bgFadeIntensity > 0) {
-            background = getBackgroundDigit(bgFadeIntensity, blackDigits[8]);
+            background = getBackgroundDigit(bgFadeIntensity, bgFadeColorHexRGB, 
+                                            blackDigits[8]);
         }
-        // background = blackDigits[8];
-        colorize(primaryColor, background, blackDigits, primaryColorDigits);
-        colorize(secondaryColor, background, blackDigits, secondaryColorDigits);
+        for(int i = 0; i < 10; i++) {
+            colorize(primaryColor, background, blackDigits[i], primaryColorDigits[i]);
+            colorize(secondaryColor, background, blackDigits[i], secondaryColorDigits[i]);
+        }
+        
+        // colorize period, colon, and dash
+        colorize(primaryColor, null, blackDigits[10], primaryColorDigits[10]);
+        colorize(secondaryColor, null, blackDigits[10], secondaryColorDigits[10]);
+        colorize(primaryColor, null, blackDigits[11], primaryColorDigits[11]);
+        colorize(secondaryColor, null, blackDigits[11], secondaryColorDigits[11]);
+        background = bgFadeIntensity == 0 ? null :
+                     getBackgroundDigit(bgFadeIntensity, bgFadeColorHexRGB,
+                                        blackDigits[8]);
+        colorize(primaryColor, background, blackDigits[12], primaryColorDigits[12]);
+        colorize(secondaryColor, background, blackDigits[12], secondaryColorDigits[12]);
+        background = bgFadeIntensity == 0 ? null :
+                     getBackgroundDigit(bgFadeIntensity, bgFadeColorHexRGB,
+                                        blackDigits[8]);
+        colorize(primaryColor, background, blackDigits[13], primaryColorDigits[13]);
+        colorize(secondaryColor, background, blackDigits[13], secondaryColorDigits[13]);
     }
     
-    public static BufferedImage getBackgroundDigit(int bgFadeIntensity, BufferedImage bg) {
+    public static BufferedImage getBackgroundDigit(int bgFadeIntensity, 
+                                                   int colorHexRGB,
+                                                   BufferedImage bg) {
         BufferedImage background = new BufferedImage(bg.getWidth(), bg.getHeight(), BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D) background.createGraphics();
-        // draw white-faded background first if requested
         try {
             float intensity = bgFadeIntensity/255f;
-            Log.d(4, "Assets.colorize: setting background at " + bgFadeIntensity + " (" + intensity + ")");
+            Log.d(3, "Assets.colorize: setting background at " + bgFadeIntensity + " (" + intensity + ")");
             int pixel;
             int srcAlpha;
             int c;
-            /*
-            int xPrintInterval = 2;
-            int yPrintInterval = 4;
-            int xPrintIndex = 0;
-            int yPrintIndex = 0;
-            */
             for(int y = 0; y < bg.getHeight(); y++) {
                 for(int x = 0; x < bg.getWidth(); x++) {
                     pixel = bg.getRGB(x, y);
                     srcAlpha = (pixel >> 24) & 0xff;
                     if((pixel & 0x00ffffffL) == 0 && srcAlpha > 0) {
-                        c = (int)(((int)(intensity*srcAlpha)<<24L)+0xffffffL);
+                        c = (int)(((int)(intensity*srcAlpha)<<24L)+(colorHexRGB & 0xffffff));
                         background.setRGB(x, y, c);
-                        //g.setColor(new Color(255, 255, 255, (int)(intensity*srcAlpha)));
-                        //g.drawLine(x, y, x, y);
-                    } else {
-                        //background.setRGB(x, y, 0);
                     }
-                    /*
-                    xPrintIndex++;
-                    if(xPrintIndex == xPrintInterval && yPrintIndex == 0) {
-                        if(srcAlpha == 0) {
-                            System.out.print(" ");
-                        } else if(srcAlpha < 50) {
-                            System.out.print(".");
-                        } else if(srcAlpha < 100) {
-                            System.out.print("o");
-                        } else if(srcAlpha < 150) {
-                            System.out.print("O");
-                        } else if(srcAlpha < 200) {
-                            System.out.print("H");
-                        } else {
-                            System.out.print("8");
-                        }
-                        xPrintIndex = 0;
-                    }
-                    */
                 }
-                /*
-                xPrintIndex = 0;
-                yPrintIndex++;
-                if(yPrintIndex == yPrintInterval) {
-                    yPrintIndex = 0;
-                    System.out.println();
-                }
-                */
             }
         } catch(Exception e) {
             e.printStackTrace();
         }
         g.dispose();
+        if(Log.debugLevel > 3) {
+            printImageToConsole(background, background.getWidth()/4, background.getHeight()/8);
+        }
         return background;
+    }
+    
+    public static void printImageToConsole(BufferedImage img, int w, int h) {
+        int imgW = img.getWidth();
+        int imgH = img.getHeight();
+        w = w == 0 ? 1 : w;
+        h = h == 0 ? 1 : h;
+        int xInterval = imgW / w;
+        int yInterval = imgH / h;
+        int xIndex = 0;
+        int yIndex = 0;
+        int alpha;
+        Log.d(0, "img:" + imgW + "x" + imgH + " out:" + w + "x" + h);
+        Log.d(0, "xInt:" + xInterval + " yInt:" + yInterval);
+        for(int y = 0; y < imgH; y++) {
+            for(int x = 0; x < imgW; x++) {
+                alpha = (img.getRGB(x, y) >> 24) & 0xff;
+                xIndex++;
+                if(xIndex >= xInterval && yIndex == 0) {
+                    if(alpha == 0) {
+                        System.out.print(" ");
+                    } else if(alpha < 50) {
+                        System.out.print(".");
+                    } else if(alpha < 100) {
+                        System.out.print("o");
+                    } else if(alpha < 150) {
+                        System.out.print("O");
+                    } else if(alpha < 200) {
+                        System.out.print("H");
+                    } else {
+                        System.out.print("8");
+                    }
+                    
+                    xIndex = 0;
+                }
+            }
+            yIndex++;
+            if(yIndex >= yInterval) {
+                System.out.println();
+                yIndex = 0;
+            }
+        }
+        System.out.println();
     }
     
     public static void populateFont(BufferedImage img,
@@ -606,7 +643,7 @@ public class Assets {
     }
     
     public static void setClassicDigits() {
-        populateDigits(classicDigitsImg, 204, 250, 2040, 70, 2110, 38, 2190, 204, DEFAULT_BG_FADE);
+        populateDigits(classicDigitsImg, 204, 250, 2040, 70, 2110, 38, 2190, 204, DEFAULT_BG_FADE, DEFAULT_BG_COLOR);
     }
     
     public static BufferedImage[] scaleFontH(int row, int height) {

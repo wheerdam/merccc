@@ -1,4 +1,5 @@
 1.2.0
+- config errors are now more helpful
 - allow fetch resources from remote merccc with --copyresources option for both client and server
 - parameterized padding dimensions for better display screen scaling
 - background fade for digit fonts (digitfade option)
