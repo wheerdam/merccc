@@ -217,6 +217,10 @@ public class DisplayFrame extends JFrame {
             
             cc.getControlFrame().addUserEventHook((int ID, Object param) -> {
                 CompetitionState c = cc.getCompetitionState();
+                if(c.getState() == CompetitionState.IDLE ||
+                   c.getState() == CompetitionState.SETUP) {
+                    return;
+                }
                 switch(ID) {
                     case UserEvent.STATE_CHANGE_RUN:
                     case UserEvent.SESSION_ATTEMPT_COMMITTED:
