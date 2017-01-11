@@ -335,6 +335,10 @@ public class DisplayFrame extends JFrame {
         return thumbnailImage;
     }
     
+    public JPanel getCanvas() {
+        return canvas;
+    }
+    
     public synchronized void generateThumbnail() {
         int width = THUMB_WIDTH;
         int height = (int)((float)displayImage.getHeight()/displayImage.getWidth()

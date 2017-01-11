@@ -17,6 +17,8 @@ package org.osumercury.controlcenter.misc;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -30,6 +32,7 @@ import javax.swing.SwingUtilities;
 import org.osumercury.controlcenter.*;
 import org.osumercury.controlcenter.gui.DisplayFrame;
 import org.osumercury.controlcenter.gui.Assets;
+import org.osumercury.controlcenter.gui.DisplayOptionsFrame;
 
 /**
  *
@@ -40,6 +43,7 @@ public class DisplayClient {
     private static BufferedReader r;
     private static Socket s;
     private static File fetchedResources;
+    private static DisplayOptionsFrame displayOptions;
     
     public static String getConfigString(String host, int port, boolean copyResources) {
         StringBuilder str = new StringBuilder();
@@ -161,9 +165,23 @@ public class DisplayClient {
             }
             GraphicsDevice gd = ge.getScreenDevices()[displayNumber];
             SwingUtilities.invokeLater(() -> {
-                display.init();            
+                displayOptions = new DisplayOptionsFrame(cc);
+                display.init();
+                displayOptions.init();
+                display.getCanvas().addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseClicked(MouseEvent evt) {
+                        if(evt.getButton() == MouseEvent.BUTTON1 &&
+                           evt.getClickCount() == 2) {
+                            if(!displayOptions.isVisible()) {
+                                displayOptions.reset();
+                                displayOptions.setVisible(true);
+                            }
+                        }
+                    }
+                });
                 display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-                display.setVisible(false);       
+                display.setVisible(false);
                 display.setLocation(gd.getDefaultConfiguration().getBounds().x,
                         gd.getDefaultConfiguration().getBounds().y);
                 display.setExtendedState(JFrame.MAXIMIZED_BOTH);
