@@ -49,8 +49,12 @@ public class Assets {
     private static BufferedImage digitsImg;
     private static BufferedImage classicDigitsImg;
     private static BufferedImage fontImg;
+    
     public static final int DEFAULT_BG_FADE = 10;
     public static final int DEFAULT_BG_COLOR = 0xffffff;
+    
+    public static final int DIGITS_MODERN = 0;
+    public static final int DIGITS_CLASSIC = 1;
     
     public static void loadInternalAssets() {
         try {
@@ -135,8 +139,9 @@ public class Assets {
         if(val != null) {
             try {
                 long intVal = Long.parseLong(val, 16);
-                populateDigits(digitsImg, (int)(intVal & 0xffL),
-                               (int)((intVal >> 8) & 0xffffffL));
+                digitFade = (int)(intVal & 0xffL);
+                digitFadeColor = (int)((intVal >> 8) & 0xffffffL);
+                populateDigits(digitsImg, digitFade, digitFadeColor);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse digit fade");
                 System.err.println("Assets.theme: " + e.toString());
@@ -393,6 +398,16 @@ public class Assets {
                 DisplayFrame.SPACING_XL = Float.parseFloat(tokens[4]);
             } catch(Exception e) {
                 System.err.println("Assets.theme: failed to parse spacing");
+                System.err.println("Assets.theme: " + e.toString());
+            }
+        }
+        
+        val = theme.get("digitsstyle");
+        if(val != null) {
+            try {
+                setDigitsStyle(Integer.parseInt(val), digitFade, digitFadeColor);
+            } catch(Exception e) {
+                System.err.println("Assets.theme: failed to parse digits style");
                 System.err.println("Assets.theme: " + e.toString());
             }
         }
@@ -684,8 +699,16 @@ public class Assets {
         colorize(altColor, null, blackNonAlphabet, alternativeColorNonAlphabet);
     }
     
-    public static void setClassicDigits() {
-        populateDigits(classicDigitsImg, 204, 250, 2040, 70, 2110, 38, 2190, 204, DEFAULT_BG_FADE, DEFAULT_BG_COLOR);
+    public static void setDigitsStyle(int style, int fade, int fadeColor) {
+        switch(style) {
+            case Assets.DIGITS_CLASSIC:
+                populateDigits(classicDigitsImg, 
+                               204, 250, 2036, 56, 2110, 38, 2190, 204, 
+                               fade, fadeColor);
+                break;
+            default:
+                populateDigits(digitsImg, fade, fadeColor);
+        }
     }
     
     public static BufferedImage[] scaleFontH(int row, int height) {

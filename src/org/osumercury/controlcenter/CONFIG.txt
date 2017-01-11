@@ -299,3 +299,9 @@ Define spacing between elements in the DISPLAY WINDOW in proportion to the scree
 	spacing=0.005, 0.010, 0.015, 0.020, 0.040
 
 The first four entries should be multiples of the first entry (i.e. 1*X, 2*X, 3*X, and 4*X), and the last entry should be 8 times the first entry.
+
+Set digits style:
+
+	digitsstyle=0
+
+There are currently two digits style: the default modern look (index 0), and the classic version 0.9.x look (index 1).

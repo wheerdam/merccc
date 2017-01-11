@@ -323,7 +323,9 @@ public class ControlCenter {
             Assets.load(resourceDir);
             if(!noTheme) {
                 if(classicDigits) {
-                    Assets.setClassicDigits();
+                    Assets.setDigitsStyle(Assets.DIGITS_CLASSIC,
+                                          Assets.DEFAULT_BG_FADE,
+                                          Assets.DEFAULT_BG_COLOR);
                 }
                 Assets.theme(Config.getSectionAsMap("theme"));
             }
