@@ -38,6 +38,7 @@ public class DisplayFrame extends JFrame {
     
     private final CompetitionState competition;
     private final ControlCenter cc;
+    private boolean scheduleRescale;
     private int mode;
     private int W;
     private int H;
@@ -177,6 +178,7 @@ public class DisplayFrame extends JFrame {
         teamBadges = new HashMap();
         systemFont = new Font(Font.MONOSPACED, Font.BOLD, 12);
         text = new HashMap();
+        scheduleRescale = false;
         
         // default string (English)
         text.put("TEAM", "TEAM");
@@ -481,12 +483,12 @@ public class DisplayFrame extends JFrame {
     }
     
     public void rescale() {
-        rescale(getWidth(), getHeight());
+        scheduleRescale = true;
     }
     
     public void setFont(String fontName) {
         systemFontName = fontName;
-        rescale(getWidth(), getHeight());
+        scheduleRescale = true;
     }
     
     public void setMode(int mode) {
@@ -637,7 +639,8 @@ public class DisplayFrame extends JFrame {
             }
             long startTime = System.nanoTime();
             
-            if(W != getWidth() || H != getHeight()) {
+            if(W != getWidth() || H != getHeight() || scheduleRescale) {
+                scheduleRescale = false;
                 W = getWidth();
                 H = getHeight();
                 rescale(W, H);

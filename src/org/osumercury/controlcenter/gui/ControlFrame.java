@@ -246,9 +246,7 @@ public class ControlFrame extends JFrame {
         paneRunTimerControl.setBackground(Color.BLACK);
 
         cmbTeamSelect = new JComboBox();
-        Team team;
-        for(String key : Config.getKeysInOriginalOrder("teams")) {
-            team = competition.getTeamByID(Integer.parseInt(key));
+        for(Team team : competition.getTeams()) {
             cmbTeamSelect.addItem(team.getNumber() + ": " + team.getName());
         }
         cmbTeamSelect.setSelectedIndex(0);
@@ -1131,9 +1129,7 @@ public class ControlFrame extends JFrame {
         JPanel paneButtons = new JPanel();
         JPanel paneScoreInput = new JPanel();
         JComboBox<String> cmbTeams = new JComboBox();
-        Team team;
-        for(String key : Config.getKeysInOriginalOrder("teams")) {
-            team = competition.getTeamByID(Integer.parseInt(key));
+        for(Team team : competition.getTeams()) {
             cmbTeams.addItem(team.getNumber() + ": " + team.getName());
         }
         cmbTeams.setSelectedIndex(0);
