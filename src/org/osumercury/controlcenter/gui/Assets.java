@@ -703,7 +703,7 @@ public class Assets {
         switch(style) {
             case Assets.DIGITS_CLASSIC:
                 populateDigits(classicDigitsImg, 
-                               204, 250, 2036, 56, 2110, 38, 2190, 204, 
+                               204, 250, 2036, 56, 2118, 44, 2190, 204, 
                                fade, fadeColor);
                 break;
             default:

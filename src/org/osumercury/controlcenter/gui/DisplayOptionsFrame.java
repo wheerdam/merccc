@@ -27,12 +27,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.event.ChangeEvent;
-import org.osumercury.controlcenter.Config;
 import org.osumercury.controlcenter.ControlCenter;
 import org.osumercury.controlcenter.Log;
 
@@ -45,9 +45,6 @@ public class DisplayOptionsFrame extends JFrame {
     private JTabbedPane tabs;
     
     private JPanel mainPaneTheme;
-    private JPanel paneThemeButtons;
-    private JButton btnThemeApply;
-    private JButton btnThemeLoad;
     private JTextArea txtTheme;
     
     private JPanel mainPaneDimensions;
@@ -128,10 +125,11 @@ public class DisplayOptionsFrame extends JFrame {
         btnClose.addActionListener((ActionEvent e) -> {
             dispose();
         });
+        paneButtons.add(btnApply);
+        paneButtons.add(new JSeparator());
         paneButtons.add(btnReset);
         paneButtons.add(btnDefaults);
-        paneButtons.add(btnApply);
-        mainPaneDimensions.add(paneButtons, BorderLayout.PAGE_END);
+        paneButtons.add(btnClose);
         
         paneControls = new JPanel();
         paneControls.setLayout(new BoxLayout(paneControls, BoxLayout.PAGE_AXIS));
@@ -277,9 +275,6 @@ public class DisplayOptionsFrame extends JFrame {
         mainPaneTheme.setName("Theme Entry");
         mainPaneTheme.setLayout(new BorderLayout());
         
-        paneThemeButtons = new JPanel();
-        btnThemeApply = new JButton("Apply");
-        btnThemeLoad = new JButton("Load from Config");
         txtTheme = new JTextArea();
         txtTheme.setBackground(Color.BLACK);
         txtTheme.setForeground(new Color(0x20, 0xbb, 0xff));
@@ -289,46 +284,13 @@ public class DisplayOptionsFrame extends JFrame {
         JScrollPane scrollText = new JScrollPane(txtTheme, 
                 JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        paneThemeButtons.add(btnThemeLoad);
-        paneThemeButtons.add(btnThemeApply);
-        btnThemeLoad.addActionListener((ActionEvent e) -> {
-            if(Config.getSection("theme") == null) {
-                return;
-            }
-            StringBuilder str = new StringBuilder();
-            for(String key : Config.getKeysInOriginalOrder("theme")) {
-                str.append(key);
-                str.append("=");
-                str.append(Config.getValue("theme", key));
-                str.append("\n");
-            }
-            txtTheme.setText(str.toString());
-        });
-        btnThemeApply.addActionListener((ActionEvent e) -> {
-            String[] lines = txtTheme.getText().split("\\r?\\n");
-            HashMap<String, String> entries = new HashMap<>();
-            for(String line : lines) {
-                String[] tokens = line.split("=", 2);
-                if(tokens.length == 2) {
-                    if(tokens[0].equals("systemfont")) {
-                        cc.getDisplayFrame().setFont(tokens[1]);
-                    } else {
-                        entries.put(tokens[0], tokens[1]);
-                    }
-                }
-            }
-            Assets.theme(entries);
-            reset();
-            cc.getDisplayFrame().rescale();
-        });
         mainPaneTheme.add(scrollText, BorderLayout.CENTER);
-        mainPaneTheme.add(paneThemeButtons, BorderLayout.PAGE_END);
         tabs.add(mainPaneTheme);
         
         getContentPane().add(tabs, BorderLayout.CENTER);
-        getContentPane().add(btnClose, BorderLayout.PAGE_END);
+        getContentPane().add(paneButtons, BorderLayout.PAGE_END);
         pack();
-        setSize(1000, 600);
+        setSize(800, 400);
     }
     
     public void reset() {
@@ -371,6 +333,19 @@ public class DisplayOptionsFrame extends JFrame {
             DisplayFrame.TIME_BAR_H = realVal(txtTimeBarH.getText());
             DisplayFrame.HORIZ_BAR_H = realVal(txtHorizBarH.getText());
             DisplayFrame.CLOCK_MARGIN = realVal(txtClockMargin.getText());
+            String[] lines = txtTheme.getText().split("\\r?\\n");
+            HashMap<String, String> entries = new HashMap<>();
+            for(String line : lines) {
+                String[] tokens = line.split("=", 2);
+                if(tokens.length == 2) {
+                    if(tokens[0].equals("systemfont")) {
+                        cc.getDisplayFrame().setFont(tokens[1]);
+                    } else {
+                        entries.put(tokens[0], tokens[1]);
+                    }
+                }
+            }
+            Assets.theme(entries);
             cc.getDisplayFrame().rescale();
             reset();
         } catch(Exception e) {

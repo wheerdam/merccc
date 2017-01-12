@@ -1005,18 +1005,19 @@ public class DisplayFrame extends JFrame {
         
         private void drawClock(Graphics2D g, int high, int low, boolean red, int x, int y) {
             int digit0 = high / 10 % 10;
+            digit0 = digit0 == 0 ? 13 : digit0;
             int digit1 = high % 10;
             int digit2 = low / 10 % 10;
             int digit3 = low % 10;
-            
+            int colonHalfSpace = (int)(spacingSPx * 10 * DIGITS_H);
             g.drawImage(!red ? scaledBlueDigits[digit0] : scaledRedDigits[digit0],
-                    x-2*digitW-spacingSPx, y, this);
+                    x-2*digitW-colonHalfSpace, y, this);
             g.drawImage(!red ? scaledBlueDigits[digit1] : scaledRedDigits[digit1],
-                    x-1*digitW-spacingSPx, y, this);
+                    x-1*digitW-colonHalfSpace, y, this);
             g.drawImage(!red ? scaledBlueDigits[digit2] : scaledRedDigits[digit2],
-                    x+spacingSPx, y, this);
+                    x+colonHalfSpace, y, this);
             g.drawImage(!red ? scaledBlueDigits[digit3] : scaledRedDigits[digit3],
-                    x+digitW+spacingSPx, y, this);
+                    x+digitW+colonHalfSpace, y, this);
         }
         
         private void drawScoreField(Graphics2D g, double score, int digits, int decimal, int x, int y) {
