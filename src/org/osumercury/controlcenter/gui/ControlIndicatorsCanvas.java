@@ -63,7 +63,11 @@ public class ControlIndicatorsCanvas extends JPanel {
                 case UserEvent.SESSION_ATTEMPT_COMMITTED:
                     scores.clear();
                     for(Score s : c.getSession().getActiveScoreList()) {
-                        scores.add(s.getScore());
+                        if(s != null) {
+                            scores.add(s.getScore());
+                        } else {
+                            scores.add(null);
+                        }
                     }
             }
         });
