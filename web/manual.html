@@ -21,6 +21,7 @@
 <p class="indent1">1.5 <a href="#config-teams">Team Definitions</a></p>
 <p class="indent0">2. <a href="#running">Running merccc</a></p>
 <p class="indent1">2.1 <a href="#running-cli">Command Line Options</a></p>
+<p class="indent1">2.1 <a href="#running-key">Keyboard Shortcuts</a></p>
 <p class="indent0">3. <a href="#display">Display Window Controls</a></p>
 <p class="indent0">4. <a href="#scoring">Scoring Controls</a></p>
 <p class="indent1">4.1 <a href="#scoring-setup">Setup State</a></p>
@@ -113,8 +114,115 @@ resources/1-badge.jpg<br />
 <p><strong>merccc</strong> can open the configuration file directly with the <span class="mono">-c</span> command line option or by using the file open dialog and opening a file with <strong>.merccc</strong> extension.</p>
 <p>The program can also open a ZIP file containing a configuration file and its associated resources directory with the <span class="mono">-z</span> command line option or by using the file open dialog and opening a file with <strong>.zip</strong> or <strong>.merccz</strong> extension. The file open dialog will be provided if neither <span class="mono">-c</span> nor <span class="mono">-z</span> options were provided.</p>
 <h3 id="running-cli">2.1 Command Line Options</h3>
-<p>Running <strong>merccc</strong> with the <span class="mono">--help</span> option will bring up a list of command line options and keyboard shortcuts (click for full resolution):</p>
-<p class="centered"><a href="./manual-images/cli-help.png"><img class="optimized" alt="[--help Output]" src="./manual-images/cli-help.png" /></a></p>
+<p>Running <strong>merccc</strong> with the <span class="mono">--help</span> option will bring up a list of command line options:</p>
+<p>Configuration loading:</p>
+<table style="width: 100%">
+<tr>
+<td>-c</td><td>--config FILE</td>
+<td>load FILE to configure merccc</td>
+</tr>
+<tr>
+<td>-z</td><td>--zip ZIPFILE</td>
+<td>load ZIPFILE containing a merccc configuration</td>
+</tr>
+</table>
+<p>If neither option is specified, <strong>merccc</strong> will present a file open dialog. If no configuration file or a zip file containing a configuration is specified, <strong>merccc</strong> will not start.</p>
+<p>Additional options:</p>
+<table style="width: 100%">
+<tr>
+<td>-f</td><td>--format</td>
+<td>print configuration file format to console and quit</td>
+</tr>
+<tr>
+<td>-l</td><td>--load FILE</td>
+<td>load saved .csv data from a previous scoring session</td>
+</tr>
+<tr>
+<td></td><td>--help</td>
+<td>display help message</td>
+</tr>
+<tr>
+<td></td><td>--about</td>
+<td>display information about the software</td>
+</tr>
+<tr>
+<td></td><td>--localization</td>
+<td>display information about text localization</td>
+</tr>
+<tr>
+<td></td><td>--font FONT</td>
+<td>use the specified FONT instead of the built-in font</td>
+</tr>
+<tr>
+<td></td><td>--ask-font</td>
+<td>list system fonts to use with font selection dialog</td>
+</tr>
+<tr>
+<td>-p</td><td>--port PORT</td>
+<td>open <a href="./tcp-socket.html">tcp server socket interface</a></td>
+</tr>
+<tr>
+<td></td><td>--localport PORT</td>
+<td>open loopback only <a href="./tcp-socket.html">tcp server socket interface</a></td>
+</tr>
+<tr>
+<td>-m</td><td>--nosound</td>
+<td>disable all audio playback</td>
+</tr>
+<tr>
+<td>-t</td><td>--notheme</td>
+<td>ignore user's theme defined in the configuration</td>
+</tr>
+<tr>
+<td>-d</td><td>--debug LEVEL</td>
+<td>set program verbosity for debugging</td>
+</tr>
+<tr>
+<td>-r</td><td>--refreshrate TIME</td>
+<td>set display refresh rate in milliseconds</td>
+</tr>
+<tr>
+<td></td><td>--rendertime</td>
+<td>display the time it took to render a frame</td>
+</tr>
+<tr>
+<td>-x</td><td>HOST:PORT</td>
+<td>run merccc in <a href="#socket-client">client mode</a></td>
+</tr>
+</table>
+<h3 id="running-key">2.2 Keyboard Shortcuts</h3>
+<table style="width: 100%">
+<tr>
+<td>CTRL+[1-4]</td><td>select active control tab</td>
+</tr>
+<tr>
+<td>F1</td><td>set output mode to logo and time</td>
+</tr>
+<tr>
+<td>F3</td><td>set output mode to run status</td>
+</tr>
+<tr>
+<td>F4</td><td>set output mode to classification</td>
+</tr>
+<tr>
+<td>F5</td><td>show/hide preview window</td>
+</tr>
+<tr>
+<td>CTRL+S</td><td>save recorded data set</td>
+</tr>
+<tr>
+<td>CTRL+L</td><td>load previously saved data set</td>
+</tr>
+<tr>
+<td>CTRL+A</td><td>add a score without running a scoring session</td>
+</tr>
+<tr>
+<td>CTRL+M</td><td>toggle sound playback</td>
+</tr>
+<tr>
+<td>CTRL+F</td><td>change display window font</td>
+</tr>
+</table>
 <h2 id="display">3. Display Window Controls <a class="plain" title="Back to Top" href="#top">&#9650;</a></h2>
 <p>After <strong>merccc</strong> successfully loads the configuration file, the <strong>Control Window</strong>, shown below, will be brought up. The <strong>Control Window</strong> is used by the program's operator to control the state of the program, enter scores, manipulate scoring data, save and load scoring data, generate competition report, and control what the <strong>Display Window</strong> is displaying.</p>
 <p>The <strong>Display Window</strong> should be placed on an external display connected to the host computer. The external display can be an HDTV monitor or a projector to be shown to the audience of the competition.</p>
