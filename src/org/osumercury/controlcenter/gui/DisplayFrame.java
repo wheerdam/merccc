@@ -229,7 +229,7 @@ public class DisplayFrame extends JFrame {
                     case UserEvent.DATA_RECORD_EXPUNGED:
                         SessionState s = c.getSession();
                         Team t = s.getActiveTeam();
-                        if(!t.hasScore()) {
+                        if(!t.hasScore() || t.getBestScore() == null) {
                             return;
                         }
                         bestScoreVal = s.getActiveTeam().getBestScore().getScore();
