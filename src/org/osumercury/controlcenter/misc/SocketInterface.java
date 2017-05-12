@@ -15,6 +15,7 @@
  */
 package org.osumercury.controlcenter.misc;
 
+import java.awt.image.BufferedImage;
 import org.osumercury.controlcenter.*;
 import org.osumercury.controlcenter.gui.ControlFrame;
 import org.osumercury.controlcenter.gui.UserEvent;
@@ -23,23 +24,28 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.io.PrintWriter;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
+import javax.imageio.ImageIO;
+import org.osumercury.controlcenter.gui.DisplayOverlay;
 
 /**
  *
  * @author wira
  */
 public class SocketInterface extends Thread {
-    private int port;
+    private final int port;
     private CompetitionState c;
-    private ControlCenter cc;
-    private ControlFrame f;
-    private LinkedList<ClientHandler> clientHandlers;
+    private final ControlCenter cc;
+    private final ControlFrame f;
+    private final LinkedList<ClientHandler> clientHandlers;
     private ServerSocket ss;
-    private boolean local;
-    private boolean allowResourceCopy;
+    private final boolean local;
+    private final boolean allowResourceCopy;
     
     public SocketInterface(int port, ControlCenter cc, ControlFrame f,
             boolean local, boolean allowResourceCopy) {
@@ -232,7 +238,9 @@ public class SocketInterface extends Thread {
             }
             String line;
             try {
-                send("merccc-" + Text.getVersion());
+                String header = "merccc-" + Text.getVersion();
+                header += local ? " local" : "";
+                send(header);
                 sendPrompt();
                 while(!stop && (line = r.readLine()) != null) {
                     line = line.trim();
@@ -307,6 +315,16 @@ public class SocketInterface extends Thread {
                                 send("HASH " + String.valueOf(
                                         Config.getConfigString().hashCode()));
                                 break;
+                            case "resolution":
+                                if(cc.getDisplayFrame().isVisible()) {
+                                    send("RESOLUTION " + 
+                                            String.valueOf(cc.getDisplayFrame().getCanvas().getWidth()) + "x" +
+                                            String.valueOf(cc.getDisplayFrame().getCanvas().getHeight())
+                                            );
+                                } else {
+                                    send("RESOLUTION -1x-1");
+                                }
+                                break;
                             case "promptoff":
                                 prompt = false;
                                 send("PROMPT OFF");
@@ -320,6 +338,10 @@ public class SocketInterface extends Thread {
                                     Sock.send(s, "-1");
                                 }
                                 break;
+                            default:
+                                if(local) {
+                                    handleCommand(line);
+                                }
                         }
                         sendPrompt();
                     }
@@ -333,6 +355,139 @@ public class SocketInterface extends Thread {
             }
             clientHandlers.remove(this);
             Log.d(0, "SocketInterface$ClientHandler.run: exit");
+        }
+        
+        private void handleCommand(String line) {
+            int i, nr, px;
+            File path;
+            String[] tokens = line.trim().split("\\s+");
+            DisplayOverlay overlay;
+            if(tokens.length == 0) {
+                return;
+            }
+            Log.d(1, "SocketInterface$ClientHandler.handleCommand: " + line);
+            switch(tokens[0]) {
+                case "current-directory":
+                    send(System.getProperty("user.dir"));
+                    break;
+                case "change-directory":
+                    if(tokens.length == 2) {
+                        try {
+                            path = (new File(tokens[1])).getCanonicalFile();
+                            if(!path.exists() || !path.isDirectory()) {
+                                send("invalid directory");
+                            } else {
+                                String pathString = path.getCanonicalPath();
+                                System.setProperty("user.dir", pathString);
+                            }
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                        }
+                    }
+                    break;
+                case "add-overlay-file":
+                    try {
+                        float xfloat = Float.parseFloat(tokens[2]);
+                        float yfloat = Float.parseFloat(tokens[3]);
+                        path = new File(tokens[4]);
+                        Log.d(0, "loading '" + path.getCanonicalPath() + "'");
+                        BufferedImage bImg = ImageIO.read(path.getCanonicalFile());
+                        overlay = new DisplayOverlay(
+                                    bImg, xfloat, yfloat,
+                                    tokens[5].equals("yes"),
+                                    tokens[6].equals("yes"),
+                                    tokens[7].equals("yes")
+                            );
+                        cc.getDisplayFrame().addOverlay(tokens[1], overlay);
+                    } catch(Exception e) {
+                        Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                 e);
+                    }
+                    break;
+                case "add-overlay":
+                    // overlay command format:
+                    // add-overlay name xfloat yfloat length-bytes logo runstate classification
+                    if(tokens.length == 8) {
+                        try {
+                            float xfloat = Float.parseFloat(tokens[2]);
+                            float yfloat = Float.parseFloat(tokens[3]);
+                            int len = Integer.parseInt(tokens[4]);
+                            if(len > 64 * 1024 * 1024) {
+                                // image is too big
+                                return;
+                            }
+                            byte[] recvBuf = new byte[4096];
+                            byte[] img = new byte[len];
+                            i = 0;
+                            send("READY");
+                            while((nr = s.getInputStream().read(recvBuf)) != -1) {
+                                System.arraycopy(recvBuf, 0, img, i, nr);
+                                i += nr;
+                                Log.d(3, i + " total bytes read");
+                                if(i == len) {
+                                    break;
+                                }
+                            }
+                            send("DONE");
+                            InputStream imgStream = new ByteArrayInputStream(img);
+                            BufferedImage bImg = ImageIO.read(imgStream);
+                            overlay = new DisplayOverlay(
+                                    bImg, xfloat, yfloat,
+                                    tokens[5].equals("yes"),
+                                    tokens[6].equals("yes"),
+                                    tokens[7].equals("yes")
+                            );
+                            cc.getDisplayFrame().addOverlay(tokens[1], overlay);
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                        }
+                    }
+                    break;
+                case "remove-overlay":
+                    if(tokens.length == 2) {
+                        cc.getDisplayFrame().removeOverlay(tokens[1]);
+                    }
+                    break;
+                case "set-overlay-visibility":
+                    if(tokens.length == 3) {
+                        cc.getDisplayFrame().setOverlayVisibility(tokens[1],
+                                tokens[2].equals("yes"));
+                    }
+                    break;
+                case "rescale-overlay-width":
+                    if(tokens.length == 3) {
+                        px = (int) (Float.parseFloat(tokens[2]) * 
+                                cc.getDisplayFrame().getCanvas().getWidth());
+                        overlay = cc.getDisplayFrame().getOverlayHandle(tokens[1]);
+                        if(overlay != null) {
+                            overlay.rescaleWidth(px);
+                        }
+                    }
+                    break;
+                case "rescale-overlay-height":
+                    if(tokens.length == 3) {
+                        px = (int) (Float.parseFloat(tokens[2]) * 
+                                cc.getDisplayFrame().getCanvas().getHeight());
+                        overlay = cc.getDisplayFrame().getOverlayHandle(tokens[1]);
+                        if(overlay != null) {
+                            overlay.rescaleHeight(px);
+                        }
+                    }
+                    break;
+                case "reposition-overlay":
+                    if(tokens.length == 4) {
+                        overlay = cc.getDisplayFrame().getOverlayHandle(tokens[1]);
+                        if(overlay != null) {
+                            overlay.reposition(
+                                    Float.parseFloat(tokens[2]),
+                                    Float.parseFloat(tokens[3])
+                            );
+                        }
+                    }
+                    break;
+            }
         }
         
         public void send(String str) {

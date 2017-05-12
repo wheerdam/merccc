@@ -21,6 +21,7 @@ import java.awt.image.*;
 import java.util.Calendar;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.osumercury.controlcenter.CompetitionState;
 import org.osumercury.controlcenter.Config;
 import org.osumercury.controlcenter.ControlCenter;
@@ -73,6 +74,8 @@ public class DisplayFrame extends JFrame {
     private Font systemFont;
     private String systemFontName;                
     private HashMap<String, String> text;
+    private ArrayList<DisplayOverlay> overlays;
+    private HashMap<String, DisplayOverlay> overlayMap;
     private int spacingXSPx;
     private int spacingSPx;
     private int spacingMPx;
@@ -159,6 +162,9 @@ public class DisplayFrame extends JFrame {
     public static float TIME_BAR_H = 0.008f;
     public static float HORIZ_BAR_H = 0.003f;
     
+    private final ReentrantReadWriteLock overlayLock = 
+            new ReentrantReadWriteLock(true);
+    
     public DisplayFrame(ControlCenter cc, String nativeFont) {
         this.cc = cc;
         this.competition = cc.getCompetitionState();
@@ -171,6 +177,8 @@ public class DisplayFrame extends JFrame {
         recolor();
         canvas = new DisplayCanvas();
         add(canvas);
+        overlays = new ArrayList<>();
+        overlayMap = new HashMap<>();
         classificationRows = new ArrayList();
         scores = new double[Score.getFields().size()];
         scoreDigits = new int[Score.getFields().size()];
@@ -279,6 +287,53 @@ public class DisplayFrame extends JFrame {
             }
             i++;
         }        
+    }
+    
+    public void addOverlay(String name, DisplayOverlay overlay) {
+        try {
+            overlayLock.writeLock().lock();
+            if(overlayMap.containsKey(name)) {
+                DisplayOverlay oldOverlay = overlayMap.get(name);
+                overlays.remove(oldOverlay);
+                overlayMap.remove(name);
+            }
+            overlays.add(overlay);
+            overlayMap.put(name, overlay);
+        } finally {
+            overlayLock.writeLock().unlock();
+        }
+    }
+    
+    public void removeOverlay(String name) {
+        try {
+            overlayLock.writeLock().lock();
+            DisplayOverlay overlay = overlayMap.get(name);
+            if(overlay == null) {
+                Log.d(0, "DisplayFrame.removeOverlay: unable to remove " +
+                         "overlay \"" + name + "\"");
+            } else {
+                overlays.remove(overlay);
+                overlayMap.remove(name);
+            }
+        } finally {
+            overlayLock.writeLock().unlock();
+        }
+    }
+    
+    public void setOverlayVisibility(String name, boolean visible) {
+        try {
+            overlayLock.writeLock().lock();
+            DisplayOverlay overlay = overlayMap.get(name);
+            if(overlay != null) {
+                overlay.setVisible(visible);
+            }
+        } finally {
+            overlayLock.writeLock().unlock();
+        }
+    }
+    
+    public DisplayOverlay getOverlayHandle(String name) {
+        return overlayMap.get(name);
     }
     
     public void localizeText(String key, String localizedText) {
@@ -959,6 +1014,23 @@ public class DisplayFrame extends JFrame {
                     generateThumbnail();
                 }
                 thumbIntervalCount++;
+            }
+            
+            // if the overlay list is being locked, don't wait, just skip this
+            // part. otherwise, draw the overlays
+            if(overlayLock.readLock().tryLock()) {
+                for(DisplayOverlay overlay : overlays) {
+                    overlay.getReadLock().lock();
+                    try {
+                        if(overlay.drawableInThisMode(mode) && overlay.isVisible()) {
+                            g.drawImage(overlay.getImage(), null,
+                                        W(overlay.getX()), H(overlay.getY()));
+                        }
+                    } finally {
+                        overlay.getReadLock().unlock();
+                    }
+                }
+                overlayLock.readLock().unlock();
             }
             
             renderedFrames++;

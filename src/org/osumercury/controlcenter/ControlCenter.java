@@ -372,12 +372,14 @@ public class ControlCenter {
                 });
 
                 if(port > 0 && port <= 65535) {
-                    socket = new SocketInterface(port, this, control, false, copyResources);
+                    socket = new SocketInterface(port, this, control, false, 
+                            copyResources);
                     socket.start();
                 }
 
                 if(localPort > 0 && localPort <= 65535) {
-                    loopback = new SocketInterface(localPort, this, control, true, copyResources);
+                    loopback = new SocketInterface(localPort, this, control,
+                            true, copyResources);
                     loopback.start();
                 }
             } else {
