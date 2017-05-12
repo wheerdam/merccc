@@ -16,7 +16,6 @@
 package org.osumercury.controlcenter.gui;
 
 import java.awt.image.BufferedImage;
-import org.osumercury.controlcenter.CompetitionState;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 

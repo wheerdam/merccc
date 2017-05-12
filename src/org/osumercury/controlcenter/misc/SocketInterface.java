@@ -341,6 +341,8 @@ public class SocketInterface extends Thread {
                             default:
                                 if(local) {
                                     handleCommand(line);
+                                } else {
+                                    send("ERROR");
                                 }
                         }
                         sendPrompt();
@@ -368,17 +370,18 @@ public class SocketInterface extends Thread {
             Log.d(1, "SocketInterface$ClientHandler.handleCommand: " + line);
             switch(tokens[0]) {
                 case "current-directory":
-                    send(System.getProperty("user.dir"));
+                    send("OK " + System.getProperty("user.dir"));
                     break;
                 case "change-directory":
                     if(tokens.length == 2) {
                         try {
                             path = (new File(tokens[1])).getCanonicalFile();
                             if(!path.exists() || !path.isDirectory()) {
-                                send("invalid directory");
+                                send("ERROR invalid directory");
                             } else {
                                 String pathString = path.getCanonicalPath();
                                 System.setProperty("user.dir", pathString);
+                                send("OK");
                             }
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
@@ -387,22 +390,28 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "add-overlay-file":
-                    try {
-                        float xfloat = Float.parseFloat(tokens[2]);
-                        float yfloat = Float.parseFloat(tokens[3]);
-                        path = new File(tokens[4]);
-                        Log.d(0, "loading '" + path.getCanonicalPath() + "'");
-                        BufferedImage bImg = ImageIO.read(path.getCanonicalFile());
-                        overlay = new DisplayOverlay(
-                                    bImg, xfloat, yfloat,
-                                    tokens[5].equals("yes"),
-                                    tokens[6].equals("yes"),
-                                    tokens[7].equals("yes")
-                            );
-                        cc.getDisplayFrame().addOverlay(tokens[1], overlay);
-                    } catch(Exception e) {
-                        Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
-                                 e);
+                    if(tokens.length == 8) {
+                        try {
+                            float xfloat = Float.parseFloat(tokens[2]);
+                            float yfloat = Float.parseFloat(tokens[3]);
+                            path = new File(tokens[4]);
+                            Log.d(0, "loading '" + path.getCanonicalPath() + "'");
+                            BufferedImage bImg = ImageIO.read(path.getCanonicalFile());
+                            overlay = new DisplayOverlay(
+                                        bImg, xfloat, yfloat,
+                                        tokens[5].equals("yes"),
+                                        tokens[6].equals("yes"),
+                                        tokens[7].equals("yes")
+                                );
+                            cc.getDisplayFrame().addOverlay(tokens[1], overlay);
+                            send("OK");
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR");
+                        }
+                    } else {
+                        send("ERROR");
                     }
                     break;
                 case "add-overlay":
@@ -429,7 +438,6 @@ public class SocketInterface extends Thread {
                                     break;
                                 }
                             }
-                            send("DONE");
                             InputStream imgStream = new ByteArrayInputStream(img);
                             BufferedImage bImg = ImageIO.read(imgStream);
                             overlay = new DisplayOverlay(
@@ -439,21 +447,31 @@ public class SocketInterface extends Thread {
                                     tokens[7].equals("yes")
                             );
                             cc.getDisplayFrame().addOverlay(tokens[1], overlay);
+                            send("OK");
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
+                            send("ERROR");
                         }
+                    } else {
+                        send("ERROR");
                     }
                     break;
                 case "remove-overlay":
                     if(tokens.length == 2) {
                         cc.getDisplayFrame().removeOverlay(tokens[1]);
+                        send("OK");
+                    } else {
+                        send("ERROR");
                     }
                     break;
                 case "set-overlay-visibility":
                     if(tokens.length == 3) {
                         cc.getDisplayFrame().setOverlayVisibility(tokens[1],
                                 tokens[2].equals("yes"));
+                        send("OK");
+                    } else {
+                        send("ERROR");
                     }
                     break;
                 case "rescale-overlay-width":
@@ -463,7 +481,12 @@ public class SocketInterface extends Thread {
                         overlay = cc.getDisplayFrame().getOverlayHandle(tokens[1]);
                         if(overlay != null) {
                             overlay.rescaleWidth(px);
+                            send("OK");
+                        } else {
+                            send("ERROR");
                         }
+                    } else {
+                        send("ERROR");
                     }
                     break;
                 case "rescale-overlay-height":
@@ -473,7 +496,12 @@ public class SocketInterface extends Thread {
                         overlay = cc.getDisplayFrame().getOverlayHandle(tokens[1]);
                         if(overlay != null) {
                             overlay.rescaleHeight(px);
+                            send("OK");
+                        } else {
+                            send("ERROR");
                         }
+                    } else {
+                        send("ERROR");
                     }
                     break;
                 case "reposition-overlay":
@@ -484,9 +512,16 @@ public class SocketInterface extends Thread {
                                     Float.parseFloat(tokens[2]),
                                     Float.parseFloat(tokens[3])
                             );
+                            send("OK");
+                        } else {
+                            send("ERROR");
                         }
+                    } else {
+                        send("ERROR");
                     }
                     break;
+                default:
+                    send("ERROR");
             }
         }
         
