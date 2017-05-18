@@ -387,7 +387,7 @@ public class ControlCenter {
                 display = new DisplayFrame(this, sysFont);
                 refresh = new RefreshThread(this, refreshRateMs);
                 DisplayClient.connect(this, controlHost, controlPort,
-                        fetchConfig, lockMode);
+                        fetchConfig, -1, lockMode);
             }
         }
     }    
