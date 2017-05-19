@@ -217,8 +217,8 @@ public class ControlCenter {
             try {
                 controlHost = tokens[0].trim();
                 controlPort = Integer.parseInt(tokens[1].trim());
-            } catch(NumberFormatException nfe) {
-                Log.fatal(100, "Unable to parse: " + client);
+            } catch(Exception nfe) {
+                Log.fatal(100, "Unable to parse server address: '" + client + "'");
             }
         }
         
@@ -443,7 +443,7 @@ public class ControlCenter {
     }
     
     public static void exit(int ret) {
-        Log.d(0, "Cleanup");
+        Log.d(0, "Cleanup (ret:" + ret + ")");
         if(Config.getTmpDir() != null) {
             Log.d(0, "Deleting " + Config.getTmpDir());
             if(!Config.deleteDirectory(Config.getTmpDir())) {
@@ -493,7 +493,8 @@ public class ControlCenter {
                  "  -d, --debug LEVEL        set program verbosity for debugging\n"+
                  "  -r, --refreshrate TIME   set display refresh rate in milliseconds\n"+
                  "      --rendertime         display the time it took to render a frame\n"+
-                 "  -x HOST:PORT             run merccc in client mode (--client for details)\n"+
+                 "      --client             information on using the client mode\n"+
+                 "      --client-gui         GUI to setup client mode connection\n"+
                  "\n"+
                  "keyboard shortcuts:\n"+
                  "  CTRL+[1-4]               select active control tab\n"+
@@ -529,7 +530,8 @@ public class ControlCenter {
                  "\n"+
                  "client mode specific options:\n"+
                  "      --lockmode MODE      lock the display window in a specific MODE:\n"+
-                 "                           0: logo and time, 1: run status, 2: classification\n"
+                 "                           0: logo and time, 1: run status, 2: classification\n"+
+                 "      --client-gui         use a GUI dialog to setup the connection\n"
         );
     }
 }
