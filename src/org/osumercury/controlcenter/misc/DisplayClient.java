@@ -15,10 +15,13 @@
  */
 package org.osumercury.controlcenter.misc;
 
+import java.awt.Container;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +30,7 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -49,7 +53,10 @@ public class DisplayClient {
     
     public static Map clientConnectWindow(String hostAddress) {
         Map<String, String> fields = new HashMap<>();
-        
+        JDialog dialog = new JDialog();
+        dialog.setTitle("Client Mode Connection");
+        dialog.setModal(true);
+        Container dialogPane = dialog.getContentPane();
         return fields;
     }
     
@@ -189,7 +196,16 @@ public class DisplayClient {
                         }
                     }
                 });
-                display.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                display.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        try {
+                            s.close();
+                        } catch(IOException ioe) {
+                            System.err.println("IOException: " + ioe.getMessage());
+                        }
+                    }
+                });
                 display.setVisible(false);
                 display.setLocation(gd.getDefaultConfiguration().getBounds().x,
                         gd.getDefaultConfiguration().getBounds().y);
@@ -299,10 +315,7 @@ public class DisplayClient {
                         break;
                 }
             }
-            cc.getRefreshThread().stopThread();
-            cc.getDisplayFrame().dispose();
             s.close();
-            Log.d(0, "- exiting");
         } catch(IOException ioe) {
             System.err.println("IOException: " + ioe.getMessage());
         } catch(NumberFormatException nfe) {
@@ -310,6 +323,9 @@ public class DisplayClient {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        cc.getDisplayFrame().dispose();
+        Log.d(0, "- exiting");
+        ControlCenter.exit(0);
     }
     
     public static void getScoreData(ControlCenter cc, boolean monitoring)
