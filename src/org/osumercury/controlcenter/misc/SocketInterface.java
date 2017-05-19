@@ -46,6 +46,7 @@ public class SocketInterface extends Thread {
     private ServerSocket ss;
     private final boolean local;
     private final boolean allowResourceCopy;
+    private final boolean gui;
     
     public SocketInterface(int port, ControlCenter cc, ControlFrame f,
             boolean local, boolean allowResourceCopy) {
@@ -53,99 +54,102 @@ public class SocketInterface extends Thread {
         this.cc = cc;
         this.c = cc.getCompetitionState();
         this.f = f;
+        this.gui = f != null;
         this.local = local;
         this.allowResourceCopy = allowResourceCopy;
         clientHandlers = new LinkedList();
-        f.addScoreChangedHook((String key, int ID, String value) -> {
-            broadcast("SCORE_CHANGE " + key + " " + ID + " " + value);
-        });
-        f.addUserEventHook((int ID, Object param) -> {
-            Object[] p;
-            SessionState s;
-            Team t;
-            switch(ID) {
-                case UserEvent.STATE_CHANGE_IDLE:
-                    broadcast("STATE_CHANGE_IDLE");
-                    break;
-                case UserEvent.STATE_CHANGE_SETUP:
-                    p = (Object[]) param;
-                    broadcast("STATE_CHANGE_SETUP " +
-                            c.getSession().getActiveTeam().getNumber() + " " +
-                            (Integer)p[0] + " " + (Integer)p[1] + " " +
-                            (Integer)p[2]);
-                    break;
-                case UserEvent.STATE_CHANGE_RUN:
-                    broadcast("STATE_CHANGE_RUN");
-                    break;
-                case UserEvent.STATE_CHANGE_POSTRUN:
-                    broadcast("STATE_CHANGE_POSTRUN");
-                    break;
-                case UserEvent.SESSION_PAUSED:
-                    broadcast("SESSION_PAUSED");
-                    break;
-                case UserEvent.SESSION_RESUMED:
-                    broadcast("SESSION_RESUMED");
-                    break;
-                case UserEvent.SESSION_REDFLAGGED:
-                    broadcast("SESSION_REDFLAGGED");
-                    break;
-                case UserEvent.SESSION_GREENFLAGGED:
-                    broadcast("SESSION_GREENFLAGGED");
-                    break;
-                case UserEvent.SESSION_ATTEMPT_COMMITTED:
-                    s = c.getSession();
-                    t = s.getActiveTeam();
-                    broadcast("SESSION_ATTEMPT_COMMITTED " + t.getNumber() + 
-                            " " + s.getRunNumber() + " " +
-                            s.getActiveScoreList().get(s.getRunNumber()-1).getScore());
-                    break;
-                case UserEvent.SESSION_ATTEMPT_DISCARDED:
-                    s = c.getSession();
-                    t = s.getActiveTeam();
-                    broadcast("SESSION_ATTEMPT_DISCARDED " + t.getNumber() + 
-                            " " + s.getRunNumber());
-                    break;
-                case UserEvent.SESSION_TIME_ADDED:
-                    broadcast("SESSION_TIME_ADDED " + (Integer)param);
-                    break;
-                case UserEvent.DATA_CLEARED:
-                    broadcast("DATA_CLEARED");
-                    break;
-                case UserEvent.DATA_IMPORTED:
-                    broadcast("DATA_IMPORTED");
-                    break;
-                case UserEvent.DATA_RECORD_EXPUNGED:
-                    p = (Object[]) param;
-                    broadcast("DATA_RECORD_EXPUNGED " + (Integer)p[0] + " " 
-                            + (Integer)p[1]);
-                    break;
-                case UserEvent.DATA_CHANGED:
-                    p = (Object[]) param;
-                    broadcast("DATA_CHANGED " + (Integer)p[0] + " " 
-                            + (Integer)p[1] + " " + p[2] + " " + (Double)p[3]);
-                    break;
-                case UserEvent.DATA_ADDED:
-                    p = (Object[]) param;
-                    broadcast("DATA_ADDED " + (Integer)p[0] + " " +
-                            (Integer)p[1]);
-                    break;
-                case UserEvent.TEAM_PRE_SELECT:
-                    broadcast("TEAM_PRE_SELECT " + (Integer)param);
-                    break;
-                case UserEvent.DISPLAY_MODE_CHANGE:
-                    broadcast("DISPLAY_MODE_CHANGE " + (Integer)param);
-                    break;
-                case UserEvent.DISPLAY_HIDE:
-                    broadcast("DISPLAY_HIDE");
-                    break;
-                case UserEvent.DISPLAY_SHOW:
-                    broadcast("DISPLAY_SHOW");
-                    break;
-                case UserEvent.DISPLAY_RANK_START:
-                    broadcast("DISPLAY_RANK_START " + (Integer)param);
-                    break;
-            }
-        });
+        if(gui) {
+            f.addScoreChangedHook((String key, int ID, String value) -> {
+                broadcast("SCORE_CHANGE " + key + " " + ID + " " + value);
+            });
+            f.addUserEventHook((int ID, Object param) -> {
+                Object[] p;
+                SessionState s;
+                Team t;
+                switch(ID) {
+                    case UserEvent.STATE_CHANGE_IDLE:
+                        broadcast("STATE_CHANGE_IDLE");
+                        break;
+                    case UserEvent.STATE_CHANGE_SETUP:
+                        p = (Object[]) param;
+                        broadcast("STATE_CHANGE_SETUP " +
+                                c.getSession().getActiveTeam().getNumber() + " " +
+                                (Integer)p[0] + " " + (Integer)p[1] + " " +
+                                (Integer)p[2]);
+                        break;
+                    case UserEvent.STATE_CHANGE_RUN:
+                        broadcast("STATE_CHANGE_RUN");
+                        break;
+                    case UserEvent.STATE_CHANGE_POSTRUN:
+                        broadcast("STATE_CHANGE_POSTRUN");
+                        break;
+                    case UserEvent.SESSION_PAUSED:
+                        broadcast("SESSION_PAUSED");
+                        break;
+                    case UserEvent.SESSION_RESUMED:
+                        broadcast("SESSION_RESUMED");
+                        break;
+                    case UserEvent.SESSION_REDFLAGGED:
+                        broadcast("SESSION_REDFLAGGED");
+                        break;
+                    case UserEvent.SESSION_GREENFLAGGED:
+                        broadcast("SESSION_GREENFLAGGED");
+                        break;
+                    case UserEvent.SESSION_ATTEMPT_COMMITTED:
+                        s = c.getSession();
+                        t = s.getActiveTeam();
+                        broadcast("SESSION_ATTEMPT_COMMITTED " + t.getNumber() + 
+                                " " + s.getRunNumber() + " " +
+                                s.getActiveScoreList().get(s.getRunNumber()-1).getScore());
+                        break;
+                    case UserEvent.SESSION_ATTEMPT_DISCARDED:
+                        s = c.getSession();
+                        t = s.getActiveTeam();
+                        broadcast("SESSION_ATTEMPT_DISCARDED " + t.getNumber() + 
+                                " " + s.getRunNumber());
+                        break;
+                    case UserEvent.SESSION_TIME_ADDED:
+                        broadcast("SESSION_TIME_ADDED " + (Integer)param);
+                        break;
+                    case UserEvent.DATA_CLEARED:
+                        broadcast("DATA_CLEARED");
+                        break;
+                    case UserEvent.DATA_IMPORTED:
+                        broadcast("DATA_IMPORTED");
+                        break;
+                    case UserEvent.DATA_RECORD_EXPUNGED:
+                        p = (Object[]) param;
+                        broadcast("DATA_RECORD_EXPUNGED " + (Integer)p[0] + " " 
+                                + (Integer)p[1]);
+                        break;
+                    case UserEvent.DATA_CHANGED:
+                        p = (Object[]) param;
+                        broadcast("DATA_CHANGED " + (Integer)p[0] + " " 
+                                + (Integer)p[1] + " " + p[2] + " " + (Double)p[3]);
+                        break;
+                    case UserEvent.DATA_ADDED:
+                        p = (Object[]) param;
+                        broadcast("DATA_ADDED " + (Integer)p[0] + " " +
+                                (Integer)p[1]);
+                        break;
+                    case UserEvent.TEAM_PRE_SELECT:
+                        broadcast("TEAM_PRE_SELECT " + (Integer)param);
+                        break;
+                    case UserEvent.DISPLAY_MODE_CHANGE:
+                        broadcast("DISPLAY_MODE_CHANGE " + (Integer)param);
+                        break;
+                    case UserEvent.DISPLAY_HIDE:
+                        broadcast("DISPLAY_HIDE");
+                        break;
+                    case UserEvent.DISPLAY_SHOW:
+                        broadcast("DISPLAY_SHOW");
+                        break;
+                    case UserEvent.DISPLAY_RANK_START:
+                        broadcast("DISPLAY_RANK_START " + (Integer)param);
+                        break;
+                }
+            });
+        }
     }
     
     @Override
@@ -316,7 +320,7 @@ public class SocketInterface extends Thread {
                                         Config.getConfigString().hashCode()));
                                 break;
                             case "resolution":
-                                if(cc.getDisplayFrame().isVisible()) {
+                                if(gui && cc.getDisplayFrame().isVisible()) {
                                     send("RESOLUTION " + 
                                             String.valueOf(cc.getDisplayFrame().getCanvas().getWidth()) + "x" +
                                             String.valueOf(cc.getDisplayFrame().getCanvas().getHeight())
@@ -390,7 +394,7 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "add-overlay-file":
-                    if(tokens.length == 8) {
+                    if(gui && tokens.length == 8) {
                         try {
                             float xfloat = Float.parseFloat(tokens[2]);
                             float yfloat = Float.parseFloat(tokens[3]);
@@ -417,7 +421,7 @@ public class SocketInterface extends Thread {
                 case "add-overlay":
                     // overlay command format:
                     // add-overlay name xfloat yfloat length-bytes logo runstate classification
-                    if(tokens.length == 8) {
+                    if(gui && tokens.length == 8) {
                         try {
                             float xfloat = Float.parseFloat(tokens[2]);
                             float yfloat = Float.parseFloat(tokens[3]);
@@ -458,7 +462,7 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "remove-overlay":
-                    if(tokens.length == 2) {
+                    if(gui && tokens.length == 2) {
                         cc.getDisplayFrame().removeOverlay(tokens[1]);
                         send("OK");
                     } else {
@@ -466,7 +470,7 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "set-overlay-visibility":
-                    if(tokens.length == 3) {
+                    if(gui && tokens.length == 3) {
                         cc.getDisplayFrame().setOverlayVisibility(tokens[1],
                                 tokens[2].equals("yes"));
                         send("OK");
@@ -475,7 +479,7 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "rescale-overlay-width":
-                    if(tokens.length == 3) {
+                    if(gui && tokens.length == 3) {
                         px = (int) (Float.parseFloat(tokens[2]) * 
                                 cc.getDisplayFrame().getCanvas().getWidth());
                         overlay = cc.getDisplayFrame().getOverlayHandle(tokens[1]);
@@ -490,7 +494,7 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "rescale-overlay-height":
-                    if(tokens.length == 3) {
+                    if(gui && tokens.length == 3) {
                         px = (int) (Float.parseFloat(tokens[2]) * 
                                 cc.getDisplayFrame().getCanvas().getHeight());
                         overlay = cc.getDisplayFrame().getOverlayHandle(tokens[1]);
@@ -505,7 +509,7 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "reposition-overlay":
-                    if(tokens.length == 4) {
+                    if(gui && tokens.length == 4) {
                         overlay = cc.getDisplayFrame().getOverlayHandle(tokens[1]);
                         if(overlay != null) {
                             overlay.reposition(

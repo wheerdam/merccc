@@ -101,7 +101,7 @@ public class ControlCenter {
     @Parameter(names = { "--client" })
     private boolean clientModeHelp = false;
     
-    @Parameter(names = { "--client-gui" })
+    @Parameter(names = { "-g", "--client-gui" })
     private boolean clientConnectGUI = false;
     
     @Parameter(names = { "--lockmode" })
@@ -113,7 +113,9 @@ public class ControlCenter {
     @Parameter(names = { "--copyresources" })
     private boolean copyResources = false;
     
-    private Boolean GUI = true;
+    @Parameter(names = { "--headless" })
+    private boolean headless = false;
+    
     private File resourcePath;
     
     private CompetitionState competition;
@@ -194,7 +196,7 @@ public class ControlCenter {
         }       
         
         SOUND_DISABLED = nosound;        
-        Log.errorDialogBox = GUI;
+        Log.errorDialogBox = !headless;
         
         if(zipFile != null && configFile != null) {
             Log.fatal(5, "'-c' and '-z' options are exclusive");
@@ -233,7 +235,7 @@ public class ControlCenter {
             } else {
                 Log.fatal(101, "Unable to fetch config from server");
             }
-        } else if(configFile == null && zipFile == null && GUI) {
+        } else if(configFile == null && zipFile == null && !headless) {
             String selectedFile;
             System.err.println("Configuration file was not specified");
             JFileChooser fc = new JFileChooser();
@@ -313,7 +315,7 @@ public class ControlCenter {
         }
         
         // graphical UI
-        if(GUI) {
+        if(!headless) {
             String dirParent = Config.getConfigFileParent();
             String resourceDir = (dirParent != null ? dirParent + File.separatorChar : "") + 
                     Config.getValue("system", "resourcedir");
@@ -383,19 +385,7 @@ public class ControlCenter {
                     control.updateDataView();     
                     displayOptions.init();
                     refresh.start();
-                });
-
-                if(port > 0 && port <= 65535) {
-                    socket = new SocketInterface(port, this, control, false, 
-                            copyResources);
-                    socket.start();
-                }
-
-                if(localPort > 0 && localPort <= 65535) {
-                    loopback = new SocketInterface(localPort, this, control,
-                            true, copyResources);
-                    loopback.start();
-                }
+                });               
             } else {
                 // display client mode (no control window)
                 display = new DisplayFrame(this, sysFont);
@@ -403,6 +393,20 @@ public class ControlCenter {
                 DisplayClient.connect(this, controlHost, controlPort,
                         fetchConfig, clientDisplayNumber, lockMode);
             }
+        } else {
+            Log.d(0, "Headless mode");
+        }
+        
+        if(port > 0 && port <= 65535) {
+            socket = new SocketInterface(port, this, control, false, 
+                    copyResources);
+            socket.start();
+        }
+
+        if(localPort > 0 && localPort <= 65535) {
+            loopback = new SocketInterface(localPort, this, control,
+                    true, copyResources);
+            loopback.start();
         }
     }    
     
@@ -494,7 +498,7 @@ public class ControlCenter {
                  "  -r, --refreshrate TIME   set display refresh rate in milliseconds\n"+
                  "      --rendertime         display the time it took to render a frame\n"+
                  "      --client             information on using the client mode\n"+
-                 "      --client-gui         GUI to setup client mode connection\n"+
+                 "  -g, --client-gui         GUI to setup client mode connection\n"+
                  "\n"+
                  "keyboard shortcuts:\n"+
                  "  CTRL+[1-4]               select active control tab\n"+
@@ -531,7 +535,7 @@ public class ControlCenter {
                  "client mode specific options:\n"+
                  "      --lockmode MODE      lock the display window in a specific MODE:\n"+
                  "                           0: logo and time, 1: run status, 2: classification\n"+
-                 "      --client-gui         use a GUI dialog to setup the connection\n"
+                 "  -g, --client-gui         use a GUI dialog to setup the connection\n"
         );
     }
 }
