@@ -15,9 +15,13 @@
  */
 package org.osumercury.controlcenter.misc;
 
+import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -30,10 +34,16 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
 import java.util.Map;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import org.osumercury.controlcenter.*;
 import org.osumercury.controlcenter.gui.DisplayFrame;
@@ -54,9 +64,144 @@ public class DisplayClient {
     public static Map clientConnectWindow(String hostAddress) {
         Map<String, String> fields = new HashMap<>();
         JDialog dialog = new JDialog();
-        dialog.setTitle("Client Mode Connection");
+        dialog.setTitle("merccc " + Text.getVersion() + " Client Mode Connection");
         dialog.setModal(true);
         Container dialogPane = dialog.getContentPane();
+        JPanel pane = new JPanel();
+        pane.setLayout(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        
+        JLabel lblAddress = new JLabel("Server (host:port):");
+        JTextField txtAddress = new JTextField(hostAddress != null ? hostAddress : "");
+        JLabel lblDisplay = new JLabel("Output Display:");
+        JComboBox<String> cmbDisplay = new JComboBox<>();
+        GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice[] screens = ge.getScreenDevices();
+        for(int i = 0; i < screens.length; i++) {
+            cmbDisplay.addItem(screens[i].getIDstring() + " (" +
+                     screens[i].getDisplayMode().getWidth() + "x" +
+                     screens[i].getDisplayMode().getHeight() + ")");
+        }
+        if(cmbDisplay.getItemCount() > 0) {
+            cmbDisplay.setSelectedIndex(0);
+        } else {
+            Log.fatal(105, "No displays found");
+        }
+        JLabel lblLockMode = new JLabel("Lock Output Mode:");
+        JComboBox<String> cmbLockMode = new JComboBox<>();
+        cmbLockMode.addItem("Mirror the server output mode");
+        cmbLockMode.addItem("Logo and Time");
+        cmbLockMode.addItem("Run Status");
+        cmbLockMode.addItem("Classification");
+        cmbLockMode.setSelectedIndex(0);
+        JLabel lblConfig = new JLabel("Configuration:");
+        JComboBox<String> cmbConfig = new JComboBox<>();
+        cmbConfig.addItem("Fetch from server");
+        cmbConfig.addItem("Browse...");
+        cmbConfig.setSelectedIndex(0);
+        cmbConfig.addActionListener((e) -> {
+            if(cmbConfig.getSelectedIndex() == 1) {
+                JFileChooser fc = new JFileChooser();
+                fc.setCurrentDirectory(new java.io.File("."));
+                fc.setDialogTitle("Open configuration file");
+                if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                    String selectedFile = fc.getSelectedFile().toString();
+                    if(cmbConfig.getItemCount() == 2) {
+                        cmbConfig.addItem(selectedFile);
+                    } else {
+                        cmbConfig.removeItemAt(2);
+                        cmbConfig.addItem(selectedFile);
+                    }
+                    cmbConfig.setSelectedIndex(2);
+                }
+            }
+        });
+        JCheckBox chkCopyResources = new JCheckBox("Copy resources from server (if enabled)");
+        
+        c.fill = GridBagConstraints.HORIZONTAL;
+        c.insets = new Insets(4, 4, 4, 4);
+        
+        c.gridy = 0;
+        c.gridx = 0;
+        c.anchor = GridBagConstraints.WEST;
+        c.weightx = 0.35;
+        pane.add(lblAddress, c);
+        c.gridx = 1;
+        c.weightx = 0.65;
+        pane.add(txtAddress, c);
+        
+        c.gridy = 1;
+        c.gridx = 0;
+        c.anchor = GridBagConstraints.LINE_START;
+        pane.add(lblDisplay, c);
+        c.gridx = 1;
+        pane.add(cmbDisplay, c);
+        
+        c.gridy = 2;
+        c.gridx = 0;
+        c.anchor = GridBagConstraints.LINE_START;
+        pane.add(lblLockMode, c);
+        c.gridx = 1;
+        pane.add(cmbLockMode, c);
+        
+        c.gridy = 3;
+        c.gridx = 0;
+        c.anchor = GridBagConstraints.LINE_START;
+        pane.add(lblConfig, c);
+        c.gridx = 1;
+        pane.add(cmbConfig, c);
+        
+        c.gridy = 4;
+        c.gridx = 0;
+        c.weightx = 0;
+        c.gridwidth = 2;
+        pane.add(chkCopyResources, c);
+        
+        c.gridy = 5;
+        c.fill = GridBagConstraints.VERTICAL;
+        c.weighty = 1;
+        pane.add(new JLabel(""), c);
+        
+        JPanel buttonsPane = new JPanel();
+        JButton btnConnect = new JButton("Connect");
+        JButton btnCancel = new JButton("Cancel");
+        btnConnect.addActionListener((e) -> {
+            dialog.dispose();
+        });
+        btnCancel.addActionListener((e) -> {
+           ControlCenter.exit(0); 
+        });
+        buttonsPane.add(btnConnect);
+        buttonsPane.add(btnCancel);
+        
+        dialogPane.add(pane, BorderLayout.CENTER);
+        dialogPane.add(buttonsPane, BorderLayout.PAGE_END);
+        dialog.pack();
+        dialog.setLocationRelativeTo(null);
+        dialog.setSize(500, 400);
+        dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+        dialog.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                ControlCenter.exit(0);
+            }
+        });
+        dialog.setVisible(true);
+        if(cmbConfig.getSelectedIndex() == 2) {
+            String file = cmbConfig.getItemAt(2);
+            if(file.toLowerCase().endsWith(".zip") ||
+                    file.toLowerCase().endsWith(".merccz")) {
+                fields.put("localzip", file);
+            } else {
+                fields.put("localconfig", file);
+            }
+        }
+        fields.put("address", txtAddress.getText().trim());
+        fields.put("displaynumber", String.valueOf(cmbDisplay.getSelectedIndex()));
+        fields.put("lockmode", String.valueOf(cmbLockMode.getSelectedIndex()-1));
+        if(chkCopyResources.isSelected()) {
+            fields.put("copyresources", "yes");
+        }
         return fields;
     }
     
@@ -315,12 +460,14 @@ public class DisplayClient {
                         break;
                 }
             }
+            Log.d(0, "- server closed connection");
             s.close();
         } catch(IOException ioe) {
-            System.err.println("IOException: " + ioe.getMessage());
+            System.err.println("- server connection error: " + ioe.getMessage());
         } catch(NumberFormatException nfe) {
-            System.err.println("Unable to parse: " + nfe.getMessage());
+            System.err.println("- unable to parse: " + nfe.getMessage());
         } catch(Exception e) {
+            System.err.println("- unhandled exception");
             e.printStackTrace();
         }
         cc.getDisplayFrame().dispose();
