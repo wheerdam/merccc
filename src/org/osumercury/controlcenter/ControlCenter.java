@@ -34,6 +34,7 @@ import com.beust.jcommander.*;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.Map;
 
 /**
  *
@@ -100,6 +101,9 @@ public class ControlCenter {
     @Parameter(names = { "--client" })
     private boolean clientModeHelp = false;
     
+    @Parameter(names = { "--client-gui" })
+    private boolean clientConnectGUI = false;
+    
     @Parameter(names = { "--lockmode" })
     private int lockMode = -1;
     
@@ -120,6 +124,7 @@ public class ControlCenter {
     private RefreshThread refresh;
     private SocketInterface socket;
     private SocketInterface loopback;
+    private int clientDisplayNumber = -1;
     
     private String controlHost;
     private int controlPort;
@@ -193,7 +198,17 @@ public class ControlCenter {
         
         if(zipFile != null && configFile != null) {
             Log.fatal(5, "'-c' and '-z' options are exclusive");
-        }        
+        }
+        
+        if(clientConnectGUI) {
+            Map<String, String> connDetails = DisplayClient.clientConnectWindow(client);
+            client = connDetails.get("address");
+            configFile = connDetails.get("localconfig");
+            zipFile = connDetails.get("localzip");
+            copyResources = connDetails.get("copyresources") != null;
+            lockMode = Integer.parseInt(connDetails.get("lockmode"));
+            clientDisplayNumber = Integer.parseInt(connDetails.get("displaynumber"));
+        }
         
         boolean fetchConfig = false;
         if(client != null) {
@@ -218,7 +233,6 @@ public class ControlCenter {
             } else {
                 Log.fatal(101, "Unable to fetch config from server");
             }
-            
         } else if(configFile == null && zipFile == null && GUI) {
             String selectedFile;
             System.err.println("Configuration file was not specified");
@@ -387,7 +401,7 @@ public class ControlCenter {
                 display = new DisplayFrame(this, sysFont);
                 refresh = new RefreshThread(this, refreshRateMs);
                 DisplayClient.connect(this, controlHost, controlPort,
-                        fetchConfig, -1, lockMode);
+                        fetchConfig, clientDisplayNumber, lockMode);
             }
         }
     }    

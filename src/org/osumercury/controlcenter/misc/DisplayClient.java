@@ -25,6 +25,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -44,6 +46,12 @@ public class DisplayClient {
     private static Socket s;
     private static File fetchedResources;
     private static DisplayOptionsFrame displayOptions;
+    
+    public static Map clientConnectWindow(String hostAddress) {
+        Map<String, String> fields = new HashMap<>();
+        
+        return fields;
+    }
     
     public static String getConfigString(String host, int port, boolean copyResources) {
         StringBuilder str = new StringBuilder();
