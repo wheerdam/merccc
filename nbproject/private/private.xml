@@ -3,12 +3,14 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/ControlCenter.java</file>
-            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/misc/DisplayClient.java</file>
-            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/misc/SocketInterface.java</file>
-            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/SessionState.java</file>
-            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/Score.java</file>
+            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/gui/DisplayFrame.java</file>
             <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/gui/ControlFrame.java</file>
+            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/Score.java</file>
+            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/misc/SocketInterface.java</file>
+            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/ControlCenter.java</file>
+            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/SessionState.java</file>
+            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/Data.java</file>
+            <file>file:/home/wira/work/mercury/merccc/src/org/osumercury/controlcenter/CompetitionState.java</file>
         </group>
     </open-files>
 </project-private>

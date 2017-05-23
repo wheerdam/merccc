@@ -15,6 +15,7 @@
  */
 package org.osumercury.controlcenter.gui;
 
+import org.osumercury.controlcenter.UserEvent;
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -32,8 +33,6 @@ public class ControlFrame extends JFrame {
     private ControlCenter cc;
     private SessionTimer timer;
     private DisplayFrame display;
-    private ArrayList<ScoreChangedCallback> scoreChangedHooks;
-    private ArrayList<UserEvent> userEventHooks;
         
     private static int setupDuration;
     private static int windowDuration;
@@ -124,11 +123,7 @@ public class ControlFrame extends JFrame {
         this.cc = cc;
         this.competition = cc.getCompetitionState();     
         this.display = cc.getDisplayFrame();
-        competition.addStateChangeHook((CompetitionState c) -> {
-            setControlPhase(c.getState());
-        });        
-        scoreChangedHooks = new ArrayList();
-        userEventHooks = new ArrayList();
+        competition.addStateChangeHook((c) -> { setControlPhase(c.getState()); });        
     }
     
     public void init() {
@@ -216,10 +211,10 @@ public class ControlFrame extends JFrame {
         btnRefreshScreens.addActionListener((ActionEvent e) -> { refreshDisplayList(); } );
         cmbDisplayMode.addActionListener((ActionEvent e) -> {
             display.setMode(cmbDisplayMode.getSelectedIndex());
-            triggerEvent(UserEvent.DISPLAY_MODE_CHANGE, cmbDisplayMode.getSelectedIndex());
+            ControlCenter.triggerEvent(UserEvent.DISPLAY_MODE_CHANGE, cmbDisplayMode.getSelectedIndex());
         });
         
-        cmbDisplayScreen.addActionListener((ActionEvent e) -> {            
+        cmbDisplayScreen.addActionListener((ActionEvent e) -> {
             outputDisplayToScreen();
         });
         
@@ -268,7 +263,7 @@ public class ControlFrame extends JFrame {
         btnStartTeamSession.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
 
         cmbTeamSelect.addActionListener((ActionEvent e) -> {
-            triggerEvent(UserEvent.TEAM_PRE_SELECT, getSelectedTeamID());
+            ControlCenter.triggerEvent(UserEvent.TEAM_PRE_SELECT, getSelectedTeamID());
         });
         
         btnStartTeamSession.addActionListener((ActionEvent e) -> {
@@ -340,11 +335,9 @@ public class ControlFrame extends JFrame {
 
             if(competition.getSession().isPaused()) {
                 competition.getSession().resumeTimer();
-                triggerEvent(UserEvent.SESSION_RESUMED);
                 btnPause.setText("PAUSE");
             } else {
                 competition.getSession().pauseTimer();
-                triggerEvent(UserEvent.SESSION_PAUSED);
                 btnPause.setText("RESUME");
             }
         });
@@ -391,13 +384,10 @@ public class ControlFrame extends JFrame {
             dialog.showDialog();
             if(dialog.isApproved()) {
                 competition.getSession().addTimeSeconds(dialog.getValueInt());
-                triggerEvent(UserEvent.SESSION_TIME_ADDED, dialog.getValueInt());
             }
         });
         
-        tglRedFlag.addActionListener((ActionEvent e) -> {
-            triggerEvent(tglRedFlag.isSelected() ?
-                    UserEvent.SESSION_REDFLAGGED : UserEvent.SESSION_GREENFLAGGED);
+        tglRedFlag.addActionListener((ActionEvent e) -> {            
             competition.setRedFlag(tglRedFlag.isSelected());
         });
 
@@ -464,14 +454,7 @@ public class ControlFrame extends JFrame {
                 if(rows.length > 0) {
                     int teamID = Integer.parseInt((String)tblData.getValueAt(rows[0], 0));
                     int score = Integer.parseInt((String)tblData.getValueAt(rows[0], 2));
-                    Data.lock().writeLock().lock();
-                    try {
-                        competition.getTeamByID(teamID).getScores().remove(score);
-                    } finally {
-                        Data.lock().writeLock().unlock();
-                    }
-                    Object[] params = {teamID, score};
-                    triggerEvent(UserEvent.DATA_RECORD_EXPUNGED, params);
+                    Data.removeScore(competition, teamID, score);
                     updateDataView();                  
                 }
             }
@@ -480,15 +463,6 @@ public class ControlFrame extends JFrame {
         btnDataClear.addActionListener((ActionEvent e) -> {
             if(confirmYesNo("This will delete ALL recorded scores. ARE YOU SURE?!",
                     "Delete All Data")) {
-                Data.lock().writeLock().lock();
-                try {
-                    for(Team t : competition.getTeams()) {
-                        t.getScores().clear();
-                    }
-                } finally {
-                        Data.lock().writeLock().unlock();
-                }
-                triggerEvent(UserEvent.DATA_CLEARED);
                 updateDataView();
             }
         });
@@ -578,7 +552,7 @@ public class ControlFrame extends JFrame {
         cmbStartingRank.addItem("41-50");
         cmbStartingRank.addActionListener((ActionEvent e) -> {
             int rankStart = cmbStartingRank.getSelectedIndex()*10+1;
-            triggerEvent(UserEvent.DISPLAY_RANK_START, rankStart);
+            ControlCenter.triggerEvent(UserEvent.DISPLAY_RANK_START, rankStart);
             display.setRankStart(rankStart);
         });
         
@@ -796,7 +770,7 @@ public class ControlFrame extends JFrame {
         //</editor-fold>
 
         validate();
-        triggerEvent(UserEvent.GUI_INIT, this);
+        ControlCenter.triggerEvent(UserEvent.GUI_INIT, this);
         pack();
         setSize(INITIAL_WIDTH, INITIAL_HEIGHT);
         setVisible(true);
@@ -983,7 +957,6 @@ public class ControlFrame extends JFrame {
                 competition.setRedFlag(false);
                 btnStartTeamSession.setText("START SCORING SESSION");
                 btnStartTeamSession.setForeground(Color.BLACK);
-                triggerEvent(UserEvent.STATE_CHANGE_IDLE);
                 break;
 
             case CompetitionState.SETUP:   
@@ -1010,9 +983,7 @@ public class ControlFrame extends JFrame {
                 timer = new SessionTimer(competition);
                 indicators.set(competition.getSession());
                 competition.getSession().start();
-                timer.start();
-                Object[] params = {maxAttempts, setupDuration, windowDuration};
-                triggerEvent(UserEvent.STATE_CHANGE_SETUP, params);
+                timer.start();                
                 SoundPlayer.play("setup-start.wav");
                 break;
                 
@@ -1028,7 +999,6 @@ public class ControlFrame extends JFrame {
                 newScore();
                 validate();
                 competition.getSession().endSetup();
-                triggerEvent(UserEvent.STATE_CHANGE_RUN);
                 SoundPlayer.play("window-start.wav");
                 break;
                 
@@ -1043,7 +1013,6 @@ public class ControlFrame extends JFrame {
                     timer.stopTimer();
                     timer = null;
                 }
-                triggerEvent(UserEvent.STATE_CHANGE_POSTRUN);
                 break;
             default:
                 break;
@@ -1070,7 +1039,7 @@ public class ControlFrame extends JFrame {
             return;
         }
         
-        triggerEvent(UserEvent.EXIT);
+        ControlCenter.triggerEvent(UserEvent.EXIT, null);
         
         if(timer != null) {
             // warn of current run
@@ -1190,7 +1159,7 @@ public class ControlFrame extends JFrame {
                 Data.lock().writeLock().unlock();
             }
             Object[] params = { t.getNumber(), t.getScores().size()-1 };
-            triggerEvent(UserEvent.DATA_ADDED, params);
+            ControlCenter.triggerEvent(UserEvent.DATA_ADDED, params);
             updateDataView();
             d.dispose();
         });
@@ -1225,7 +1194,6 @@ public class ControlFrame extends JFrame {
         if(competition.getState() == CompetitionState.RUN) {
             if(session.getRunNumber() <= maxAttempts) {
                 session.completeRun(true);
-                triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber()-1);
                 if(session.getRunNumber() <= maxAttempts) {
                     newScore();
                 } else { // we've reached maximum attempts, end session
@@ -1237,7 +1205,6 @@ public class ControlFrame extends JFrame {
         } else if(competition.getState() == CompetitionState.POST_RUN) {
             if(session.getRunNumber() <= maxAttempts) {
                 session.completeRun(true);
-                triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber()-1);
             }
             btnCommitScore.setEnabled(false);
             btnDiscardScore.setEnabled(false);
@@ -1255,9 +1222,7 @@ public class ControlFrame extends JFrame {
                 competition.setState(CompetitionState.POST_RUN);
                 btnCommitScore.setEnabled(false);
                 btnDiscardScore.setEnabled(false);
-            }
-            triggerEvent(UserEvent.SESSION_ATTEMPT_DISCARDED, 
-                         competition.getSession().getRunNumber()-1);
+            }            
         }
     }
     
@@ -1272,16 +1237,10 @@ public class ControlFrame extends JFrame {
         if(state != CompetitionState.RUN && state != CompetitionState.POST_RUN) {
             return;
         }
-        ArrayList<String> keys = Config.getKeysInOriginalOrder("fields");
-        int i = 0;
-        while(i < keys.size() && !keys.get(i).equals(key)) {
-            i++;
-        }
-        if(i < keys.size()) {
-            txtScoreFields[i].setText(String.valueOf(value));
-            for(ScoreChangedCallback c : scoreChangedHooks) {
-                c.callback(key, i, String.valueOf(value));
-            }
+        int fieldID = Score.getFieldID(key);
+        if(fieldID >= 0) {
+            txtScoreFields[fieldID].setText(String.valueOf(value));
+            ControlCenter.triggerScoreChangeEvent(key, fieldID, String.valueOf(value));
         }
     }
     
@@ -1302,11 +1261,11 @@ public class ControlFrame extends JFrame {
     
     private void outputDisplayToScreen() {                
         if(cmbDisplayScreen.getSelectedIndex() <= 0) {
-            triggerEvent(UserEvent.DISPLAY_HIDE);
+            ControlCenter.triggerEvent(UserEvent.DISPLAY_HIDE, null);
             display.setVisible(false);
             return;
         }
-        triggerEvent(UserEvent.DISPLAY_SHOW);
+        ControlCenter.triggerEvent(UserEvent.DISPLAY_SHOW, null);
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice gd = ge.getScreenDevices()[cmbDisplayScreen.getSelectedIndex()-1];
         display.setVisible(false);       
@@ -1349,7 +1308,6 @@ public class ControlFrame extends JFrame {
         fc.setCurrentDirectory(Data.getDataWorkDir());
         if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             Data.loadCSV(competition, fc.getSelectedFile().getAbsolutePath());
-            triggerEvent(UserEvent.DATA_IMPORTED, Data.getData(competition));
         }
         updateDataView();
     }
@@ -1383,25 +1341,11 @@ public class ControlFrame extends JFrame {
                 m.setValueAt(dialog.getValueDouble() + "", row, column);
                 m.setValueAt(s.getScore() + "", row, 3+Score.getFields().size());
                 Object[] params = {teamID, scoreID, field, dialog.getValueDouble()};
-                triggerEvent(UserEvent.DATA_CHANGED, params);
+                ControlCenter.triggerEvent(UserEvent.DATA_CHANGED, params);
                 updateDataView();
             }
         } finally {
             Data.lock().writeLock().unlock();
-        }
-    }
-    
-    private void triggerEvent(int id, Object param) {
-        Log.d(2, "ControlFrame.triggerEvent: " + id);
-        for(UserEvent ue : userEventHooks) {
-            ue.callback(id, param);
-        }
-    }
-    
-    private void triggerEvent(int id) {
-        Log.d(2, "ControlFrame.triggerEvent: " + id);
-        for(UserEvent ue : userEventHooks) {
-            ue.callback(id, null);
         }
     }
     
@@ -1413,23 +1357,7 @@ public class ControlFrame extends JFrame {
     private boolean confirmOKCancel(String message, String title) {
         return JOptionPane.showConfirmDialog(this, message, title,
                 JOptionPane.OK_CANCEL_OPTION) == JOptionPane.OK_OPTION;
-    }
-    
-    public void addScoreChangedHook(ScoreChangedCallback c) {
-        scoreChangedHooks.add(c);
-    }
-    
-    public void removeScoreChangedCallback(ScoreChangedCallback c) {
-        scoreChangedHooks.remove(c);
-    }
-    
-    public void addUserEventHook(UserEvent c) {
-        userEventHooks.add(c);
-    }
-    
-    public void removeUserEventHook(UserEvent c) {
-        userEventHooks.remove(c);
-    }
+    }    
     
     class ScoringUpUndoActionListener implements ActionListener {
         private JTextField target;
@@ -1456,9 +1384,7 @@ public class ControlFrame extends JFrame {
             }
             target.setText("" + curVal);
             
-            for(ScoreChangedCallback c : scoreChangedHooks) {
-                c.callback(key, id, "" + curVal);
-            }
+            ControlCenter.triggerScoreChangeEvent(key, id, String.valueOf(curVal));
         }
     }
     
@@ -1510,9 +1436,7 @@ public class ControlFrame extends JFrame {
             }
             
             target.setText("" + value);
-            for(ScoreChangedCallback c : scoreChangedHooks) {
-                c.callback(key, id, "" + value);
-            }
+            ControlCenter.triggerScoreChangeEvent(key, id, String.valueOf(value));
         }
     }
 }

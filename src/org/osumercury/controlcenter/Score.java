@@ -49,6 +49,17 @@ public class Score {
         return type.get(key);
     }
     
+    public static int getFieldID(String key) {
+        int i = 0;
+        for(String fieldKey : Config.getKeysInOriginalOrder("fields")) {
+            if(fieldKey.equals(key)) {
+                return i;
+            }
+            i++;
+        }
+        return -1;
+    }
+    
     public static Double[] getPossibleValues(String key) {
         return possibleValues.get(key);
     }

@@ -15,12 +15,14 @@
  */
 package org.osumercury.controlcenter.gui;
 
+import org.osumercury.controlcenter.UserEvent;
 import java.awt.*;
 import java.awt.image.*;
 import java.util.ArrayList;
 import javax.swing.*;
 import java.util.Calendar;
 import org.osumercury.controlcenter.CompetitionState;
+import org.osumercury.controlcenter.ControlCenter;
 import org.osumercury.controlcenter.Score;
 import org.osumercury.controlcenter.SessionState;
 
@@ -55,7 +57,7 @@ public class ControlIndicatorsCanvas extends JPanel {
         this.f = f;
         scores = new ArrayList<>();
         
-        f.addUserEventHook((int ID, Object params) -> {
+        ControlCenter.addUserEventHook((int ID, Object params) -> {
             switch(ID) {
                 case UserEvent.STATE_CHANGE_RUN:
                     scores = new ArrayList<>();

@@ -393,8 +393,8 @@ public class DisplayClient {
                         int setup = Integer.parseInt(tokens[2])*1000;
                         int run = Integer.parseInt(tokens[3])*1000;
                         t = c.getTeamByID(teamID);
-                        c.setState(CompetitionState.SETUP);
                         c.newSession(t, attempts, setup, run);
+                        c.setState(CompetitionState.SETUP);
                         c.getSession().start();
                         break;
                     case "STATE_CHANGE_RUN":

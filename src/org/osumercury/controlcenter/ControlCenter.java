@@ -34,6 +34,7 @@ import com.beust.jcommander.*;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Map;
 
 /**
@@ -133,6 +134,8 @@ public class ControlCenter {
     
     private static JCommander jc;
     public static ControlCenter cc;
+    private static ArrayList<ScoreChangedCallback> scoreChangedHooks = new ArrayList<>();
+    private static ArrayList<UserEvent> userEventHooks = new ArrayList<>();
     
     public static long beginTime = -1;
     public static boolean SOUND_DISABLED = false;
@@ -450,6 +453,35 @@ public class ControlCenter {
     
     public SocketInterface getLoopbackSocketHandle() {
         return loopback;
+    }
+    
+    public static void addScoreChangedHook(ScoreChangedCallback c) {
+        scoreChangedHooks.add(c);
+    }
+    
+    public static void removeScoreChangedCallback(ScoreChangedCallback c) {
+        scoreChangedHooks.remove(c);
+    }
+    
+    public static void addUserEventHook(UserEvent c) {
+        userEventHooks.add(c);
+    }
+    
+    public static void removeUserEventHook(UserEvent c) {
+        userEventHooks.remove(c);
+    }
+    
+    public static void triggerEvent(int id, Object param) {
+        Log.d(2, "triggerEvent: " + id);
+        for(UserEvent ue : userEventHooks) {
+            ue.callback(id, param);
+        }
+    }
+    
+    public static void triggerScoreChangeEvent(String key, int id, String val) {
+        for(ScoreChangedCallback c : scoreChangedHooks) {
+            c.callback(key, id, val);
+        }
     }
     
     public File getResourcePath() {

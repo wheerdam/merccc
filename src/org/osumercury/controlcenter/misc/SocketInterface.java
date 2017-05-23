@@ -18,7 +18,7 @@ package org.osumercury.controlcenter.misc;
 import java.awt.image.BufferedImage;
 import org.osumercury.controlcenter.*;
 import org.osumercury.controlcenter.gui.ControlFrame;
-import org.osumercury.controlcenter.gui.UserEvent;
+import org.osumercury.controlcenter.gui.DisplayOverlay;
 import java.util.LinkedList;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -33,7 +33,6 @@ import java.net.InetAddress;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.SwingUtilities;
-import org.osumercury.controlcenter.gui.DisplayOverlay;
 
 /**
  *
@@ -60,101 +59,99 @@ public class SocketInterface extends Thread {
         this.local = local;
         this.allowResourceCopy = allowResourceCopy;
         clientHandlers = new LinkedList();
-        if(gui) {
-            f.addScoreChangedHook((String key, int ID, String value) -> {
-                broadcast("SCORE_CHANGE " + key + " " + ID + " " + value);
-            });
-            f.addUserEventHook((int ID, Object param) -> {
-                Object[] p;
-                SessionState s;
-                int run;
-                Team t;
-                switch(ID) {
-                    case UserEvent.STATE_CHANGE_IDLE:
-                        broadcast("STATE_CHANGE_IDLE");
-                        break;
-                    case UserEvent.STATE_CHANGE_SETUP:
-                        p = (Object[]) param;
-                        broadcast("STATE_CHANGE_SETUP " +
-                                c.getSession().getActiveTeam().getNumber() + " " +
-                                (Integer)p[0] + " " + (Integer)p[1] + " " +
-                                (Integer)p[2]);
-                        break;
-                    case UserEvent.STATE_CHANGE_RUN:
-                        broadcast("STATE_CHANGE_RUN");
-                        break;
-                    case UserEvent.STATE_CHANGE_POSTRUN:
-                        broadcast("STATE_CHANGE_POSTRUN");
-                        break;
-                    case UserEvent.SESSION_PAUSED:
-                        broadcast("SESSION_PAUSED");
-                        break;
-                    case UserEvent.SESSION_RESUMED:
-                        broadcast("SESSION_RESUMED");
-                        break;
-                    case UserEvent.SESSION_REDFLAGGED:
-                        broadcast("SESSION_REDFLAGGED");
-                        break;
-                    case UserEvent.SESSION_GREENFLAGGED:
-                        broadcast("SESSION_GREENFLAGGED");
-                        break;
-                    case UserEvent.SESSION_ATTEMPT_COMMITTED:
-                        s = c.getSession();
-                        t = s.getActiveTeam();
-                        run = (Integer) param;
-                        broadcast("SESSION_ATTEMPT_COMMITTED " + t.getNumber() + 
-                                " " + run + " " +
-                                s.getActiveScoreList().get(run-1).getScore());
-                        break;
-                    case UserEvent.SESSION_ATTEMPT_DISCARDED:
-                        s = c.getSession();
-                        t = s.getActiveTeam();
-                        run = (Integer) param;
-                        broadcast("SESSION_ATTEMPT_DISCARDED " + t.getNumber() + 
-                                " " + run);
-                        break;
-                    case UserEvent.SESSION_TIME_ADDED:
-                        broadcast("SESSION_TIME_ADDED " + (Integer)param);
-                        break;
-                    case UserEvent.DATA_CLEARED:
-                        broadcast("DATA_CLEARED");
-                        break;
-                    case UserEvent.DATA_IMPORTED:
-                        broadcast("DATA_IMPORTED");
-                        break;
-                    case UserEvent.DATA_RECORD_EXPUNGED:
-                        p = (Object[]) param;
-                        broadcast("DATA_RECORD_EXPUNGED " + (Integer)p[0] + " " 
-                                + (Integer)p[1]);
-                        break;
-                    case UserEvent.DATA_CHANGED:
-                        p = (Object[]) param;
-                        broadcast("DATA_CHANGED " + (Integer)p[0] + " " 
-                                + (Integer)p[1] + " " + p[2] + " " + (Double)p[3]);
-                        break;
-                    case UserEvent.DATA_ADDED:
-                        p = (Object[]) param;
-                        broadcast("DATA_ADDED " + (Integer)p[0] + " " +
-                                (Integer)p[1]);
-                        break;
-                    case UserEvent.TEAM_PRE_SELECT:
-                        broadcast("TEAM_PRE_SELECT " + (Integer)param);
-                        break;
-                    case UserEvent.DISPLAY_MODE_CHANGE:
-                        broadcast("DISPLAY_MODE_CHANGE " + (Integer)param);
-                        break;
-                    case UserEvent.DISPLAY_HIDE:
-                        broadcast("DISPLAY_HIDE");
-                        break;
-                    case UserEvent.DISPLAY_SHOW:
-                        broadcast("DISPLAY_SHOW");
-                        break;
-                    case UserEvent.DISPLAY_RANK_START:
-                        broadcast("DISPLAY_RANK_START " + (Integer)param);
-                        break;
-                }
-            });
-        }
+        ControlCenter.addScoreChangedHook((String key, int ID, String value) -> {
+            broadcast("SCORE_CHANGE " + key + " " + ID + " " + value);
+        });
+        ControlCenter.addUserEventHook((int ID, Object param) -> {
+            Object[] p;
+            SessionState s;
+            int run;
+            Team t;
+            switch(ID) {
+                case UserEvent.STATE_CHANGE_IDLE:
+                    broadcast("STATE_CHANGE_IDLE");
+                    break;
+                case UserEvent.STATE_CHANGE_SETUP:
+                    p = (Object[]) param;
+                    broadcast("STATE_CHANGE_SETUP " +
+                            c.getSession().getActiveTeam().getNumber() + " " +
+                            (Integer)p[0] + " " + (Long)p[1] + " " +
+                            (Long)p[2]);
+                    break;
+                case UserEvent.STATE_CHANGE_RUN:
+                    broadcast("STATE_CHANGE_RUN");
+                    break;
+                case UserEvent.STATE_CHANGE_POSTRUN:
+                    broadcast("STATE_CHANGE_POSTRUN");
+                    break;
+                case UserEvent.SESSION_PAUSED:
+                    broadcast("SESSION_PAUSED");
+                    break;
+                case UserEvent.SESSION_RESUMED:
+                    broadcast("SESSION_RESUMED");
+                    break;
+                case UserEvent.SESSION_REDFLAGGED:
+                    broadcast("SESSION_REDFLAGGED");
+                    break;
+                case UserEvent.SESSION_GREENFLAGGED:
+                    broadcast("SESSION_GREENFLAGGED");
+                    break;
+                case UserEvent.SESSION_ATTEMPT_COMMITTED:
+                    s = c.getSession();
+                    t = s.getActiveTeam();
+                    run = (Integer) param;
+                    broadcast("SESSION_ATTEMPT_COMMITTED " + t.getNumber() + 
+                            " " + run + " " +
+                            s.getActiveScoreList().get(run-1).getScore());
+                    break;
+                case UserEvent.SESSION_ATTEMPT_DISCARDED:
+                    s = c.getSession();
+                    t = s.getActiveTeam();
+                    run = (Integer) param;
+                    broadcast("SESSION_ATTEMPT_DISCARDED " + t.getNumber() + 
+                            " " + run);
+                    break;
+                case UserEvent.SESSION_TIME_ADDED:
+                    broadcast("SESSION_TIME_ADDED " + (Long)param);
+                    break;
+                case UserEvent.DATA_CLEARED:
+                    broadcast("DATA_CLEARED");
+                    break;
+                case UserEvent.DATA_IMPORTED:
+                    broadcast("DATA_IMPORTED");
+                    break;
+                case UserEvent.DATA_RECORD_EXPUNGED:
+                    p = (Object[]) param;
+                    broadcast("DATA_RECORD_EXPUNGED " + (Integer)p[0] + " " 
+                            + (Integer)p[1]);
+                    break;
+                case UserEvent.DATA_CHANGED:
+                    p = (Object[]) param;
+                    broadcast("DATA_CHANGED " + (Integer)p[0] + " " 
+                            + (Integer)p[1] + " " + p[2] + " " + (Double)p[3]);
+                    break;
+                case UserEvent.DATA_ADDED:
+                    p = (Object[]) param;
+                    broadcast("DATA_ADDED " + (Integer)p[0] + " " +
+                            (Integer)p[1]);
+                    break;
+                case UserEvent.TEAM_PRE_SELECT:
+                    broadcast("TEAM_PRE_SELECT " + (Integer)param);
+                    break;
+                case UserEvent.DISPLAY_MODE_CHANGE:
+                    broadcast("DISPLAY_MODE_CHANGE " + (Integer)param);
+                    break;
+                case UserEvent.DISPLAY_HIDE:
+                    broadcast("DISPLAY_HIDE");
+                    break;
+                case UserEvent.DISPLAY_SHOW:
+                    broadcast("DISPLAY_SHOW");
+                    break;
+                case UserEvent.DISPLAY_RANK_START:
+                    broadcast("DISPLAY_RANK_START " + (Integer)param);
+                    break;
+            }
+        });
     }
     
     @Override
@@ -430,8 +427,7 @@ public class SocketInterface extends Thread {
                         try {
                             teamIndex = Integer.parseInt(tokens[1]);
                             scoreIndex = Integer.parseInt(tokens[2]);
-                            Data.lock().writeLock().lock();
-                            c.getTeamByID(teamIndex).removeScore(scoreIndex);
+                            Data.removeScore(c, teamIndex, scoreIndex);
                             c.sort();
                             if(gui && cf != null) {
                                 cf.refreshDataView();
@@ -441,19 +437,14 @@ public class SocketInterface extends Thread {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
                             send("ERROR");
-                        } finally {
-                            Data.lock().writeLock().unlock();
-                        }   
+                        }
                     } else {
                         send("ERROR");
                     }
                     break;
                 case "clear-data":
                     try {
-                        Data.lock().writeLock().lock();
-                        for(Team team : c.getTeams()) {
-                            team.getScores().clear();
-                        }
+                        Data.clearData(c);
                         if(gui && cf != null) {
                             cf.refreshDataView();
                         }
@@ -462,9 +453,7 @@ public class SocketInterface extends Thread {
                         Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                  e);
                         send("ERROR");
-                    } finally {
-                        Data.lock().writeLock().unlock();
-                    } 
+                    }
                     break;
                 case "save-data":
                     if(tokens.length == 2) {
@@ -514,6 +503,10 @@ public class SocketInterface extends Thread {
                                     double value = Double.parseDouble(tokens[2]);
                                     if(gui && cf != null) {
                                         cf.setCurrentScore(tokens[1], value);
+                                    } else {
+                                        ControlCenter.triggerScoreChangeEvent(tokens[1],
+                                            Score.getFieldID(tokens[1]), 
+                                            tokens[2]);
                                     }
                                     session = cc.getCompetitionState().getSession();
                                     session.modifyCurrentScore(tokens[1], value);
@@ -598,6 +591,9 @@ public class SocketInterface extends Thread {
                         if(!gui && timer != null) {
                             timer.stopTimer();
                         }
+                        if(c.redFlagged()) {
+                            c.setRedFlag(false);
+                        }
                         c.setState(CompetitionState.IDLE);
                         send("OK");
                     }
@@ -608,6 +604,42 @@ public class SocketInterface extends Thread {
                         send("OK");
                     } else {
                         send("ERROR not in SETUP state");
+                    }
+                    break;
+                case "pause":
+                    if(c.getState() == CompetitionState.SETUP ||
+                            c.getState() == CompetitionState.RUN) {
+                        c.getSession().pauseTimer();
+                        send("OK");
+                    } else {
+                        send("ERROR not in SETUP nor RUN state");
+                    }
+                    break;
+                case "resume":
+                    if(c.getState() == CompetitionState.SETUP ||
+                            c.getState() == CompetitionState.RUN) {
+                        c.getSession().resumeTimer();
+                        send("OK");
+                    } else {
+                        send("ERROR not in SETUP nor RUN state");
+                    }
+                    break;
+                case "redflag":
+                    if(c.getState() == CompetitionState.SETUP ||
+                            c.getState() == CompetitionState.RUN) {
+                        c.setRedFlag(true);
+                        send("OK");
+                    } else {
+                        send("ERROR not in SETUP nor RUN state");
+                    }
+                    break;
+                case "greenflag":
+                    if(c.getState() == CompetitionState.SETUP ||
+                            c.getState() == CompetitionState.RUN) {
+                        c.setRedFlag(false);
+                        send("OK");
+                    } else {
+                        send("ERROR not in SETUP nor RUN state");
                     }
                     break;
                 case "commit-score":
@@ -653,6 +685,34 @@ public class SocketInterface extends Thread {
                             } else {
                                 send("ERROR not in SETUP nor RUN mode");
                             }
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR");
+                        }
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "trigger-display-change":
+                    if(tokens.length == 2) {
+                        try {
+                            int displayMode = Integer.parseInt(tokens[1]);
+                            ControlCenter.triggerEvent(UserEvent.DISPLAY_MODE_CHANGE, displayMode);
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR");
+                        }
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "trigger-display-rank-start":
+                    if(tokens.length == 2) {
+                        try {
+                            int displayRank = Integer.parseInt(tokens[1]);
+                            ControlCenter.triggerEvent(UserEvent.DISPLAY_RANK_START, displayRank);
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);

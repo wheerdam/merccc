@@ -94,7 +94,7 @@ public class CompetitionState {
     }
     
     public void newSession(Team t, int attempts, long setupDuration, long windowDuration) {
-        session = new SessionState(t, attempts, setupDuration, windowDuration);
+        session = new SessionState(t, attempts, setupDuration, windowDuration);        
     }
     
     public SessionState getSession() {
@@ -132,6 +132,23 @@ public class CompetitionState {
         for(Callback hook : stateChangeHooks) {
             hook.callback(this);
         }
+        switch(state) {
+            case IDLE:
+                ControlCenter.triggerEvent(UserEvent.STATE_CHANGE_IDLE, null);
+                break;
+            case SETUP:
+                Object[] params = {session.getMaxAttempts(), 
+                                   session.getSetupDuration()/1000,
+                                   session.getWindowDuration()/1000};
+                ControlCenter.triggerEvent(UserEvent.STATE_CHANGE_SETUP, params);
+                break;
+            case RUN:
+                ControlCenter.triggerEvent(UserEvent.STATE_CHANGE_RUN, null);
+                break;
+            case POST_RUN:
+                ControlCenter.triggerEvent(UserEvent.STATE_CHANGE_POSTRUN, null);                
+                break;
+        }
     }
     
     public int getState() {
@@ -140,6 +157,9 @@ public class CompetitionState {
     
     public void setRedFlag(boolean b) {
         redFlagged = b;
+        ControlCenter.triggerEvent(b ?
+                    UserEvent.SESSION_REDFLAGGED : UserEvent.SESSION_GREENFLAGGED,
+                    null);
     }
     
     public boolean redFlagged() {

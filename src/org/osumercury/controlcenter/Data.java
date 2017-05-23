@@ -171,6 +171,7 @@ public class Data {
             r.close();
             String parentDir = new File(f).getParent();
             dataWorkDir = parentDir == null ? new File(".") : new File(parentDir);
+            ControlCenter.triggerEvent(UserEvent.DATA_IMPORTED, Data.getData(c));
         } catch(Exception e) {
             System.err.println("Data.loadCSV: failed to import from " + f);
             if(Log.debugLevel > 0) {
@@ -306,6 +307,29 @@ public class Data {
         }
         
         return rows;
+    }
+    
+    public static void removeScore(CompetitionState c, int teamID, int scoreID) {
+        lock().writeLock().lock();
+        try {
+            c.getTeamByID(teamID).getScores().remove(scoreID);
+        } finally {
+            lock().writeLock().unlock();
+        }
+        Object[] params = {teamID, scoreID};
+        ControlCenter.triggerEvent(UserEvent.DATA_RECORD_EXPUNGED, params);
+    }
+    
+    public static void clearData(CompetitionState c) {
+        lock().writeLock().lock();
+        try {
+            for(Team t : c.getTeams()) {
+                t.getScores().clear();
+            }
+        } finally {
+                lock().writeLock().unlock();
+        }
+        ControlCenter.triggerEvent(UserEvent.DATA_CLEARED, null);
     }
     
     public static void generateReport(CompetitionState c, String f) {

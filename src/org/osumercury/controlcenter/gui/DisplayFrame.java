@@ -15,6 +15,7 @@
  */
 package org.osumercury.controlcenter.gui;
 
+import org.osumercury.controlcenter.UserEvent;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.image.*;
@@ -212,39 +213,37 @@ public class DisplayFrame extends JFrame {
         }
         
         newScore();
-        if(cc.getControlFrame() != null) {
-            cc.getControlFrame().addScoreChangedHook(
-                    (String key, int scoreID, String scoreValue) -> {
-                        scores[scoreID] = Double.parseDouble(scoreValue);
-                        currentScore.setValue(key, scores[scoreID]);
-                        currentScoreVal = currentScore.getScore();
+        ControlCenter.addScoreChangedHook(
+                (String key, int scoreID, String scoreValue) -> {
+                    scores[scoreID] = Double.parseDouble(scoreValue);
+                    currentScore.setValue(key, scores[scoreID]);
+                    currentScoreVal = currentScore.getScore();
+                }
+        );
+
+        ControlCenter.addUserEventHook((int ID, Object param) -> {
+            CompetitionState c = cc.getCompetitionState();
+            if(c.getState() == CompetitionState.IDLE ||
+               c.getState() == CompetitionState.SETUP) {
+                return;
+            }
+            switch(ID) {
+                case UserEvent.STATE_CHANGE_RUN:
+                case UserEvent.SESSION_ATTEMPT_COMMITTED:
+                case UserEvent.DATA_ADDED:
+                case UserEvent.DATA_CHANGED:
+                case UserEvent.DATA_CLEARED:
+                case UserEvent.DATA_IMPORTED:
+                case UserEvent.DATA_RECORD_EXPUNGED:
+                    SessionState s = c.getSession();
+                    Team t = s.getActiveTeam();
+                    if(!t.hasScore() || t.getBestScore() == null) {
+                        return;
                     }
-            );
-            
-            cc.getControlFrame().addUserEventHook((int ID, Object param) -> {
-                CompetitionState c = cc.getCompetitionState();
-                if(c.getState() == CompetitionState.IDLE ||
-                   c.getState() == CompetitionState.SETUP) {
-                    return;
-                }
-                switch(ID) {
-                    case UserEvent.STATE_CHANGE_RUN:
-                    case UserEvent.SESSION_ATTEMPT_COMMITTED:
-                    case UserEvent.DATA_ADDED:
-                    case UserEvent.DATA_CHANGED:
-                    case UserEvent.DATA_CLEARED:
-                    case UserEvent.DATA_IMPORTED:
-                    case UserEvent.DATA_RECORD_EXPUNGED:
-                        SessionState s = c.getSession();
-                        Team t = s.getActiveTeam();
-                        if(!t.hasScore() || t.getBestScore() == null) {
-                            return;
-                        }
-                        bestScoreVal = s.getActiveTeam().getBestScore().getScore();
-                        break;
-                }
-            });
-        }
+                    bestScoreVal = s.getActiveTeam().getBestScore().getScore();
+                    break;
+            }
+        });
         String val;
         if((val = Config.getValue("display", "score_field_digits")) != null) {
             try {

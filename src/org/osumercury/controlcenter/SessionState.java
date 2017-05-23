@@ -68,6 +68,7 @@ public class SessionState {
         
         paused = true;
         timerPauseStarted = System.currentTimeMillis();
+        ControlCenter.triggerEvent(UserEvent.SESSION_PAUSED, null);
     }
     
     public void resumeTimer() {
@@ -76,6 +77,7 @@ public class SessionState {
         
         timerPaused += (System.currentTimeMillis() - timerPauseStarted);
         paused = false;
+        ControlCenter.triggerEvent(UserEvent.SESSION_RESUMED, null);
     }
     
     public long getElapsedTimeMilliseconds() {
@@ -113,6 +115,7 @@ public class SessionState {
     
     public void addTimeSeconds(long addedTime) {
         timerStart += addedTime*1000;
+        ControlCenter.triggerEvent(UserEvent.SESSION_TIME_ADDED, addedTime);
     }
     
     public synchronized void start() {
@@ -137,8 +140,12 @@ public class SessionState {
                 currentScore.setCompleted(true);            
                 activeScoreList.add(currentScore);
                 activeTeam.addScore(currentScore);
+                ControlCenter.triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, 
+                        runs);
             } else {
                 activeScoreList.add(null);
+                ControlCenter.triggerEvent(UserEvent.SESSION_ATTEMPT_DISCARDED, 
+                        runs);
             }
         } finally {
             Data.lock().writeLock().unlock();
