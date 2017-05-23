@@ -31,7 +31,6 @@ public class ControlFrame extends JFrame {
     private CompetitionState competition;
     private ControlCenter cc;
     private SessionTimer timer;
-    private Score activeScore;
     private DisplayFrame display;
     private ArrayList<ScoreChangedCallback> scoreChangedHooks;
     private ArrayList<UserEvent> userEventHooks;
@@ -1107,7 +1106,12 @@ public class ControlFrame extends JFrame {
         }
         for(String key : keys) {
             try {
-                s.setValue(key, Double.parseDouble(fields[i].getText()));
+                if(s == null) {
+                    competition.getSession().modifyCurrentScore(
+                            key, Double.parseDouble(fields[i].getText()));
+                } else {
+                    s.setValue(key, Double.parseDouble(fields[i].getText()));
+                }
             } catch(NumberFormatException nfe) {
                 JOptionPane.showMessageDialog(this,
                         "Failed to parse score for " + key + "\n" +
@@ -1195,23 +1199,15 @@ public class ControlFrame extends JFrame {
     }
 
     private void commitScore() {
+        SessionState session = competition.getSession();
         // populate activeScore fields here
-        if(!populateScore(activeScore, txtScoreFields)) {
+        if(!populateScore(null, txtScoreFields)) {
             return;
         }        
         
-        SessionState session = competition.getSession();
-        
         if(competition.getState() == CompetitionState.RUN) {
             if(session.getRunNumber() <= maxAttempts) {
-                activeScore.setCompleted(true);
-                Data.lock().writeLock().lock();
-                try {
-                    session.getActiveTeam().addScore(activeScore);
-                    session.getActiveScoreList().add(activeScore);
-                } finally {
-                    Data.lock().writeLock().unlock();
-                }
+                session.commitScore();
                 triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber());
                 if(session.getRunNumber() < maxAttempts) {
                     session.advance();
@@ -1224,15 +1220,7 @@ public class ControlFrame extends JFrame {
             }
         } else if(competition.getState() == CompetitionState.POST_RUN) {
             if(session.getRunNumber() <= maxAttempts) {
-                activeScore.setCompleted(true);
-                Data.lock().writeLock().lock();
-                try {
-                    session.getActiveTeam().addScore(activeScore);
-                    session.getActiveScoreList().add(activeScore);
-                } finally {
-                    Data.lock().writeLock().unlock();
-                }
-
+                session.commitScore();
                 triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber());
             }
             btnCommitScore.setEnabled(false);
@@ -1259,10 +1247,27 @@ public class ControlFrame extends JFrame {
     }
     
     private void newScore() {
-        activeScore = new Score();
         txtScoreFields = new JTextField[Score.getFields().size()];
         populateScoreControl(paneRunScoringControl, txtScoreFields, false);        
         cc.getDisplayFrame().newScore();
+    }
+    
+    public void setCurrentScore(String key, double value) {
+        int state = competition.getState();
+        if(state != CompetitionState.RUN && state != CompetitionState.POST_RUN) {
+            return;
+        }
+        ArrayList<String> keys = Config.getKeysInOriginalOrder("fields");
+        int i = 0;
+        while(i < keys.size() && !keys.get(i).equals(key)) {
+            i++;
+        }
+        if(i < keys.size()) {
+            txtScoreFields[i].setText(String.valueOf(value));
+            for(ScoreChangedCallback c : scoreChangedHooks) {
+                c.callback(key, i, String.valueOf(value));
+            }
+        }
     }
     
     public void updateDataView() {

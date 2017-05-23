@@ -369,6 +369,8 @@ public class SocketInterface extends Thread {
             int teamIndex, scoreIndex;
             Team t;
             File path;
+            Score score;
+            ControlFrame cf = cc.getControlFrame();
             String[] tokens = line.trim().split("\\s+");
             DisplayOverlay overlay;
             if(tokens.length == 0) {
@@ -390,6 +392,10 @@ public class SocketInterface extends Thread {
                             Data.lock().writeLock().lock();
                             t = c.getTeamByID(Integer.parseInt(tokens[1]));
                             t.addScore(s);
+                            c.sort();
+                            if(gui && cf != null) {
+                                cf.updateDataView();
+                            }
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
@@ -408,6 +414,10 @@ public class SocketInterface extends Thread {
                             scoreIndex = Integer.parseInt(tokens[2]);
                             Data.lock().writeLock().lock();
                             c.getTeamByID(teamIndex).removeScore(scoreIndex);
+                            c.sort();
+                            if(gui && cf != null) {
+                                cf.updateDataView();
+                            }
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
@@ -415,6 +425,81 @@ public class SocketInterface extends Thread {
                         } finally {
                             Data.lock().writeLock().unlock();
                         }   
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "clear-data":
+                    try {
+                        Data.lock().writeLock().lock();
+                        for(Team team : c.getTeams()) {
+                            team.getScores().clear();
+                        }
+                        if(gui && cf != null) {
+                            cf.updateDataView();
+                        }
+                    } catch(Exception e) {
+                        Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                 e);
+                        send("ERROR");
+                    } finally {
+                        Data.lock().writeLock().unlock();
+                    } 
+                    break;
+                case "save-data":
+                    if(tokens.length == 2) {
+                        try {
+                            path = new File(tokens[1]);
+                            Data.saveAsCSV(c, path.getCanonicalPath());
+                            if(gui && cf != null) {
+                                cf.updateDataView();
+                            }
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR " + e);
+                        }
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "load-data":
+                    if(tokens.length == 2) {
+                        try {
+                            path = new File(tokens[1]);
+                            Data.loadCSV(c, path.getCanonicalPath());
+                            c.sort();
+                            if(gui && cf != null) {
+                                cf.updateDataView();
+                            }
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR " + e);
+                        }
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "change-active-score-field":
+                    if(tokens.length == 3) {
+                        try {
+                            if(c.getState() != CompetitionState.RUN && 
+                                    c.getState() != CompetitionState.POST_RUN) {
+                                send("ERROR not in RUN nor POST-RUN state");
+                            } else {
+                                double value = Double.parseDouble(tokens[2]);
+                                if(gui && cf != null) {
+                                    cf.setCurrentScore(tokens[1], value);
+                                }
+                                SessionState session = cc.getCompetitionState().getSession();
+                                session.modifyCurrentScore(tokens[1], value);
+                            }
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR " + e);
+                        }
                     } else {
                         send("ERROR");
                     }
@@ -443,7 +528,10 @@ public class SocketInterface extends Thread {
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
+                            send("ERROR");
                         }
+                    } else {
+                        send("ERROR");
                     }
                     break;
                 case "add-overlay-file":

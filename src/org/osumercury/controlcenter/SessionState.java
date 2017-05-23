@@ -33,6 +33,7 @@ public class SessionState {
     private boolean stopped;
     private final Team activeTeam;
     private final ArrayList<Score> activeScoreList;
+    private Score currentScore;
     
     public SessionState(Team t, int totalAttempts, long setupDuration, long windowDuration) {
         this.maxAttempts = totalAttempts;
@@ -121,24 +122,46 @@ public class SessionState {
     
     public synchronized void advance() {
         if(runs > maxAttempts) {
-            System.err.print("SessionState.advance: extra call to advance");
-            System.err.println(" - attempts: " + runs);
+            Log.err("SessionState.advance: extra call to advance\n" + 
+                    " - attempts: " + runs);
             return;
         } else if(runs == 0) {
-            System.err.print("SessionState.advance: unable to advance, " + 
+            Log.err("SessionState.advance: unable to advance, " + 
                     "still in setup phase");
             return;
         }
-        
+        currentScore = new Score();
         runs++;
     }
     
     public synchronized void endSetup() {
         if(runs == 0) {
+            currentScore = new Score();
             startTimer();
             runs++;
         } else {
-            System.err.println("SessionState.endSetup: we're not in setup mode!");
+            Log.err("SessionState.endSetup: we're not in setup mode!");
+        }
+    }
+    
+    public synchronized void commitScore() {
+        currentScore.setCompleted(true);
+        
+        // commit score to database
+        try {
+            Data.lock().writeLock().lock();
+            activeScoreList.add(currentScore);
+            activeTeam.addScore(currentScore);
+        } finally {
+            Data.lock().writeLock().unlock();
+        }
+    }
+    
+    public synchronized void modifyCurrentScore(String key, double value) {
+        if(currentScore == null) {
+            Log.err("SessionState.modifyCurrentScore: no current score available");
+        } else {
+            currentScore.setValue(key, value);
         }
     }
     
