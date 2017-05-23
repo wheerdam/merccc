@@ -106,9 +106,10 @@ SectionEnd
 Section "Start Menu Shortcuts"
   CreateDirectory "$SMPROGRAMS\Mercury Control Center"
   CreateShortCut "$SMPROGRAMS\Mercury Control Center\Mercury Control Center.lnk" "$INSTDIR\merccc.exe" "" "$INSTDIR\appicon.ico" 0
-  CreateShortCut "$SMPROGRAMS\Mercury Control Center\merccc with server (port 19000).lnk" "$INSTDIR\merccc.exe" "-p 19000" "$INSTDIR\appicon1.ico" 0
-  CreateShortCut "$SMPROGRAMS\Mercury Control Center\merccc with loopback (port 19001).lnk" "$INSTDIR\merccc.exe" "--localport 19001" "$INSTDIR\appicon1.ico" 0
-  CreateShortCut "$SMPROGRAMS\Mercury Control Center\about.lnk" "$INSTDIR\merccc.exe" "--about" "$INSTDIR\appicon.ico" 0
+  CreateShortCut "$SMPROGRAMS\Mercury Control Center\Mercury Control Center Server (port 19000).lnk" "$INSTDIR\merccc.exe" "-p 19000" "$INSTDIR\appicon1.ico" 0
+  CreateShortCut "$SMPROGRAMS\Mercury Control Center\Mercury Control Center Loopback Server (port 19001).lnk" "$INSTDIR\merccc.exe" "--localport 19001" "$INSTDIR\appicon1.ico" 0
+  CreateShortCut "$SMPROGRAMS\Mercury Control Center\Mercury Control Center Client Mode.lnk" "$INSTDIR\merccc.exe" "--client-gui" "$INSTDIR\appicon1.ico" 0
+  CreateShortCut "$SMPROGRAMS\Mercury Control Center\About merccc.lnk" "$INSTDIR\merccc.exe" "--about" "$INSTDIR\appicon.ico" 0
   CreateShortCut "$SMPROGRAMS\Mercury Control Center\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0   
   
 SectionEnd

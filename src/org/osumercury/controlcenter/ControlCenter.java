@@ -224,6 +224,15 @@ public class ControlCenter {
             }
         }
         
+        // be sure to clean up if program gets killed outside the normal
+        // flow (e.g. CTRL+C on a console)
+        Runtime.getRuntime().addShutdownHook(new Thread(){
+            @Override
+            public void run() {
+                cleanup();
+            }
+        });
+        
         // client mode, and config was not provided, let's fetch it
         if (client != null && configFile == null && zipFile == null) {
             fetchConfig = true;
@@ -447,7 +456,12 @@ public class ControlCenter {
     }
     
     public static void exit(int ret) {
-        Log.d(0, "Cleanup (ret:" + ret + ")");
+        Log.d(0, "Exit " + ret);
+        System.exit(ret);
+    }
+    
+    public synchronized static void cleanup()  {
+        Log.d(0, "Cleanup");
         if(Config.getTmpDir() != null) {
             Log.d(0, "Deleting " + Config.getTmpDir());
             if(!Config.deleteDirectory(Config.getTmpDir())) {
@@ -466,8 +480,6 @@ public class ControlCenter {
         if(cc.getRefreshThread() != null) {
             cc.getRefreshThread().stopThread();
         }
-        
-        System.exit(ret);
     }
     
     public static void printHelp() {

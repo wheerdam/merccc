@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.util.List;
 import javax.imageio.ImageIO;
 import org.osumercury.controlcenter.gui.DisplayOverlay;
 
@@ -365,6 +366,8 @@ public class SocketInterface extends Thread {
         
         private void handleCommand(String line) {
             int i, nr, px;
+            int teamIndex, scoreIndex;
+            Team t;
             File path;
             String[] tokens = line.trim().split("\\s+");
             DisplayOverlay overlay;
@@ -373,6 +376,56 @@ public class SocketInterface extends Thread {
             }
             Log.d(1, "SocketInterface$ClientHandler.handleCommand: " + line);
             switch(tokens[0]) {
+                case "add-score":
+                    if(tokens.length == (2 + Score.getFields().size())) {
+                        try {
+                            Score s = new Score();
+                            List<String> fields = Config.getKeysInOriginalOrder("fields");
+                            i = 2;
+                            for(String field : fields) {
+                                s.setValue(field, Double.parseDouble(tokens[i]));
+                                i++;
+                            }
+                            s.setCompleted(true);
+                            Data.lock().writeLock().lock();
+                            t = c.getTeamByID(Integer.parseInt(tokens[1]));
+                            t.addScore(s);
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR");
+                        } finally {
+                            Data.lock().writeLock().unlock();
+                        }
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "delete-score":
+                    if(tokens.length == 3) {
+                        try {
+                            teamIndex = Integer.parseInt(tokens[1]);
+                            scoreIndex = Integer.parseInt(tokens[2]);
+                            Data.lock().writeLock().lock();
+                            c.getTeamByID(teamIndex).removeScore(scoreIndex);
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR");
+                        } finally {
+                            Data.lock().writeLock().unlock();
+                        }   
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "start-scoring-session":
+                    if(tokens.length == 4) {
+                        
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
                 case "current-directory":
                     send("OK " + System.getProperty("user.dir"));
                     break;
