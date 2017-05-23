@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.SwingUtilities;
 import org.osumercury.controlcenter.gui.DisplayOverlay;
 
 /**
@@ -66,6 +67,7 @@ public class SocketInterface extends Thread {
             f.addUserEventHook((int ID, Object param) -> {
                 Object[] p;
                 SessionState s;
+                int run;
                 Team t;
                 switch(ID) {
                     case UserEvent.STATE_CHANGE_IDLE:
@@ -99,15 +101,17 @@ public class SocketInterface extends Thread {
                     case UserEvent.SESSION_ATTEMPT_COMMITTED:
                         s = c.getSession();
                         t = s.getActiveTeam();
+                        run = (Integer) param;
                         broadcast("SESSION_ATTEMPT_COMMITTED " + t.getNumber() + 
-                                " " + s.getRunNumber() + " " +
-                                s.getActiveScoreList().get(s.getRunNumber()-1).getScore());
+                                " " + run + " " +
+                                s.getActiveScoreList().get(run-1).getScore());
                         break;
                     case UserEvent.SESSION_ATTEMPT_DISCARDED:
                         s = c.getSession();
                         t = s.getActiveTeam();
+                        run = (Integer) param;
                         broadcast("SESSION_ATTEMPT_DISCARDED " + t.getNumber() + 
-                                " " + s.getRunNumber());
+                                " " + run);
                         break;
                     case UserEvent.SESSION_TIME_ADDED:
                         broadcast("SESSION_TIME_ADDED " + (Integer)param);
@@ -222,6 +226,7 @@ public class SocketInterface extends Thread {
         private boolean stop = false;
         private boolean monitor = false;
         private boolean prompt = true;
+        private SessionTimer timer;
         
         public ClientHandler(Socket s) {
             this.s = s;            
@@ -240,6 +245,14 @@ public class SocketInterface extends Thread {
                 System.err.println("SocketInterface$ClientHandler.run: " +
                         ioe.toString());
                 disconnect();
+            }
+            if(!gui && local) {
+                c.addStateChangeHook((state) -> {
+                    if(c.getState() != CompetitionState.RUN) {
+                        return;
+                    }
+                    c.getSession().endSetup();
+                });
             }
             String line;
             try {
@@ -358,6 +371,9 @@ public class SocketInterface extends Thread {
                         "exception on receive");
                 System.err.println("SocketInterface$ClientHandler.run: " +
                         e.toString());
+                if(Log.debugLevel >= 3) {
+                    e.printStackTrace();
+                }
                 disconnect();
             }
             clientHandlers.remove(this);
@@ -373,6 +389,7 @@ public class SocketInterface extends Thread {
             ControlFrame cf = cc.getControlFrame();
             String[] tokens = line.trim().split("\\s+");
             DisplayOverlay overlay;
+            SessionState session;
             if(tokens.length == 0) {
                 return;
             }
@@ -381,21 +398,22 @@ public class SocketInterface extends Thread {
                 case "add-score":
                     if(tokens.length == (2 + Score.getFields().size())) {
                         try {
-                            Score s = new Score();
+                            score = new Score();
                             List<String> fields = Config.getKeysInOriginalOrder("fields");
                             i = 2;
                             for(String field : fields) {
-                                s.setValue(field, Double.parseDouble(tokens[i]));
+                                score.setValue(field, Double.parseDouble(tokens[i]));
                                 i++;
                             }
-                            s.setCompleted(true);
+                            score.setCompleted(true);
                             Data.lock().writeLock().lock();
                             t = c.getTeamByID(Integer.parseInt(tokens[1]));
-                            t.addScore(s);
+                            t.addScore(score);
                             c.sort();
                             if(gui && cf != null) {
                                 cf.refreshDataView();
                             }
+                            send("OK");
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
@@ -418,6 +436,7 @@ public class SocketInterface extends Thread {
                             if(gui && cf != null) {
                                 cf.refreshDataView();
                             }
+                            send("OK");
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
@@ -438,6 +457,7 @@ public class SocketInterface extends Thread {
                         if(gui && cf != null) {
                             cf.refreshDataView();
                         }
+                        send("OK");
                     } catch(Exception e) {
                         Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                  e);
@@ -454,6 +474,7 @@ public class SocketInterface extends Thread {
                             if(gui && cf != null) {
                                 cf.refreshDataView();
                             }
+                            send("OK");
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
@@ -472,6 +493,7 @@ public class SocketInterface extends Thread {
                             if(gui && cf != null) {
                                 cf.refreshDataView();
                             }
+                            send("OK");
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
@@ -488,12 +510,17 @@ public class SocketInterface extends Thread {
                                     c.getState() != CompetitionState.POST_RUN) {
                                 send("ERROR not in RUN nor POST-RUN state");
                             } else {
-                                double value = Double.parseDouble(tokens[2]);
-                                if(gui && cf != null) {
-                                    cf.setCurrentScore(tokens[1], value);
+                                if(Score.getFields().containsKey(tokens[1])) {
+                                    double value = Double.parseDouble(tokens[2]);
+                                    if(gui && cf != null) {
+                                        cf.setCurrentScore(tokens[1], value);
+                                    }
+                                    session = cc.getCompetitionState().getSession();
+                                    session.modifyCurrentScore(tokens[1], value);
+                                    send("OK");
+                                } else {
+                                    send("ERROR invalid score field key");
                                 }
-                                SessionState session = cc.getCompetitionState().getSession();
-                                session.modifyCurrentScore(tokens[1], value);
                             }
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
@@ -505,8 +532,113 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "start-scoring-session":
-                    if(tokens.length == 4) {
-                        
+                    if(tokens.length == 5) {
+                        try {
+                            if(c.getState() != CompetitionState.IDLE) {
+                                send("ERROR competition is not in IDLE state");
+                            } else {
+                                int teamID = Integer.parseInt(tokens[1]);
+                                t = c.getTeamByID(teamID);
+                                if(t == null) {
+                                    send("ERROR invalid team ID");
+                                    break;
+                                }
+                                int attempts = Integer.parseInt(tokens[2]);
+                                int setupWindow = Integer.parseInt(tokens[3]);
+                                int runWindow = Integer.parseInt(tokens[4]);
+                                if(gui && cf != null) {
+                                    cf.setRunParameters(attempts, 
+                                                        setupWindow/1000, 
+                                                        runWindow/1000);
+                                    cf.setSelectedTeamID(teamID);
+                                } else {
+                                    c.newSession(t, attempts, setupWindow, runWindow);
+                                    if(timer != null) {
+                                        timer.stopTimer();
+                                    }
+                                    timer = new SessionTimer(c);
+                                    c.getSession().start();
+                                    timer.start();
+                                }
+                                c.setState(CompetitionState.SETUP);
+                                send("OK");
+                            }
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR " + e);
+                        }
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "end-scoring-session":
+                    if(c.getState() == CompetitionState.IDLE) {
+                        send("ERROR competition state is IDLE");
+                    } else {
+                        if(!gui && timer != null) {
+                            timer.stopTimer();
+                        }
+                        c.setState(CompetitionState.IDLE);
+                        send("OK");
+                    }
+                    break;
+                case "skip-setup":
+                    if(c.getState() == CompetitionState.SETUP) {
+                        c.setState(CompetitionState.RUN);
+                        send("OK");
+                    } else {
+                        send("ERROR not in SETUP state");
+                    }
+                    break;
+                case "commit-score":
+                    session = c.getSession();
+                    if(c.getState() < CompetitionState.RUN) {
+                        send("ERROR must be in RUN or POST-RUN state");
+                    } else if(session.getRunNumber() <= session.getMaxAttempts()) {
+                        if(gui && cf != null) {
+                            SwingUtilities.invokeLater(() -> {
+                                cf.commitScore();
+                            });
+                        } else {
+                            session.completeRun(true);
+                        }
+                        send("OK");
+                    } else {
+                        send("ERROR already have max number of attempts");
+                    }
+                    break;
+                case "discard-score":
+                    session = c.getSession();
+                    if(c.getState() < CompetitionState.RUN) {
+                        send("ERROR must be in RUN or POST-RUN state");
+                    } else if(session.getRunNumber() <= session.getMaxAttempts()) {
+                        if(gui && cf != null) {
+                            SwingUtilities.invokeLater(() -> {
+                                cf.discardScore();
+                            });
+                        } else {
+                            session.completeRun(false);
+                        }
+                        send("OK");
+                    } else {
+                        send("ERROR already have max number of attempts");
+                    }
+                    break;
+                case "add-time":
+                    if(tokens.length == 2) {
+                        try {
+                            if(c.getState() == CompetitionState.SETUP ||
+                                    c.getState() == CompetitionState.RUN) {
+                                c.getSession().addTimeSeconds(Long.parseLong(tokens[1]));
+                            } else {
+                                send("ERROR not in SETUP nor RUN mode");
+                            }
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR");
+                        }
                     } else {
                         send("ERROR");
                     }

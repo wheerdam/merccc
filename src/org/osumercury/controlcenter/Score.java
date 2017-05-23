@@ -237,6 +237,15 @@ public class Score {
     
     public Score() {
         values = new HashMap();
+        
+        if(!Score.initialized()) {
+            return;
+        }
+        
+        // fill in with default values
+        for(String key : Config.getKeysInOriginalOrder("fields")) {
+            values.put(key, getDefaultValue(key));
+        }
     }
     
     public void setValue(String key, double value) {

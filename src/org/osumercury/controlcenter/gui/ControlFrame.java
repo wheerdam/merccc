@@ -272,8 +272,7 @@ public class ControlFrame extends JFrame {
         });
         
         btnStartTeamSession.addActionListener((ActionEvent e) -> {
-            if(competition.getState() == CompetitionState.IDLE) {
-                btnStartTeamSession.setText("END SCORING SESSION");
+            if(competition.getState() == CompetitionState.IDLE) {                
                 int savedAttempts = maxAttempts;
                 int savedSetup = setupDuration;
                 int savedWindow = windowDuration;
@@ -289,8 +288,7 @@ public class ControlFrame extends JFrame {
                     txtSetupDuration.setText("" + setupDuration);
                     txtWindowDuration.setText("" + windowDuration);
                 }
-                competition.setState(CompetitionState.SETUP);
-                btnStartTeamSession.setForeground(Color.RED);
+                competition.setState(CompetitionState.SETUP);                
             } else {
                 // warn first!
                 if(!confirmYesNo("This will discard the current run and end"
@@ -299,9 +297,7 @@ public class ControlFrame extends JFrame {
                     return;
                 }
 
-                competition.setState(CompetitionState.IDLE);
-                btnStartTeamSession.setText("START SCORING SESSION");
-                btnStartTeamSession.setForeground(Color.BLACK);
+                competition.setState(CompetitionState.IDLE);                
             }
         });
 
@@ -985,6 +981,8 @@ public class ControlFrame extends JFrame {
                 paneRunTimerControl.setVisible(false);
                 tglRedFlag.setSelected(false);
                 competition.setRedFlag(false);
+                btnStartTeamSession.setText("START SCORING SESSION");
+                btnStartTeamSession.setForeground(Color.BLACK);
                 triggerEvent(UserEvent.STATE_CHANGE_IDLE);
                 break;
 
@@ -1000,6 +998,8 @@ public class ControlFrame extends JFrame {
                 btnCommitScore.setEnabled(false);
                 btnDiscardScore.setEnabled(false);
                 btnAddTime.setEnabled(true);
+                btnStartTeamSession.setText("END SCORING SESSION");
+                btnStartTeamSession.setForeground(Color.RED);
                 
                 if(timer != null) {
                     timer.stopTimer();
@@ -1096,6 +1096,23 @@ public class ControlFrame extends JFrame {
         return Integer.parseInt(
                 ((String)cmbTeamSelect.getSelectedItem()).split(":")[0]
         );
+    }
+    
+    public void setSelectedTeamID(int teamID) {
+        for(int i = 0; i < cmbTeamSelect.getItemCount(); i++) {
+            String item = (String) cmbTeamSelect.getItemAt(i);
+            int id = Integer.parseInt(item.split(":")[0]);
+            if(id == teamID) {
+                cmbTeamSelect.setSelectedIndex(i);
+                break;
+            }
+        }
+    }
+    
+    public void setRunParameters(int attempts, int setup, int window) {
+        maxAttempts = attempts;
+        setupDuration = setup;
+        windowDuration = window;
     }
     
     public boolean populateScore(Score s, JTextField[] fields) {
@@ -1198,19 +1215,18 @@ public class ControlFrame extends JFrame {
         d.setVisible(true);
     }
 
-    private void commitScore() {
+    public void commitScore() {
         SessionState session = competition.getSession();
-        // populate activeScore fields here
+        // populate session's current score from score fields' values
         if(!populateScore(null, txtScoreFields)) {
             return;
         }        
         
         if(competition.getState() == CompetitionState.RUN) {
             if(session.getRunNumber() <= maxAttempts) {
-                session.commitScore();
-                triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber());
-                if(session.getRunNumber() < maxAttempts) {
-                    session.advance();
+                session.completeRun(true);
+                triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber()-1);
+                if(session.getRunNumber() <= maxAttempts) {
                     newScore();
                 } else { // we've reached maximum attempts, end session
                     competition.setState(CompetitionState.POST_RUN);
@@ -1220,8 +1236,8 @@ public class ControlFrame extends JFrame {
             }
         } else if(competition.getState() == CompetitionState.POST_RUN) {
             if(session.getRunNumber() <= maxAttempts) {
-                session.commitScore();
-                triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber());
+                session.completeRun(true);
+                triggerEvent(UserEvent.SESSION_ATTEMPT_COMMITTED, session.getRunNumber()-1);
             }
             btnCommitScore.setEnabled(false);
             btnDiscardScore.setEnabled(false);
@@ -1230,23 +1246,22 @@ public class ControlFrame extends JFrame {
         updateDataView();     
     }
     
-    private void discardScore() {
+    public void discardScore() {
         if(competition.getState() == CompetitionState.RUN) {
-            triggerEvent(UserEvent.SESSION_ATTEMPT_DISCARDED, 
-                        competition.getSession().getRunNumber());
-            if(competition.getSession().getRunNumber() < maxAttempts) {
-                competition.getSession().getActiveScoreList().add(null);
-                competition.getSession().advance();
+            competition.getSession().completeRun(false);
+            if(competition.getSession().getRunNumber() <= maxAttempts) {
                 newScore();
             } else {
                 competition.setState(CompetitionState.POST_RUN);
                 btnCommitScore.setEnabled(false);
                 btnDiscardScore.setEnabled(false);
             }
+            triggerEvent(UserEvent.SESSION_ATTEMPT_DISCARDED, 
+                         competition.getSession().getRunNumber()-1);
         }
     }
     
-    private void newScore() {
+    public void newScore() {
         txtScoreFields = new JTextField[Score.getFields().size()];
         populateScoreControl(paneRunScoringControl, txtScoreFields, false);        
         cc.getDisplayFrame().newScore();

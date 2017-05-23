@@ -404,6 +404,7 @@ public class ControlCenter {
             }
         } else {
             Log.d(0, "Headless mode");
+            SoundPlayer.setEnabled(false);
         }
         
         if(port > 0 && port <= 65535) {

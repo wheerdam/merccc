@@ -370,7 +370,6 @@ public class DisplayClient {
             send("monitor");
             // flush response
             r.readLine();
-            Score score = new Score();
             Team t;
             while((d = r.readLine()) != null) {
                 Log.d(0, d);
@@ -401,14 +400,13 @@ public class DisplayClient {
                     case "STATE_CHANGE_RUN":
                         c.setState(CompetitionState.RUN);
                         c.getSession().endSetup();
-                        score = new Score();
                         display.newScore();
                         t = c.getSession().getActiveTeam();
                         display.setBestScore(t.getBestScore());
                         break;
                     case "SCORE_CHANGE":
                         tokens = tokens[1].split(" ");
-                        score.setValue(tokens[0], Double.parseDouble(tokens[2]));
+                        c.getSession().modifyCurrentScore(tokens[0], Double.parseDouble(tokens[2]));
                         display.setScore(tokens[0],
                                 Integer.parseInt(tokens[1]), 
                                 Double.parseDouble(tokens[2]));
@@ -429,19 +427,15 @@ public class DisplayClient {
                         c.getSession().addTimeSeconds(Long.parseLong(tokens[1]));
                         break;
                     case "SESSION_ATTEMPT_COMMITTED":
-                        score.setCompleted(true);
                         t = c.getSession().getActiveTeam();
-                        t.addScore(score);
+                        c.getSession().completeRun(true);
                         c.sort();
                         display.setClassificationData(c.getSortedFinishedTeams());
-                        c.getSession().advance();
-                        score = new Score();
                         display.newScore();
                         display.setBestScore(t.getBestScore());
                         break;
                     case "SESSION_ATTEMPT_DISCARDED":
-                        c.getSession().advance();
-                        score = new Score();
+                        c.getSession().completeRun(false);
                         display.newScore();
                         break;
                     case "STATE_CHANGE_POSTRUN":

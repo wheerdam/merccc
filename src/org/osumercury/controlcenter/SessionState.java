@@ -120,15 +120,28 @@ public class SessionState {
         startTimer(); // start timer for SETUP
     }
     
-    public synchronized void advance() {
+    public synchronized void completeRun(boolean commit) {
         if(runs > maxAttempts) {
-            Log.err("SessionState.advance: extra call to advance\n" + 
+            Log.err("SessionState.completeRun: extra call to completeRun\n" + 
                     " - attempts: " + runs);
             return;
         } else if(runs == 0) {
-            Log.err("SessionState.advance: unable to advance, " + 
+            Log.err("SessionState.completeRun: unable to advance, " + 
                     "still in setup phase");
             return;
+        }
+        // commit score to database
+        try {
+            Data.lock().writeLock().lock();
+            if(commit) {
+                currentScore.setCompleted(true);            
+                activeScoreList.add(currentScore);
+                activeTeam.addScore(currentScore);
+            } else {
+                activeScoreList.add(null);
+            }
+        } finally {
+            Data.lock().writeLock().unlock();
         }
         currentScore = new Score();
         runs++;
@@ -141,19 +154,6 @@ public class SessionState {
             runs++;
         } else {
             Log.err("SessionState.endSetup: we're not in setup mode!");
-        }
-    }
-    
-    public synchronized void commitScore() {
-        currentScore.setCompleted(true);
-        
-        // commit score to database
-        try {
-            Data.lock().writeLock().lock();
-            activeScoreList.add(currentScore);
-            activeTeam.addScore(currentScore);
-        } finally {
-            Data.lock().writeLock().unlock();
         }
     }
     
