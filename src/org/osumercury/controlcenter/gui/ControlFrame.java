@@ -463,6 +463,7 @@ public class ControlFrame extends JFrame {
         btnDataClear.addActionListener((ActionEvent e) -> {
             if(confirmYesNo("This will delete ALL recorded scores. ARE YOU SURE?!",
                     "Delete All Data")) {
+                Data.clearData(competition);
                 updateDataView();
             }
         });
