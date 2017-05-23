@@ -394,7 +394,7 @@ public class SocketInterface extends Thread {
                             t.addScore(s);
                             c.sort();
                             if(gui && cf != null) {
-                                cf.updateDataView();
+                                cf.refreshDataView();
                             }
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
@@ -416,7 +416,7 @@ public class SocketInterface extends Thread {
                             c.getTeamByID(teamIndex).removeScore(scoreIndex);
                             c.sort();
                             if(gui && cf != null) {
-                                cf.updateDataView();
+                                cf.refreshDataView();
                             }
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
@@ -436,7 +436,7 @@ public class SocketInterface extends Thread {
                             team.getScores().clear();
                         }
                         if(gui && cf != null) {
-                            cf.updateDataView();
+                            cf.refreshDataView();
                         }
                     } catch(Exception e) {
                         Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
@@ -452,7 +452,7 @@ public class SocketInterface extends Thread {
                             path = new File(tokens[1]);
                             Data.saveAsCSV(c, path.getCanonicalPath());
                             if(gui && cf != null) {
-                                cf.updateDataView();
+                                cf.refreshDataView();
                             }
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
@@ -470,7 +470,7 @@ public class SocketInterface extends Thread {
                             Data.loadCSV(c, path.getCanonicalPath());
                             c.sort();
                             if(gui && cf != null) {
-                                cf.updateDataView();
+                                cf.refreshDataView();
                             }
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +

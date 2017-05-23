@@ -1270,13 +1270,19 @@ public class ControlFrame extends JFrame {
         }
     }
     
-    public void updateDataView() {
+    private void updateDataView() {
         tblData.setModel(Data.getTableModel(competition));
         tblData.validate();
         tblClassification.setModel(Data.getResultsTableModel(competition));
         tblClassification.validate();
         competition.sort();
         display.setClassificationData(competition.getSortedFinishedTeams());          
+    }
+    
+    public void refreshDataView() {
+        SwingUtilities.invokeLater(() -> {
+            updateDataView();
+        });
     }
     
     private void outputDisplayToScreen() {                

@@ -391,7 +391,7 @@ public class ControlCenter {
                 SwingUtilities.invokeLater(() -> {
                     control.init();          
                     display.init();
-                    control.updateDataView();     
+                    control.refreshDataView();
                     displayOptions.init();
                     refresh.start();
                 });               
