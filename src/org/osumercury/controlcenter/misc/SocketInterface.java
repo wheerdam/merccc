@@ -531,6 +531,25 @@ public class SocketInterface extends Thread {
                         send("ERROR");
                     }
                     break;
+                case "get-current-score":
+                    try {
+                        if(c.getState() != CompetitionState.RUN && 
+                                c.getState() != CompetitionState.POST_RUN) {
+                            send("ERROR not in RUN nor POST-RUN state");
+                        } else {
+                            String ret = "CURRENT RUN=" + c.getSession().getRunNumber() + " ";
+                            for(String key : Config.getKeysInOriginalOrder("fields")) {
+                                ret += key + "=";
+                                ret += c.getSession().getCurrentScoreValue(key) + " ";
+                            }
+                            send(ret);
+                        }
+                    } catch(Exception e) {
+                        Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                    e);
+                        send("ERROR " + e);
+                    }
+                    break;
                 case "start-scoring-session":
                     if(tokens.length == 5) {
                         try {

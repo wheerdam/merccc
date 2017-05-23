@@ -165,6 +165,15 @@ public class SessionState {
         }
     }
     
+    public synchronized double getCurrentScoreValue(String key) {
+        if(currentScore == null) {
+            Log.err("SessionState.modifyCurrentScore: no current score available");
+            return Double.NaN;
+        } else {
+            return currentScore.getValue(key);
+        }
+    }
+    
     public synchronized int getRunNumber() {
         return runs;
     }
