@@ -654,6 +654,9 @@ public class SocketInterface extends Thread {
                         } else {
                             session.completeRun(true);
                         }
+                        if(session.isFinished()) {
+                            c.setState(CompetitionState.POST_RUN);
+                        }
                         send("OK");
                     } else {
                         send("ERROR already have max number of attempts");
@@ -670,6 +673,9 @@ public class SocketInterface extends Thread {
                             });
                         } else {
                             session.completeRun(false);
+                        }
+                        if(session.isFinished()) {
+                            c.setState(CompetitionState.POST_RUN);
                         }
                         send("OK");
                     } else {

@@ -21,7 +21,6 @@ import java.awt.event.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.util.ArrayList;
 import org.osumercury.controlcenter.*;
 
 /**
