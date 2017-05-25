@@ -893,7 +893,7 @@ public class SocketInterface extends Thread {
             }
             
             try {
-                w.println(str);
+                w.print(str + "\n");
                 w.flush();
             } catch(Exception e) {      
                 System.err.println("SocketInterface$ClientHandler.send: " +
