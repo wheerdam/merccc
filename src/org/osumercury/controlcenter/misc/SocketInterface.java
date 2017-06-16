@@ -688,6 +688,7 @@ public class SocketInterface extends Thread {
                             if(c.getState() == CompetitionState.SETUP ||
                                     c.getState() == CompetitionState.RUN) {
                                 c.getSession().addTimeSeconds(Long.parseLong(tokens[1]));
+                                send("OK");
                             } else {
                                 send("ERROR not in SETUP nor RUN mode");
                             }
@@ -705,6 +706,7 @@ public class SocketInterface extends Thread {
                         try {
                             int displayMode = Integer.parseInt(tokens[1]);
                             ControlCenter.triggerEvent(UserEvent.DISPLAY_MODE_CHANGE, displayMode);
+                            send("OK");
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
@@ -719,6 +721,7 @@ public class SocketInterface extends Thread {
                         try {
                             int displayRank = Integer.parseInt(tokens[1]);
                             ControlCenter.triggerEvent(UserEvent.DISPLAY_RANK_START, displayRank);
+                            send("OK");
                         } catch(Exception e) {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);

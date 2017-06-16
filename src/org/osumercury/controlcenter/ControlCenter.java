@@ -326,11 +326,16 @@ public class ControlCenter {
             Data.loadCSV(competition, dataFile);
         }
         
+        String dirParent = Config.getConfigFileParent();
+        String resourceDir = (dirParent != null ? dirParent + File.separatorChar : "") + 
+                Config.getValue("system", "resourcedir");
+        
+        if(resourceDir != null) {
+            resourcePath = new File(resourceDir);
+        }
+        
         // graphical UI
         if(!headless) {
-            String dirParent = Config.getConfigFileParent();
-            String resourceDir = (dirParent != null ? dirParent + File.separatorChar : "") + 
-                    Config.getValue("system", "resourcedir");
             Log.d(0, "Checking " + resourceDir);
             if(!fetchConfig && (resourceDir == null || !(new File(resourceDir)).exists() ||
                     !(new File(resourceDir).isDirectory()))) {
@@ -344,9 +349,7 @@ public class ControlCenter {
                     resourceDir = fileChooser.getSelectedFile().getAbsolutePath();
                 }
             }
-            if(resourceDir != null) {
-                resourcePath = new File(resourceDir);
-            }
+            
             Assets.loadInternalAssets();
             Assets.load(resourceDir);
             if(!noTheme) {
