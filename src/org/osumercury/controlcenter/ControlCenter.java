@@ -347,6 +347,7 @@ public class ControlCenter {
                 fileChooser.showOpenDialog(null);
                 if(fileChooser.getSelectedFile() != null) {
                     resourceDir = fileChooser.getSelectedFile().getAbsolutePath();
+                    resourcePath = new File(resourceDir);
                 }
             }
             
