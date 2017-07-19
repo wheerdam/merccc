@@ -121,7 +121,7 @@ public class CompetitionState {
         teamsFinished.sort((Team a, Team b) -> (int) (a.compareTo(b)));
         
         // we sort DNF teams by a tiebreaker value, whatever that is
-        teamsDNF.sort((Team a, Team b) -> (int) (b.getTiebreaker() - a.getTiebreaker()));
+        teamsDNF.sort((Team a, Team b) -> a.compareTiebreaker(b));
         
         sorted = true;
         Log.d(3, "CompetitionState.sort: sorting done");

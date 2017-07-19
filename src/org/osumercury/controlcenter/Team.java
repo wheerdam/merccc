@@ -27,7 +27,7 @@ public class Team implements Comparable {
     private final String teamName;
     private final String teamInstitution;
     private final ArrayList<Score> scores;
-    private int tiebreaker;    
+    private double tiebreaker;    
     
     public static final int SORT_DESCENDING = 0;
     public static final int SORT_ASCENDING = 1;
@@ -116,11 +116,11 @@ public class Team implements Comparable {
         return scores;
     }
     
-    public void setTiebreaker(int t) {
+    public void setTiebreaker(double t) {
         this.tiebreaker = t;
     }
     
-    public int getTiebreaker() {
+    public double getTiebreaker() {
         return tiebreaker;
     }
     
@@ -138,6 +138,17 @@ public class Team implements Comparable {
             default:
                 return (int) (t.getBestScore().getScore()*SORT_COMPARE_PRECISION - 
                         this.getBestScore().getScore()*SORT_COMPARE_PRECISION);
+        }
+    }
+    
+    public int compareTiebreaker(Team t) {
+        switch(SORT_ORDER) {
+            case SORT_ASCENDING:
+                return (int) (this.getTiebreaker()*SORT_COMPARE_PRECISION - 
+                        t.getTiebreaker()*SORT_COMPARE_PRECISION);
+            default:
+                return (int) (t.getTiebreaker()*SORT_COMPARE_PRECISION - 
+                        this.getTiebreaker()*SORT_COMPARE_PRECISION);
         }
     }
 }

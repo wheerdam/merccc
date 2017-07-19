@@ -109,6 +109,7 @@ public class ControlFrame extends JFrame {
     /** CLASSIFICATION UI ELEMENTS */
     private JButton btnGenerateReport;
     private JButton btnSetTiebreaker;
+    private JButton btnSetActiveScoreAsTiebreaker;
     private JTable tblClassification;    
     
 //</editor-fold>
@@ -496,9 +497,12 @@ public class ControlFrame extends JFrame {
         JPanel paneClassificationTop = new JPanel();
         paneClassificationTop.setPreferredSize(new Dimension(700, 50));
         btnGenerateReport = new JButton("Generate Report");
-        btnSetTiebreaker = new JButton("Set Tiebreaker");
+        btnSetTiebreaker = new JButton("Set DNF Tiebreaker");
+        btnSetActiveScoreAsTiebreaker = new JButton("Set Active Score As DNF Tiebreaker");
+        btnSetActiveScoreAsTiebreaker.setEnabled(false);
         paneClassificationTop.add(btnGenerateReport);
         paneClassificationTop.add(btnSetTiebreaker);
+        paneClassificationTop.add(btnSetActiveScoreAsTiebreaker);
 
         btnGenerateReport.addActionListener((ActionEvent e) -> {
             competition.sort();
@@ -528,15 +532,26 @@ public class ControlFrame extends JFrame {
             Team t = competition.getTeamByID(teamID);
             NumberInputDialog dialog = new NumberInputDialog(
                     "Set Tiebreaker Value for " +
-                            t.getName(), t.getTiebreaker(), NumberInputDialog.INTEGER);
+                            t.getName(), t.getTiebreaker(), NumberInputDialog.FLOAT);
             dialog.setModal(true);
             dialog.setLocationRelativeTo(this);
             dialog.setVisible(true);
             if(dialog.isApproved()) {
-                competition.getTeamByID(teamID).setTiebreaker(dialog.getValueInt());
+                competition.getTeamByID(teamID).setTiebreaker(dialog.getValueDouble());
             }
             competition.sort();
             tblClassification.setModel(Data.getResultsTableModel(competition));
+        });
+        
+        btnSetActiveScoreAsTiebreaker.addActionListener((ActionEvent e) -> {
+            if(competition.getState() < CompetitionState.RUN) {
+                return;
+            }
+            Team t = competition.getSession().getActiveTeam();
+            Score score = new Score();
+            populateScore(score, txtScoreFields);
+            t.setTiebreaker(score.getScore());
+            refreshDataView();
         });
 
         tblClassification = new JTable(Data.getResultsTableModel(competition));
@@ -957,6 +972,7 @@ public class ControlFrame extends JFrame {
                 competition.setRedFlag(false);
                 btnStartTeamSession.setText("START SCORING SESSION");
                 btnStartTeamSession.setForeground(Color.BLACK);
+                btnSetActiveScoreAsTiebreaker.setEnabled(false);
                 break;
 
             case CompetitionState.SETUP:   
@@ -993,6 +1009,7 @@ public class ControlFrame extends JFrame {
                 btnCommitScore.setEnabled(true);
                 btnDiscardScore.setEnabled(true);
                 btnPause.setText("PAUSE");
+                btnSetActiveScoreAsTiebreaker.setEnabled(true);
                 
                 // re-init and enable scoring controls                
                 paneRunScoringControlScroll.setVisible(true);

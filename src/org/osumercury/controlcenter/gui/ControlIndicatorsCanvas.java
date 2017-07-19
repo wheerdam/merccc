@@ -44,6 +44,8 @@ public class ControlIndicatorsCanvas extends JPanel {
     private int smallW;
     private int yOffset;
     private ArrayList<Double> scores;
+    private Score currentScore;
+    private double currentTotalScore;
     public static Color BG_COLOR = Color.BLACK;
     
     public static final int COLON = 10;
@@ -61,6 +63,8 @@ public class ControlIndicatorsCanvas extends JPanel {
             switch(ID) {
                 case UserEvent.STATE_CHANGE_RUN:
                     scores = new ArrayList<>();
+                    currentScore = new Score();
+                    currentTotalScore = currentScore.getScore();
                     break;
                 case UserEvent.SESSION_ATTEMPT_COMMITTED:
                     scores.clear();
@@ -71,6 +75,16 @@ public class ControlIndicatorsCanvas extends JPanel {
                             scores.add(null);
                         }
                     }
+                case UserEvent.SESSION_ATTEMPT_DISCARDED:
+                    currentScore = new Score();
+                    currentTotalScore = currentScore.getScore();
+            }
+        });
+        
+        ControlCenter.addScoreChangedHook((key, scoredID, value) -> {
+            if(currentScore != null) {
+                currentScore.setValue(key, Double.parseDouble(value));
+                currentTotalScore = currentScore.getScore();
             }
         });
     }
@@ -169,6 +183,14 @@ public class ControlIndicatorsCanvas extends JPanel {
                 g.drawImage(session.getMinutesLeft() < 2 ? scaledRedDigits[COLON] : scaledBlueDigits[COLON],
                     centeredX(scaledRedDigits[COLON].getWidth(null)), yOffset-digitH, this);
                 yOffset += 12;
+                
+                str = ("ACTIVE SCORE");
+                y = g.getFontMetrics().getHeight();
+                g.drawString(str, centeredX(g.getFontMetrics().stringWidth(str)), yOffset+y);
+                yOffset += y+9;
+                drawScore(g, currentTotalScore);
+                yOffset += smallH + 8;
+                
                 str = ("SCORES");
                 y = g.getFontMetrics().getHeight();                
                 g.drawString(str, centeredX(g.getFontMetrics().stringWidth(str)), yOffset+y);
@@ -183,28 +205,8 @@ public class ControlIndicatorsCanvas extends JPanel {
                     }
                     g.fillRect(15, yOffset, 8, smallH);
                     Double s = i < scores.size() ? scores.get(i) : null;
-                    int score;
                     if(s != null) {
-                        score = (int) (s*100);
-                        if(score > 99999 | score < 0) {
-                            drawDashes(g);
-                        } else {
-                            if(score / 10000 != 0) {
-                                g.drawImage(smallDigits[score / 10000 % 10], 28, yOffset, this);
-                            } else {
-                                g.drawImage(smallDigits[13], 28, yOffset, this);
-                            }
-                             
-                            if((score / 10000 != 0) || score / 1000 % 10 != 0) {
-                                g.drawImage(smallDigits[score / 1000 % 10], 28+smallW, yOffset, this);
-                            } else {
-                                g.drawImage(smallDigits[13], 28+smallW, yOffset, this);
-                            }
-                            g.drawImage(smallDigits[score / 100 % 10], 28+2*smallW, yOffset, this);
-                            g.drawImage(smallDigits[PERIOD], 28+3*smallW, yOffset, this);
-                            g.drawImage(smallDigits[score / 10 % 10], 28+3*smallW+smallDigits[11].getWidth(), yOffset, this);
-                            g.drawImage(smallDigits[score % 10], 28+4*smallW+smallDigits[11].getWidth(), yOffset, this);
-                        }
+                        drawScore(g, s);
                     } else if(i < session.getRunNumber()-1) {
                         drawDashes(g);
                     }
@@ -214,7 +216,7 @@ public class ControlIndicatorsCanvas extends JPanel {
                 break;
                 
             case CompetitionState.POST_RUN:
-                str = "OUTTA TIME";
+                str = "TIME LEFT";
                 yOffset += g.getFontMetrics().getHeight();                               
                 g.drawString(str, centeredX(g.getFontMetrics().stringWidth(str)), yOffset);
                 yOffset += 8;
@@ -222,6 +224,14 @@ public class ControlIndicatorsCanvas extends JPanel {
                 g.drawImage(scaledRedDigits[COLON],
                     centeredX(scaledRedDigits[COLON].getWidth(null)), yOffset-digitH, this);
                 yOffset += 12;
+                
+                str = ("ACTIVE SCORE");
+                y = g.getFontMetrics().getHeight();
+                g.drawString(str, centeredX(g.getFontMetrics().stringWidth(str)), yOffset+y);
+                yOffset += y+9;
+                drawScore(g, currentTotalScore);
+                yOffset += smallH + 8;
+                
                 str = ("SCORES");
                 y = g.getFontMetrics().getHeight();                
                 g.drawString(str, centeredX(g.getFontMetrics().stringWidth(str)), yOffset+y);
@@ -236,27 +246,8 @@ public class ControlIndicatorsCanvas extends JPanel {
                     }
                     g.fillRect(15, yOffset, 8, smallH);
                     Double s = i < scores.size() ? scores.get(i) : null;
-                    int score;
                     if(s != null) {
-                        score = (int) (s*100);
-                        if(score > 99999 | score < 0) {
-                            drawDashes(g);
-                        } else {
-                            if(score / 10000 != 0) {
-                                g.drawImage(smallDigits[score / 10000 % 10], 28, yOffset, this);
-                            } else {
-                                g.drawImage(smallDigits[13], 28, yOffset, this);
-                            } 
-                            if((score / 10000 != 0) || score / 1000 % 10 != 0) {
-                                g.drawImage(smallDigits[score / 1000 % 10], 28+smallW, yOffset, this);
-                            } else {
-                                g.drawImage(smallDigits[13], 28, yOffset, this);
-                            }
-                            g.drawImage(smallDigits[score / 100 % 10], 28+2*smallW, yOffset, this);
-                            g.drawImage(smallDigits[PERIOD], 28+3*smallW, yOffset, this);
-                            g.drawImage(smallDigits[score / 10 % 10], 28+3*smallW+smallDigits[11].getWidth(), yOffset, this);
-                            g.drawImage(smallDigits[score % 10], 28+4*smallW+smallDigits[11].getWidth(), yOffset, this);
-                        }
+                        drawScore(g, s);
                     } else {
                         drawDashes(g);
                     }
@@ -299,6 +290,28 @@ public class ControlIndicatorsCanvas extends JPanel {
                 W(0.5)+10+digitW, yOffset, this);        
         
         yOffset += digitH;
+    }
+    
+    private void drawScore(Graphics2D g, double s) {
+        int score = (int) (s*100);
+        if(score > 99999 | score < 0) {
+            drawDashes(g);
+        } else {
+            if(score / 10000 != 0) {
+                g.drawImage(smallDigits[score / 10000 % 10], 28, yOffset, this);
+            } else {
+                g.drawImage(smallDigits[13], 28, yOffset, this);
+            } 
+            if((score / 10000 != 0) || score / 1000 % 10 != 0) {
+                g.drawImage(smallDigits[score / 1000 % 10], 28+smallW, yOffset, this);
+            } else {
+                g.drawImage(smallDigits[13], 28+smallW, yOffset, this);
+            }
+            g.drawImage(smallDigits[score / 100 % 10], 28+2*smallW, yOffset, this);
+            g.drawImage(smallDigits[PERIOD], 28+3*smallW, yOffset, this);
+            g.drawImage(smallDigits[score / 10 % 10], 28+3*smallW+smallDigits[11].getWidth(), yOffset, this);
+            g.drawImage(smallDigits[score % 10], 28+4*smallW+smallDigits[11].getWidth(), yOffset, this);
+        }
     }
     
     private int W(double r) {

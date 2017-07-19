@@ -148,7 +148,7 @@ public class Data {
                         for(String t : entries) {
                             String[] pair = t.trim().split("-");
                             int teamID = Integer.parseInt(pair[0]);
-                            int tiebreaker = Integer.parseInt(pair[1]);
+                            double tiebreaker = Double.parseDouble(pair[1]);
                             Team team = c.getTeamByID(teamID);
                             lock.writeLock().lock();
                             try {       
@@ -280,7 +280,7 @@ public class Data {
         }
         boolean first = true;
         int prevRank = -1;
-        int prevTiebreaker = -1; 
+        double prevTiebreaker = -1; 
         lock.readLock().lock();
         try {
             for(Team t : c.getDNFTeams()) {

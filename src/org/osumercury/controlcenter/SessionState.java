@@ -174,10 +174,19 @@ public class SessionState {
     
     public synchronized double getCurrentScoreValue(String key) {
         if(currentScore == null) {
-            Log.err("SessionState.modifyCurrentScore: no current score available");
+            Log.err("SessionState.getCurrentScoreValue: no current score available");
             return Double.NaN;
         } else {
             return currentScore.getValue(key);
+        }
+    }
+    
+    public synchronized double getCurrentTotalScore() {
+        if(currentScore == null) {
+            Log.err("SessionState.getCurrentTotalScore: no current score available");
+            return Double.NaN;
+        } else {
+            return currentScore.getScore();
         }
     }
     
