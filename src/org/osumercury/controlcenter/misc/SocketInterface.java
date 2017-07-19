@@ -456,6 +456,7 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "save-data":
+                    tokens = line.trim().split("\\s+", 2);
                     if(tokens.length == 2) {
                         try {
                             path = new File(tokens[1]);
@@ -474,6 +475,7 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "load-data":
+                    tokens = line.trim().split("\\s+", 2);
                     if(tokens.length == 2) {
                         try {
                             path = new File(tokens[1]);
@@ -735,6 +737,7 @@ public class SocketInterface extends Thread {
                     send("OK " + System.getProperty("user.dir"));
                     break;
                 case "change-directory":
+                    tokens = line.trim().split("\\s+", 2);
                     if(tokens.length == 2) {
                         try {
                             path = (new File(tokens[1])).getCanonicalFile();
@@ -755,18 +758,19 @@ public class SocketInterface extends Thread {
                     }
                     break;
                 case "add-overlay-file":
+                    tokens = line.trim().split("\\s+", 8);
                     if(gui && tokens.length == 8) {
                         try {
                             float xfloat = Float.parseFloat(tokens[2]);
                             float yfloat = Float.parseFloat(tokens[3]);
-                            path = new File(tokens[4]);
+                            path = new File(tokens[7]);
                             Log.d(0, "loading '" + path.getCanonicalPath() + "'");
                             BufferedImage bImg = ImageIO.read(path.getCanonicalFile());
                             overlay = new DisplayOverlay(
                                         bImg, xfloat, yfloat,
+                                        tokens[4].equals("yes"),
                                         tokens[5].equals("yes"),
-                                        tokens[6].equals("yes"),
-                                        tokens[7].equals("yes")
+                                        tokens[6].equals("yes")
                                 );
                             cc.getDisplayFrame().addOverlay(tokens[1], overlay);
                             send("OK");
@@ -781,12 +785,12 @@ public class SocketInterface extends Thread {
                     break;
                 case "add-overlay":
                     // overlay command format:
-                    // add-overlay name xfloat yfloat length-bytes logo runstate classification
+                    // add-overlay name xfloat yfloat logo runstate classification length-bytes
                     if(gui && tokens.length == 8) {
                         try {
                             float xfloat = Float.parseFloat(tokens[2]);
                             float yfloat = Float.parseFloat(tokens[3]);
-                            int len = Integer.parseInt(tokens[4]);
+                            int len = Integer.parseInt(tokens[7]);
                             if(len > 64 * 1024 * 1024) {
                                 // image is too big
                                 return;
@@ -807,9 +811,9 @@ public class SocketInterface extends Thread {
                             BufferedImage bImg = ImageIO.read(imgStream);
                             overlay = new DisplayOverlay(
                                     bImg, xfloat, yfloat,
+                                    tokens[4].equals("yes"),
                                     tokens[5].equals("yes"),
-                                    tokens[6].equals("yes"),
-                                    tokens[7].equals("yes")
+                                    tokens[6].equals("yes")
                             );
                             cc.getDisplayFrame().addOverlay(tokens[1], overlay);
                             send("OK");

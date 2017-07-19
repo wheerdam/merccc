@@ -1400,7 +1400,7 @@ public class ControlFrame extends JFrame {
                 curVal--;
             }
             target.setText("" + curVal);
-            
+            competition.getSession().modifyCurrentScore(key, curVal);
             ControlCenter.triggerScoreChangeEvent(key, id, String.valueOf(curVal));
         }
     }
@@ -1451,8 +1451,8 @@ public class ControlFrame extends JFrame {
                 }
                 value = dialog.getValueDouble();
             }
-            
             target.setText("" + value);
+            competition.getSession().modifyCurrentScore(key, value);
             ControlCenter.triggerScoreChangeEvent(key, id, String.valueOf(value));
         }
     }
