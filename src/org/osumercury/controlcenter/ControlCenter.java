@@ -315,7 +315,10 @@ public class ControlCenter {
                 Config.getValue("test", "__RESULT")
         );
         try {
-            competition = new CompetitionState(Config.getSectionAsMap("teams"));
+            competition = new CompetitionState(Config.getSectionAsMap("teams"),
+                    Config.getKeysInOriginalOrder("teams"),
+                    Config.getValue("formula", "champion_criteria"),
+                    Config.getValue("formula", "classification_criteria"));
         } catch(Exception e) {
             Log.fatal(3, "Failed to initialize competition state.\n" + 
                     "This is most likely caused by an invalid configuration file.\n" +

@@ -109,7 +109,8 @@ public class ControlFrame extends JFrame {
     /** CLASSIFICATION UI ELEMENTS */
     private JButton btnGenerateReport;
     private JButton btnSetTiebreaker;
-    private JButton btnSetActiveScoreAsTiebreaker;
+    private JButton btnClearTiebreaker;
+    private JButton btnSetFlags;
     private JTable tblClassification;    
     
 //</editor-fold>
@@ -498,11 +499,12 @@ public class ControlFrame extends JFrame {
         paneClassificationTop.setPreferredSize(new Dimension(700, 50));
         btnGenerateReport = new JButton("Generate Report");
         btnSetTiebreaker = new JButton("Set DNF Tiebreaker");
-        btnSetActiveScoreAsTiebreaker = new JButton("Set Active Score As DNF Tiebreaker");
-        btnSetActiveScoreAsTiebreaker.setEnabled(false);
+        btnClearTiebreaker = new JButton("Clear DNF Tiebreaker");
+        btnSetFlags = new JButton("Set Flags");
         paneClassificationTop.add(btnGenerateReport);
         paneClassificationTop.add(btnSetTiebreaker);
-        paneClassificationTop.add(btnSetActiveScoreAsTiebreaker);
+        paneClassificationTop.add(btnClearTiebreaker);
+        paneClassificationTop.add(btnSetFlags);
 
         btnGenerateReport.addActionListener((ActionEvent e) -> {
             competition.sort();
@@ -537,21 +539,47 @@ public class ControlFrame extends JFrame {
             dialog.setLocationRelativeTo(this);
             dialog.setVisible(true);
             if(dialog.isApproved()) {
-                competition.getTeamByID(teamID).setTiebreaker(dialog.getValueDouble());
+                Data.lock().writeLock().lock();
+                try {
+                    competition.getTeamByID(teamID).setTiebreaker(dialog.getValueDouble());
+                    competition.sort();
+                    tblClassification.setModel(Data.getResultsTableModel(competition));
+                } finally {
+                    Data.lock().writeLock().unlock();
+                }
             }
-            competition.sort();
-            tblClassification.setModel(Data.getResultsTableModel(competition));
         });
         
-        btnSetActiveScoreAsTiebreaker.addActionListener((ActionEvent e) -> {
-            if(competition.getState() < CompetitionState.RUN) {
+        btnClearTiebreaker.addActionListener((ActionEvent e) -> {
+            if(tblClassification.getSelectedRow() < 0) {
                 return;
             }
-            Team t = competition.getSession().getActiveTeam();
-            Score score = new Score();
-            populateScore(score, txtScoreFields);
-            t.setTiebreaker(score.getScore());
-            refreshDataView();
+            int teamID = Integer.parseInt((String)tblClassification.getValueAt(
+                    tblClassification.getSelectedRow(), 1));
+            Team t = competition.getTeamByID(teamID);
+            Data.lock().writeLock().lock();
+            try {
+                t.clearTiebreaker();
+            } finally {
+                Data.lock().writeLock().unlock();
+            }
+            updateDataView();
+        });
+        
+        btnSetFlags.addActionListener((ActionEvent e) -> {
+            if(tblClassification.getSelectedRow() < 0) {
+                return;
+            }
+            int teamID = Integer.parseInt((String)tblClassification.getValueAt(
+                    tblClassification.getSelectedRow(), 1));
+            TeamFlagsDialog dialog = new TeamFlagsDialog(competition,
+                    competition.getTeamByID(teamID));
+            dialog.setModal(true);
+            dialog.setLocationRelativeTo(this);
+            dialog.setVisible(true);
+            if(dialog.isApproved()) {
+                updateDataView();
+            }
         });
 
         tblClassification = new JTable(Data.getResultsTableModel(competition));
@@ -972,7 +1000,6 @@ public class ControlFrame extends JFrame {
                 competition.setRedFlag(false);
                 btnStartTeamSession.setText("START SCORING SESSION");
                 btnStartTeamSession.setForeground(Color.BLACK);
-                btnSetActiveScoreAsTiebreaker.setEnabled(false);
                 break;
 
             case CompetitionState.SETUP:   
@@ -1009,7 +1036,6 @@ public class ControlFrame extends JFrame {
                 btnCommitScore.setEnabled(true);
                 btnDiscardScore.setEnabled(true);
                 btnPause.setText("PAUSE");
-                btnSetActiveScoreAsTiebreaker.setEnabled(true);
                 
                 // re-init and enable scoring controls                
                 paneRunScoringControlScroll.setVisible(true);
@@ -1267,7 +1293,7 @@ public class ControlFrame extends JFrame {
         tblClassification.setModel(Data.getResultsTableModel(competition));
         tblClassification.validate();
         competition.sort();
-        display.setClassificationData(competition.getSortedFinishedTeams());          
+        display.setClassificationData(competition.getSortedClassifiedTeams());          
     }
     
     public void refreshDataView() {
@@ -1400,7 +1426,9 @@ public class ControlFrame extends JFrame {
                 curVal--;
             }
             target.setText("" + curVal);
-            competition.getSession().modifyCurrentScore(key, curVal);
+            if(competition.getSession() != null) {
+                competition.getSession().modifyCurrentScore(key, curVal);
+            }
             ControlCenter.triggerScoreChangeEvent(key, id, String.valueOf(curVal));
         }
     }
@@ -1452,7 +1480,9 @@ public class ControlFrame extends JFrame {
                 value = dialog.getValueDouble();
             }
             target.setText("" + value);
-            competition.getSession().modifyCurrentScore(key, value);
+            if(competition.getSession() != null) {
+                competition.getSession().modifyCurrentScore(key, value);
+            }
             ControlCenter.triggerScoreChangeEvent(key, id, String.valueOf(value));
         }
     }

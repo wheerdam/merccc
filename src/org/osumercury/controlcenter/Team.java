@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Wira Mulia
+    Copyright 2016-2017 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 package org.osumercury.controlcenter;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -26,7 +28,8 @@ public class Team implements Comparable {
     private final int teamNumber;
     private final String teamName;
     private final String teamInstitution;
-    private final ArrayList<Score> scores;
+    private final List<Score> scores;
+    private final List<String> annotations;
     private double tiebreaker;    
     
     public static final int SORT_DESCENDING = 0;
@@ -42,7 +45,8 @@ public class Team implements Comparable {
         this.teamInstitution = teamInstitution;
         this.logo = logo;
         scores = new ArrayList();
-        tiebreaker = 0;
+        clearTiebreaker();
+        annotations = new ArrayList<>();
     }
     
     public String getName() {
@@ -81,7 +85,6 @@ public class Team implements Comparable {
                 return true;
             }
         }
-        
         return false;
     }
     
@@ -108,11 +111,10 @@ public class Team implements Comparable {
                     break;
             }
         }
-        
         return bestScore;
     }
         
-    public ArrayList<Score> getScores() {
+    public List<Score> getScores() {
         return scores;
     }
     
@@ -120,8 +122,56 @@ public class Team implements Comparable {
         this.tiebreaker = t;
     }
     
-    public double getTiebreaker() {
-        return tiebreaker;
+    public final double getTiebreaker() {
+        return hasScore() ? getBestScore().getScore() : tiebreaker;
+    }
+    
+    public void clearTiebreaker() {
+        tiebreaker = SORT_ORDER == SORT_DESCENDING ? 
+                     -1*SORT_MAX_MAGNITUDE : SORT_MAX_MAGNITUDE;
+    }
+    
+    public void addAnnotation(String value) {
+        
+        if(!hasAnnotation(value)) {
+            Log.d(1, "Team.addAnotation(" + teamNumber + "=" + teamName +
+                     "): '" + value + "'");
+            annotations.add(value);
+            Object[] params = { teamNumber, value };
+            ControlCenter.triggerEvent(UserEvent.TEAM_ADDED_ANNOTATION, params);
+        }
+    }
+    
+    public boolean hasAnnotation(String value) {
+        for(String string : annotations) {
+            if(string.equals(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public void removeAnnotation(String value) {
+        Iterator<String> it = annotations.listIterator();
+        while(it.hasNext()) {
+            if(it.next().equals(value)) {
+                Log.d(1, "Team.removeAnotation(" + teamNumber + "=" + teamName +
+                         "): '" + value + "'");
+                it.remove();
+                Object[] params = { teamNumber, value };
+                ControlCenter.triggerEvent(UserEvent.TEAM_REMOVED_ANNOTATION, 
+                                           params);
+            }
+        }
+    }
+    
+    public List<String> getAnnotations() {
+        return annotations;
+    }
+    
+    public void clearAnnotations() {
+        annotations.clear();
+        ControlCenter.triggerEvent(UserEvent.TEAM_CLEARED_ANNOTATION, teamNumber);
     }
     
     public static void setSortOrder(int n) {

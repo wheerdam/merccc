@@ -43,6 +43,9 @@ public interface UserEvent {
     public static final int DISPLAY_HIDE                = 18;
     public static final int DISPLAY_SHOW                = 19;
     public static final int DISPLAY_RANK_START          = 20;
+    public static final int TEAM_ADDED_ANNOTATION       = 21;
+    public static final int TEAM_REMOVED_ANNOTATION     = 22;
+    public static final int TEAM_CLEARED_ANNOTATION     = 23;
     public static final int EXIT                        = 200;
             
     public abstract void callback(int eventID, Object param);

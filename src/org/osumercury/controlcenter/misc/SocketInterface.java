@@ -150,6 +150,19 @@ public class SocketInterface extends Thread {
                 case UserEvent.DISPLAY_RANK_START:
                     broadcast("DISPLAY_RANK_START " + (Integer)param);
                     break;
+                case UserEvent.TEAM_ADDED_ANNOTATION:
+                    p = (Object[]) param;
+                    broadcast("TEAM_ADDED_ANNOTATION " + (Integer)p[0] + " " +
+                              (String)p[1]);
+                    break;
+                case UserEvent.TEAM_REMOVED_ANNOTATION:
+                    p = (Object[]) param;
+                    broadcast("TEAM_REMOVED_ANNOTATION " + (Integer)p[0] + " " +
+                              (String)p[1]);
+                    break;
+                case UserEvent.TEAM_CLEARED_ANNOTATION:
+                    broadcast("TEAM_CLEARED_ANNOTATION " + (Integer)param);
+                    break;
             }
         });
     }
@@ -752,6 +765,50 @@ public class SocketInterface extends Thread {
                             Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
                                      e);
                             send("ERROR");
+                        }
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "add-team-annotation":
+                    tokens = line.trim().split("\\s+", 3);
+                    if(tokens.length == 3) {
+                        Data.lock().writeLock().lock();
+                        try {
+                            int teamID = Integer.parseInt(tokens[1]);
+                            c.getTeamByID(teamID).addAnnotation(tokens[2]);
+                            if(gui && cf != null) {
+                                cf.refreshDataView();
+                            }
+                            send("OK");
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR");
+                        } finally {
+                            Data.lock().writeLock().unlock();
+                        }
+                    } else {
+                        send("ERROR");
+                    }
+                    break;
+                case "remove-team-annotation":
+                    tokens = line.trim().split("\\s+", 3);
+                    if(tokens.length == 3) {
+                        Data.lock().writeLock().lock();
+                        try {
+                            int teamID = Integer.parseInt(tokens[1]);
+                            c.getTeamByID(teamID).removeAnnotation(tokens[2]);
+                            if(gui && cf != null) {
+                                cf.refreshDataView();
+                            }
+                            send("OK");
+                        } catch(Exception e) {
+                            Log.d(0, "SocketInterface$ClientHandler.handleCommand: " +
+                                     e);
+                            send("ERROR");
+                        } finally {
+                            Data.lock().writeLock().unlock();
                         }
                     } else {
                         send("ERROR");

@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Wira Mulia
+    Copyright 2016-2017 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -52,10 +52,15 @@ public class Data {
                 return false;
             }
         };
-       
-        m.setColumnIdentifiers(getColHeaders());
+        int cols = getColHeaders().length-1;
+        String[] headers = new String[cols];
+        System.arraycopy(getColHeaders(), 0, headers, 0, cols);
+        m.setColumnIdentifiers(headers);
+        String[] rowData;
         for(String[] entry : getData(c)) {
-            m.addRow(entry);
+            rowData = new String[cols];
+            System.arraycopy(entry, 0, rowData, 0, cols);
+            m.addRow(rowData);
         }
         
         return m;
@@ -69,7 +74,7 @@ public class Data {
             }
         };
         
-        String[] colHeader = {"Rank", "Team#", "Team Name", "Institution", "Score"};
+        String[] colHeader = {"Rank", "Team#", "Team Name", "Institution", "Score", "Flags"};
         m.setColumnIdentifiers(colHeader);
         for(String[] entry : getResultsData(c)) {
             m.addRow(entry);
@@ -85,12 +90,14 @@ public class Data {
         str.append(Config.getConfigFile().getName());
         str.append("\n# hash:");
         str.append(String.valueOf(hash));
-        str.append("\n# tiebreakers: ");
+        str.append("\n# tiebreakers2: ");
         for(Team t : c.getTeams()) {
-            str.append(t.getNumber());
-            str.append("-");
-            str.append(t.getTiebreaker());
-            str.append(" ");
+            if(!t.hasScore()) {
+                str.append(t.getNumber());
+                str.append("=");
+                str.append(t.getTiebreaker());
+                str.append(" ");
+            }
         }
         str.append("\n# ");
         for(String s : getColHeaders()) {
@@ -142,7 +149,28 @@ public class Data {
                                     " Saved config=" + hash);
                             System.err.println();
                         }
-                    } else if(l.contains("tiebreakers")) {
+                    } else if(l.contains("tiebreakers2")) {
+                        tokens = l.split("tiebreakers2:");
+                        String[] entries = tokens[1].trim().split("\\s+");
+                        for(String t : entries) {
+                            String[] pair = t.trim().split("=");
+                            int teamID = Integer.parseInt(pair[0]);
+                            double tiebreaker = Double.parseDouble(pair[1]);
+                            Team team = c.getTeamByID(teamID);
+                            lock.writeLock().lock();
+                            try {       
+                                if(team != null) {
+                                    c.getTeamByID(teamID).setTiebreaker(tiebreaker);
+                                } else {
+                                    Log.d(0, "Data.loadCSV: team with ID " + teamID + " not found" +
+                                        ", ignoring line");
+                                }
+                            } finally {
+                                lock.writeLock().unlock();
+                            }
+                        }
+                    // legacy tiebreakers format
+                    } else if(l.contains("tiebreakers:")) {
                         tokens = l.split("tiebreakers:");
                         String[] entries = tokens[1].trim().split("\\s+");
                         for(String t : entries) {
@@ -184,10 +212,11 @@ public class Data {
         String[] tokens;
         tokens = l.trim().split(",");
         String ID = tokens[0].trim();
-        Score s = new Score();        
+        Score s = new Score();
+        int scoreFields = Score.getFields().size();
         lock.writeLock().lock();
         try {
-            for(int i = 3; i < 3+Score.getFields().size(); i++) {
+            for(int i = 3; i < 3+scoreFields; i++) {
             s.setValue(Config.getKeysInOriginalOrder("fields").get(i-3),
                     Double.parseDouble(tokens[i].trim()));
             }
@@ -195,6 +224,12 @@ public class Data {
             Team t = c.getTeamByID(Integer.parseInt(ID));
             if(t != null) {
                 t.addScore(s);
+                if(tokens.length >= 3+scoreFields+2) {
+                    tokens = tokens[3+scoreFields+1].trim().split(";");
+                    for(String str : tokens) {
+                        t.addAnnotation(str.trim());
+                    }
+                }
             } else {
                 Log.d(0, "Data.parseCSVLine: team with ID " + ID + " not found" +
                         ", ignoring line");
@@ -211,7 +246,7 @@ public class Data {
     
     public static String[] getColHeaders() {
         int n = Score.getFields().size();
-        int cols = 3 + n + 1;
+        int cols = 3 + n + 2;
         
         String[] colHeader = new String[cols];
         colHeader[0] = "Team#";
@@ -221,13 +256,14 @@ public class Data {
             colHeader[i] = Config.getKeysInOriginalOrder("fields").get(i-3);
         }
         colHeader[3+n] = "Total";
+        colHeader[3+n+1] = "Criteria";
         
         return colHeader;
     }
     
     public static ArrayList<String[]> getData(CompetitionState c) {
         int n = Score.getFields().size();
-        int cols = 3 + n + 1;
+        int cols = 3 + n + 2;
         ArrayList<String[]> rows = new ArrayList();
         
         String[] row;
@@ -246,6 +282,10 @@ public class Data {
                         scoreCol++;
                     }
                     row[3+n] = s.getScore() + "";
+                    row[3+n+1] = "";
+                    for(String annotation : t.getAnnotations()) {
+                        row[3+n+1] += annotation + ";";
+                    }
                     rows.add(row);
                     scoreID++;
                 }
@@ -265,13 +305,18 @@ public class Data {
         lock.readLock().lock();
         try {
             c.sort();
-            for(Team t : c.getSortedFinishedTeams()) {
-                row = new String[5];
+            for(Team t : c.getSortedClassifiedTeams()) {
+                row = new String[6];
                 row[0] = rank + "";
                 row[1] = t.getNumber() + "";
                 row[2] = t.getName();
                 row[3] = t.getInstitution();
-                row[4] = String.format("%.2f", t.getBestScore().getScore()) + "";
+                row[4] = String.format("%.2f", t.getBestScore().getScore());
+                row[4] += !c.isTeamEligibleForChampionship(t) ? "*" : "";
+                row[5] = "";
+                for(String str : t.getAnnotations()) {
+                    row[5] += str + "; ";
+                }
                 rows.add(row);
                 rank++;
             }
@@ -292,12 +337,16 @@ public class Data {
                     }
                 }
 
-                row = new String[5];
+                row = new String[6];
                 row[0] = (rank != prevRank ? rank : "-") + "";
                 row[1] = t.getNumber() + "";
                 row[2] = t.getName();
                 row[3] = t.getInstitution();
-                row[4] = "DNF (" + t.getTiebreaker() + ")";
+                row[4] = "DNF (" + String.format("%.2f", t.getTiebreaker()) + ")";
+                row[5] = "";
+                for(String str : t.getAnnotations()) {
+                    row[5] += str + "; ";
+                }
                 prevRank = rank;
                 prevTiebreaker = t.getTiebreaker();
                 rows.add(row);
@@ -325,6 +374,8 @@ public class Data {
         try {
             for(Team t : c.getTeams()) {
                 t.getScores().clear();
+                t.clearTiebreaker();
+                t.clearAnnotations();
             }
         } finally {
                 lock().writeLock().unlock();
@@ -354,6 +405,17 @@ public class Data {
                 str.append(padAfter(row[2], 31));
                 str.append(padAfter(row[3], 31));
                 str.append(row[4]);
+                str.append("\n");
+            }
+            
+            str.append("\nTeam Flags\n\n");
+            for(String[] row : rows) {
+                str.append(padBefore(row[0], 4));
+                str.append(" ");
+                str.append(padBefore(row[1], 3));
+                str.append("  ");
+                str.append(padAfter(row[2], 31));
+                str.append(row[5]);
                 str.append("\n");
             }
             

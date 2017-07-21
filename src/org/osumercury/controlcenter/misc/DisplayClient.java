@@ -360,7 +360,7 @@ public class DisplayClient {
                 }
                 display.setVisible(true);
                 cc.getRefreshThread().start();
-                display.setClassificationData(c.getSortedFinishedTeams());
+                display.setClassificationData(c.getSortedClassifiedTeams());
                 if(lockMode >= 0 && lockMode <= 2) {
                     display.setMode(lockMode);
                 }
@@ -371,6 +371,7 @@ public class DisplayClient {
             // flush response
             r.readLine();
             Team t;
+            int teamID;
             while((d = r.readLine()) != null) {
                 Log.d(0, d);
                 String[] tokens = d.split(" ", 2);
@@ -388,7 +389,7 @@ public class DisplayClient {
                         break;
                     case "STATE_CHANGE_SETUP":
                         tokens = tokens[1].split(" ");
-                        int teamID = Integer.parseInt(tokens[0]);
+                        teamID = Integer.parseInt(tokens[0]);
                         int attempts = Integer.parseInt(tokens[1]);
                         int setup = Integer.parseInt(tokens[2])*1000;
                         int run = Integer.parseInt(tokens[3])*1000;
@@ -406,10 +407,13 @@ public class DisplayClient {
                         break;
                     case "SCORE_CHANGE":
                         tokens = tokens[1].split(" ");
-                        c.getSession().modifyCurrentScore(tokens[0], Double.parseDouble(tokens[2]));
-                        display.setScore(tokens[0],
-                                Integer.parseInt(tokens[1]), 
-                                Double.parseDouble(tokens[2]));
+                        if(c.getSession() != null) {
+                            c.getSession().modifyCurrentScore(tokens[0], 
+                                    Double.parseDouble(tokens[2]));
+                            display.setScore(tokens[0],
+                                    Integer.parseInt(tokens[1]), 
+                                    Double.parseDouble(tokens[2]));
+                        }
                         break;
                     case "SESSION_PAUSED":
                         c.getSession().pauseTimer();
@@ -430,7 +434,7 @@ public class DisplayClient {
                         t = c.getSession().getActiveTeam();
                         c.getSession().completeRun(true);
                         c.sort();
-                        display.setClassificationData(c.getSortedFinishedTeams());
+                        display.setClassificationData(c.getSortedClassifiedTeams());
                         display.newScore();
                         display.setBestScore(t.getBestScore());
                         break;
@@ -451,6 +455,29 @@ public class DisplayClient {
                     case "DATA_IMPORTED":
                     case "DATA_RECORD_EXPUNGED":
                         getScoreData(cc, true);
+                        break;
+                    case "TEAM_ADDED_ANNOTATION":
+                        tokens = tokens[1].split(" ", 2);
+                        teamID = Integer.parseInt(tokens[0]);
+                        t = c.getTeamByID(teamID);
+                        t.addAnnotation(tokens[1]);
+                        c.sort();
+                        display.setClassificationData(c.getSortedClassifiedTeams());
+                        break;
+                    case "TEAM_REMOVED_ANNOTATION":
+                        tokens = tokens[1].split(" ", 2);
+                        teamID = Integer.parseInt(tokens[0]);
+                        t = c.getTeamByID(teamID);
+                        t.removeAnnotation(tokens[1]);
+                        c.sort();
+                        display.setClassificationData(c.getSortedClassifiedTeams());
+                        break;
+                    case "TEAM_CLEARED_ANNOTATION":
+                        teamID = Integer.parseInt(tokens[1]);
+                        t = c.getTeamByID(teamID);
+                        t.clearAnnotations();
+                        c.sort();
+                        display.setClassificationData(c.getSortedClassifiedTeams());
                         break;
                 }
             }
@@ -491,7 +518,7 @@ public class DisplayClient {
         }
         Log.d(0, "- " + num + " records parsed");
         c.sort();
-        cc.getDisplayFrame().setClassificationData(c.getSortedFinishedTeams());
+        cc.getDisplayFrame().setClassificationData(c.getSortedClassifiedTeams());
         
         if(monitoring) {
             send("monitor");

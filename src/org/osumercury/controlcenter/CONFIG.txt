@@ -13,6 +13,7 @@ Revision History:
 1.0.1  2016/12/07  File encoding specification
 1.1.0  2016/12/08  Digits and text scaling
 1.2.0  2017/01/10  Digits background, pause bar height and clock margin
+1.4.0  2017/07/21  Added formula criteria
 
 ========
 OVERVIEW
@@ -74,12 +75,19 @@ Other files are user-defined within the configuration file. If the logo image is
 FORMULA SECTION
 ===============
 
-The formula section specifies the formula that is going to be used to score a team. This section only has one valid entry "postfix". The scoring formula is defined in postfix notation. ALL variables used in the formula must also be defined in the "fields" section of the configuration file. Constants must be included as numerical values in the formula. The formula accepts floating point number constants and the following operators: +, -, *, /, ^ (exponent), SQRT (square root)
+The formula section specifies the formula that is going to be used to score and rank a team. The scoring formula is defined in postfix notation. ALL variables used in the formula must also be defined in the "fields" section of the configuration file. Constants must be included as numerical values in the formula. The formula accepts floating point number constants and the following operators: +, -, *, /, ^ (exponent), SQRT (square root)
 
 For example, to use the following infix formula (0.5 * A + B) * (20 - P), the following entry can be given:
 
 	[formula]
 	postfix=0.5 A * B + 20 P - *
+	
+The formula section can also specify criteria that the teams must meet to be eligible for certain positions by using the "criteria" option. The criteria are separated by commas:
+
+	champion_criteria=LOS Test Passed, Track Finished
+	classification_criteria=Track Finished
+	
+Teams not meeting the criteria will not be eligible for the position even if their scores are higher than those that do meet the criteria. If these criteria and conditions are not defined, all of the teams will only be sorted by their highest score (or the lack of any completed score for teams that DNF). A criterion may not contain the following characters: ',' (comma) and ';' (semi-colon).
 
 ==============
 FIELDS SECTION

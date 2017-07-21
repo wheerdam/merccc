@@ -28,16 +28,16 @@ import java.util.Map;
 public class Score {
     private static boolean initialized = false;
     private static ArrayList<String> postfixFormula;
-    private static HashMap<String, String> fields;
-    private static HashMap<String, String> description;
-    private static HashMap<String, Integer> type;
-    private static HashMap<String, Double[]> possibleValues;
-    private static HashMap<String, Double> defaultValue;
+    private static Map<String, String> fields;
+    private static Map<String, String> description;
+    private static Map<String, Integer> type;
+    private static Map<String, Double[]> possibleValues;
+    private static Map<String, Double> defaultValue;
     
-    private HashMap<String, Double> values;
+    private Map<String, Double> values;
     private boolean teamCompletedTrack = false;
     
-    public static HashMap<String, String> getFields() {
+    public static Map<String, String> getFields() {
         return fields;
     }
     
@@ -68,7 +68,7 @@ public class Score {
         return defaultValue.get(key);
     }
     
-    public static void init(String postfix, HashMap<String, String> vars) {
+    public static void init(String postfix, Map<String, String> vars) {
         int typeTemp;
         postfixFormula = new ArrayList();
         fields = vars;
@@ -131,7 +131,7 @@ public class Score {
         Log.d(0, "Score.init: scoring system is initialized");            
     }
         
-    public static boolean test(HashMap<String, String> map, String strResult) {
+    public static boolean test(Map<String, String> map, String strResult) {
         try {
             if(map != null && strResult != null) {
                 double result = Double.parseDouble(strResult);

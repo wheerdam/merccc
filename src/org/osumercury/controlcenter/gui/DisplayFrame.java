@@ -19,6 +19,7 @@ import org.osumercury.controlcenter.UserEvent;
 import java.awt.*;
 import javax.swing.*;
 import java.awt.image.*;
+import java.util.List;
 import java.util.Calendar;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,7 +68,7 @@ public class DisplayFrame extends JFrame {
     private int rankStart = 1;
     private int nextTeamID = -1;
     private int thumbIntervalCount = 0;
-    private ArrayList<String[]> classificationRows;
+    private List<String[]> classificationRows;
     private double[] scores;
     private int[] scoreDigits;
     private int[] scoreDecimal;
@@ -344,17 +345,19 @@ public class DisplayFrame extends JFrame {
         }
     }
     
-    public void setClassificationData(ArrayList<Team> classification) {
+    public void setClassificationData(List<Team> classification) {
         Log.d(3, "DisplayFrame.setClassificationData: new classification of " +
                 "size " + classification.size());
-        classificationRows = new ArrayList();
+        List<String[]> latchedList = new ArrayList<>();
         int rank = 1;
         for(Team t : classification) {
             String[] row = { ""+rank, t.getName(), ""+t.getNumber(),
-                String.format("%.2f",t.getBestScore().getScore()) };
-            classificationRows.add(row);
+                String.format("%.2f",t.getBestScore().getScore()) +
+                (competition.isTeamEligibleForChampionship(t) ? "" : " !")};
+            latchedList.add(row);
             rank++;
         }
+        classificationRows = latchedList;
     }
     
     public void newScore() {
@@ -969,7 +972,7 @@ public class DisplayFrame extends JFrame {
                     y += horizBarHPx;
                     boolean background = true;
                     int latchRankStart = rankStart;
-                    for(i = 0; i < spacingSPx; i++) {
+                    for(i = 0; i < 10; i++) {
                         if(i+(latchRankStart-1) >= classificationRows.size()) {
                             break;
                         }
