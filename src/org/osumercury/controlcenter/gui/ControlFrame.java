@@ -1417,7 +1417,16 @@ public class ControlFrame extends JFrame {
         
         @Override
         public void actionPerformed(ActionEvent e) {
-            double curVal = Double.parseDouble(target.getText());
+            double curVal = 0;
+            try {
+                curVal = Double.parseDouble(target.getText());
+            } catch(NumberFormatException nfe) {
+                JOptionPane.showMessageDialog(target,
+                        "Failed to parse score for " + key + "\n" +
+                                "Offending value: " + target.getText(),
+                        "Score Edit Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
             if(increment) {
                 curVal++;
             } else {
