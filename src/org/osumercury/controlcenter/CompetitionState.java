@@ -1,5 +1,5 @@
 /*
-    Copyright 2016-2017 Wira Mulia
+    Copyright 2016-2018 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -69,7 +69,7 @@ public class CompetitionState {
             for(String s : criteria) {
                 championCriteria.add(s.trim());
                 Log.d(1, "CompetitionState: added champion criterion " +
-                         "'" + s + "'");
+                         "'" + s.trim() + "'");
             }
         }
         if(csvClassification != null) {
@@ -77,32 +77,38 @@ public class CompetitionState {
             for(String s : criteria) {
                 classificationCriteria.add(s.trim());
                 Log.d(1, "CompetitionState: added classification criterion " +
-                         "'" + s + "'");
+                         "'" + s.trim() + "'");
             }
         }
         
         Team t;
         String[] tokens;
         for(String teamIDString : teamsOrder) {
+            int teamID;
             String teamData = teamsMap.get(teamIDString);
             try {
                 Log.d(1, "CompetitionState: adding team entry "
                         + teamIDString + " -> " + teamData);
+                teamID = Integer.parseInt(teamIDString);
                 tokens = teamData.trim().split(",");
                 if(tokens.length > 2) {
-                    t = new Team(Integer.parseInt(teamIDString),
+                    t = new Team(teamID,
                                 tokens[0].trim(),
                                 tokens[1].trim(),
                                 tokens[2].trim()
                             );
                 } else {
-                    Log.d(0, "CompetitionentryState: badge not specified for #" +
+                    Log.d(0, "CompetitionState: badge not specified for #" +
                              teamIDString);
-                    t = new Team(Integer.parseInt(teamIDString),
+                    t = new Team(teamID,
                                 tokens[0].trim(),
                                 tokens[1].trim(),
                                 "no-logo-for-this-team"
                             );
+                }
+                if(teamByID.containsKey(teamID)) {
+                    Log.fatal(41, "Duplicate team number " + teamID + " for '" + 
+                                  t.getName() + "'");
                 }
                 teams.add(t);
                 teamByID.put(Integer.parseInt(teamIDString), t);

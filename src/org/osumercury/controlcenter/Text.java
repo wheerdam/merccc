@@ -27,7 +27,7 @@ public class Text {
     
     public static final int MAJOR_VERSION = 1;
     public static final int MINOR_VERSION = 4;
-    public static final int MINOR_MINOR_VERSION = 0;
+    public static final int MINOR_MINOR_VERSION = 1;
     public static final String REV = "";
     
     public static String getVersion() {
@@ -35,7 +35,7 @@ public class Text {
                 REV;
     }
     
-    public static final String AUTHORS = "Copyright ©2016-2017 Wira D. Mulia, Fernando Cavazos, Carl D. Latino";
+    public static final String AUTHORS = "Copyright ©2016-2018 Wira D. Mulia, Fernando Cavazos, Carl D. Latino";
     
     public static final String LICENSE = 
 "Licensed under the Apache License, Version 2.0 (the \"License\")\n" +
