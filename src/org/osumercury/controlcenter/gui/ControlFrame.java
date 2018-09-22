@@ -1,5 +1,5 @@
 /*
-    Copyright 2016-2017 Wira Mulia
+    Copyright 2016-2018 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -505,6 +505,9 @@ public class ControlFrame extends JFrame {
         paneClassificationTop.add(btnSetTiebreaker);
         paneClassificationTop.add(btnClearTiebreaker);
         paneClassificationTop.add(btnSetFlags);
+        if(competition.getAllCriteria().isEmpty()) {
+            btnSetFlags.setEnabled(false);
+        }
 
         btnGenerateReport.addActionListener((ActionEvent e) -> {
             competition.sort();
@@ -514,7 +517,7 @@ public class ControlFrame extends JFrame {
             fc.setFileFilter(
                     new FileNameExtensionFilter("Mercury Report (.txt)", "txt")
             );
-            if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            if(fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                 if(fc.getSelectedFile().exists()) {
                     if(!confirmYesNo(fc.getSelectedFile().getName() + " exists." +
                             " Overwrite?", "File Exists")) {
@@ -1330,7 +1333,7 @@ public class ControlFrame extends JFrame {
                 new FileNameExtensionFilter("Saved Mercury Data (.csv)", "csv")
         );
         fc.setCurrentDirectory(Data.getDataWorkDir());
-        if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        if(fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             if(fc.getSelectedFile().exists()) {
                 if(!confirmYesNo(fc.getSelectedFile().getName() + " exists." +
                         " Overwrite?", "File Exists")) {
@@ -1349,7 +1352,7 @@ public class ControlFrame extends JFrame {
                 new FileNameExtensionFilter("Saved Mercury Data (.csv)", "csv")
         );
         fc.setCurrentDirectory(Data.getDataWorkDir());
-        if(fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+        if(fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             Data.loadCSV(competition, fc.getSelectedFile().getAbsolutePath());
         }
         updateDataView();

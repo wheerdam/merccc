@@ -1,5 +1,5 @@
 /*
-    Copyright 2016-2017 Wira Mulia
+    Copyright 2016-2018 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ public class Text {
     
     public static final int MAJOR_VERSION = 1;
     public static final int MINOR_VERSION = 4;
-    public static final int MINOR_MINOR_VERSION = 1;
+    public static final int MINOR_MINOR_VERSION = 2;
     public static final String REV = "";
     
     public static String getVersion() {

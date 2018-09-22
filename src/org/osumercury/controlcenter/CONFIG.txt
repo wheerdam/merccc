@@ -19,7 +19,7 @@ Revision History:
 OVERVIEW
 ========
 
-Mercury Control Center is a timing and scoring software for competitions. The software has two major GUI elements: the CONTROL WINDOW to be used by the operator, and a borderless full-screen DISPLAY WINDOW to display information about the competition to the audience and competitors. The typical usage of this software will require a computer with two display outputs, one for the operator, and another, preferrably a big one, for the audience (e.g. HDTVs or projectors). The operator can choose what to display on the DISPLAY WINDOW at any moment of time.
+Mercury Control Center is a timing and scoring software for competitions. The software has two major GUI elements: the CONTROL WINDOW to be used by the operator, and a borderless full-screen DISPLAY WINDOW to display information about the competition to the audience and competitors. The typical usage of this software will require a computer with two display outputs, one for the operator, and another, preferably a big one, for the audience (e.g. HDTVs or projectors). The operator can choose what to display on the DISPLAY WINDOW at any moment of time.
 
 =============
 CONFIGURATION
@@ -101,7 +101,7 @@ Each variable used in the formula section MUST have an entry in this section, an
 
 0 - real floating point number value (the program will bring up a dialog for the operator to enter the value during a scoring session)
 
-1 - discrete positive integer value (the program will have a +1/-1 button to modifiy this score during a scoring session)
+1 - discrete positive integer value (the program will have a +1/-1 button to modify this score during a scoring session)
 
 2 or greater - this variable can only have this number of possible values. For example, if TYPE=3, it means that the score field can only have 3 possible values as defined by the POSSIBLE_VALUES column
 
