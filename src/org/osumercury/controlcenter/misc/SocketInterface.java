@@ -1,5 +1,5 @@
 /*
-    Copyright 2016-2017 Wira Mulia
+    Copyright 2016-2018 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -310,6 +310,24 @@ public class SocketInterface extends Thread {
                                             t.getInstitution() + ", " +
                                             t.getLogoFileName() + ", " +
                                             (t.hasScore() ? t.getBestScore().getScore() : "DNF"));
+                                }
+                                send("DONE");
+                                break;
+                            case "annotations": 
+                                for(Team t : c.getTeams()) {
+                                    List<String> annotations = t.getAnnotations();
+                                    if(!annotations.isEmpty()) {
+                                        StringBuilder sb = new StringBuilder();
+                                        sb.append("ANNOTATION ");
+                                        sb.append(String.valueOf(t.getNumber()));
+                                        sb.append(" ");
+                                        for(String a : annotations) {
+                                            sb.append(a);
+                                            sb.append(",");
+                                        }
+                                        String response = sb.toString();
+                                        send(response.substring(0, response.length()-1));
+                                    }
                                 }
                                 send("DONE");
                                 break;

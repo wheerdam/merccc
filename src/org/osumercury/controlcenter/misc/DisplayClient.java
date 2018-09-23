@@ -1,5 +1,5 @@
 /*
-    Copyright 2016-2017 Wira Mulia
+    Copyright 2016-2018 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -291,7 +291,17 @@ public class DisplayClient {
                 Log.d(0, "- server config hash: " + serverHash + " local hash: " +
                         localHash);
                 if(serverHash != localHash) {
-                    Log.fatal(102, "configuration hashes do not match");
+                    Log.d(0, "- configuration hashes do not match, continue? (y/n)");
+                    try {
+                        BufferedReader r = new BufferedReader(new InputStreamReader(System.in));
+                        String response = r.readLine();
+                        if(!response.equals("y")) {
+                            ControlCenter.exit(0);
+                        }
+                    } catch(Exception e) {
+                        Log.err("failed to parse input");
+                        ControlCenter.exit(1);
+                    }
                 }                
             } else if(fetchedResources != null) {
                 Assets.load(fetchedResources.getAbsolutePath()
@@ -503,11 +513,14 @@ public class DisplayClient {
             // flush response
             r.readLine(); 
         }
+        int teamID;
         String d;
+        String[] tokens, annotations;
         CompetitionState c = cc.getCompetitionState();
         int num = 0;
         for(Team t : c.getTeams()) {
             t.getScores().clear();
+            t.clearAnnotations();
         }        
         Log.d(0, "- getting current data");            
         send("data");
@@ -517,6 +530,26 @@ public class DisplayClient {
             num++;
         }
         Log.d(0, "- " + num + " records parsed");
+        Log.d(0, "- getting annotations");
+        send("annotations");
+        while(!(d = r.readLine()).equals("DONE")) {
+            Log.d(1, d);
+            tokens = d.split("\\s+", 3);
+            annotations = tokens[2].split(",");
+            teamID = Integer.parseInt(tokens[1]);
+            Data.lock().writeLock().lock();
+            try {
+                Team t = c.getTeamByID(teamID);
+                if(t == null) {
+                    Log.fatal(102, "team ID for annotation does not exist in database. Configuration file mismatch?");
+                }
+                for(String a : annotations) {
+                    t.addAnnotation(a);
+                }
+            } finally {
+                Data.lock().writeLock().unlock();
+            }
+        }
         c.sort();
         cc.getDisplayFrame().setClassificationData(c.getSortedClassifiedTeams());
         
