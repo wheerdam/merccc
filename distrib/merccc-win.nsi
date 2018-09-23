@@ -96,10 +96,10 @@ Section "Mercury Control Center Install (required)"
 SectionEnd
 
 Section "Associate Mercury Configuration with the Program"
-  ${unregisterExtension} ".merccc" "Mercury Control Center"
-  ${unregisterExtension} ".merccz" "Mercury Control Center"
-  ${registerExtension} "$INSTDIR\merccco.bat" ".merccc" "Mercury Control Center" "$INSTDIR\appicon.ico"
-  ${registerExtension} "$INSTDIR\mercccz.bat" ".merccz" "Mercury Control Center" "$INSTDIR\appicon.ico"
+  ${unregisterExtension} ".merccc" "Mercury Control Center Configuration"
+  ${unregisterExtension} ".merccz" "Mercury Control Center Zip'd Configuration"
+  ${registerExtension} "$INSTDIR\merccco.bat" ".merccc" "Mercury Control Center Configuration" "$INSTDIR\appicon.ico"
+  ${registerExtension} "$INSTDIR\mercccz.bat" ".merccz" "Mercury Control Center Zip'd Configuration" "$INSTDIR\appicon.ico"
 SectionEnd
 
 ; Optional section (can be disabled by the user)
