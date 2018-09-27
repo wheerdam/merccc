@@ -172,20 +172,36 @@ public class SocketInterface extends Thread {
         ControlCenter.addUserEventHook(userEvent);
     }
     
-    @Override
-    public void run() {
+    public boolean listen() {
         if(ss != null) {
-            System.err.println("SocketInterface.run: " +
+            System.err.println("SocketInterface.listen: " +
                     "already listening");
-            return;
+            return false;
         }
-        
         try {
             if(!local) {
                 ss = new ServerSocket(port);
             } else {
                 ss = new ServerSocket(port, 0, InetAddress.getLoopbackAddress());
             }
+        } catch(Exception e) {
+            System.err.println("SocketInterface.listen: " +
+                    "exception on server socket listen");
+            System.err.println("SocketInterface.listen: " +
+                    e.toString());
+            ss = null;
+            return false;
+        }
+        return true;
+    }
+    
+    @Override
+    public void run() {
+        if(ss == null) {
+            System.err.println("SocketInterface.run: socket not listening");
+            return;
+        }        
+        try {            
             Log.d(0, "SocketInterface.run: listening for a connection" +
                     " on port " + port);            
             while(true) {
@@ -201,8 +217,7 @@ public class SocketInterface extends Thread {
                     "exception on server socket listen");
             System.err.println("SocketInterface.run: " +
                     e.toString());
-        }
-        
+        }        
         ss = null;
         for(ClientHandler client : clientHandlers) {
             client.disconnect();

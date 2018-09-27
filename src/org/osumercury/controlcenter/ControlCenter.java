@@ -1,5 +1,5 @@
 /*
-    Copyright 2016-2017 Wira Mulia
+    Copyright 2016-2018 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -420,13 +420,17 @@ public class ControlCenter {
         if(port > 0 && port <= 65535) {
             socket = new SocketInterface(port, this, control, false, 
                     copyResources);
-            socket.start();
+            if(socket.listen()) {
+                socket.start();
+            }
         }
 
         if(localPort > 0 && localPort <= 65535) {
             loopback = new SocketInterface(localPort, this, control,
                     true, copyResources);
-            loopback.start();
+            if(loopback.listen()) {
+                loopback.start();
+            }
         }
     }    
     
