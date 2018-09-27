@@ -164,6 +164,10 @@ public class CompetitionState {
         stateChangeHooks.add(hook);
     }
     
+    public void removeStateChangeHooks(Callback hook) {
+        stateChangeHooks.remove(hook);
+    }
+    
     public synchronized void sort() {
         Log.d(3, "CompetitionState.sort: sorting teams");
         teamsClassified = new ArrayList();

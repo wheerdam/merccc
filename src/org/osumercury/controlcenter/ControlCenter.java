@@ -462,20 +462,32 @@ public class ControlCenter {
         return loopback;
     }
     
+    public void setSocketHandle(SocketInterface s) {
+        socket = s;
+    }
+    
+    public void setLoopbackSocketHandle(SocketInterface s) {
+        loopback = s;
+    }
+    
     public static void addScoreChangedHook(ScoreChangedCallback c) {
         scoreChangedHooks.add(c);
+        Log.d(2, "Score Changed Hook Added - Total is " + scoreChangedHooks.size());
     }
     
     public static void removeScoreChangedCallback(ScoreChangedCallback c) {
         scoreChangedHooks.remove(c);
+        Log.d(2, "Score Changed Hook Removed - Total is " + scoreChangedHooks.size());
     }
     
     public static void addUserEventHook(UserEvent c) {
         userEventHooks.add(c);
+        Log.d(2, "User Event Hook Added - Total is " + userEventHooks.size());
     }
     
     public static void removeUserEventHook(UserEvent c) {
         userEventHooks.remove(c);
+        Log.d(2, "User Event Hook Removed - Total is " + userEventHooks.size());
     }
     
     public static void triggerEvent(int id, Object param) {

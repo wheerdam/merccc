@@ -49,6 +49,9 @@ public class SocketInterface extends Thread {
     private final boolean allowResourceCopy;
     private final boolean gui;
     
+    private final ScoreChangedCallback scoreChangedCallback;
+    private final UserEvent userEvent;    
+    
     public SocketInterface(int port, ControlCenter cc, ControlFrame f,
             boolean local, boolean allowResourceCopy) {
         this.port = port;
@@ -59,10 +62,11 @@ public class SocketInterface extends Thread {
         this.local = local;
         this.allowResourceCopy = allowResourceCopy;
         clientHandlers = new LinkedList();
-        ControlCenter.addScoreChangedHook((String key, int ID, String value) -> {
+        scoreChangedCallback = (key, ID, value) -> {
             broadcast("SCORE_CHANGE " + key + " " + ID + " " + value);
-        });
-        ControlCenter.addUserEventHook((int ID, Object param) -> {
+        };
+        ControlCenter.addScoreChangedHook(scoreChangedCallback);
+        userEvent = (ID, param) -> {
             Object[] p;
             SessionState s;
             int run;
@@ -164,7 +168,8 @@ public class SocketInterface extends Thread {
                     broadcast("TEAM_CLEARED_ANNOTATION " + (Integer)param);
                     break;
             }
-        });
+        };
+        ControlCenter.addUserEventHook(userEvent);
     }
     
     @Override
@@ -207,6 +212,8 @@ public class SocketInterface extends Thread {
     }
     
     public void close() {
+        ControlCenter.removeScoreChangedCallback(scoreChangedCallback);
+        ControlCenter.removeUserEventHook(userEvent);
         if(ss != null) {
             try {
                 ss.close();
@@ -237,9 +244,20 @@ public class SocketInterface extends Thread {
         private boolean monitor = false;
         private boolean prompt = true;
         private SessionTimer timer;
+        private final Callback stateChangeCallback;
         
         public ClientHandler(Socket s) {
             this.s = s;            
+            stateChangeCallback = (state) -> {
+                if(c.getState() != CompetitionState.RUN) {
+                    return;
+                }
+                c.getSession().endSetup();
+            };
+            // TODO: not sure why headless is special here with endSetup
+            if(!gui && local) {                
+                c.addStateChangeHook(stateChangeCallback);
+            }
         }
         
         @Override
@@ -255,15 +273,7 @@ public class SocketInterface extends Thread {
                 System.err.println("SocketInterface$ClientHandler.run: " +
                         ioe.toString());
                 disconnect();
-            }
-            if(!gui && local) {
-                c.addStateChangeHook((state) -> {
-                    if(c.getState() != CompetitionState.RUN) {
-                        return;
-                    }
-                    c.getSession().endSetup();
-                });
-            }
+            }            
             String line;
             try {
                 String header = "merccc-" + Text.getVersion();
@@ -1010,6 +1020,9 @@ public class SocketInterface extends Thread {
         }
         
         public void disconnect() {
+            if(!gui && local) {
+                c.removeStateChangeHooks(stateChangeCallback);
+            }
             try {
                 s.close();
             } catch(IOException ioe) {

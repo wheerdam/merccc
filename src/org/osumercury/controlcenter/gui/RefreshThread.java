@@ -1,5 +1,5 @@
 /*
-    Copyright 2016 Wira Mulia
+    Copyright 2016-2018 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -25,12 +25,18 @@ import org.osumercury.controlcenter.Log;
 public class RefreshThread extends Thread {
     private boolean stop = false;
     private final boolean on = false;
-    private final long delay;
+    private long delay_ns;
+    private long original_delay_ns;
     private final ControlCenter cc;
     
     public RefreshThread(ControlCenter cc, long delay) {
-        this.delay = delay;
+        this.original_delay_ns = delay * 1000000;
         this.cc = cc;
+    }
+    
+    public void setDelay(long d) {
+        this.delay_ns = d * 1000000;
+        this.original_delay_ns = d * 1000000;
     }
     
     public void stopThread() {
@@ -44,8 +50,7 @@ public class RefreshThread extends Thread {
     @Override
     public void run() {
         long render;
-        long delay_ns = delay * 1000000;
-        long original_delay_ns = delay_ns;
+        delay_ns = original_delay_ns;
         Log.d(0, "RefreshThread.run: refresh rate = " +
                 delay_ns + " nanoseconds");
         ControlCenter.beginTime = System.nanoTime();

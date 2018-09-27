@@ -54,11 +54,11 @@ public class ControlFrame extends JFrame {
     /** OPTIONS MENU ELEMENTS **/
     private JPopupMenu menuOpts;
     private JMenuItem menuOptsFont;
-    private JCheckBoxMenuItem menuOptsRenderTime;
     private JCheckBoxMenuItem menuOptsThumbnail;
     private JCheckBoxMenuItem menuOptsSounds;
     private JCheckBoxMenuItem menuOptsBanner;
     private JMenuItem menuOptsAppearances;
+    private JMenuItem menuExtraOptions;
     
     /** GLOBAL UI ELEMENTS **/
     private JLabel lblDisplayScreen;
@@ -750,9 +750,6 @@ public class ControlFrame extends JFrame {
         menuOpts = new JPopupMenu();
         menuOptsFont = new JMenuItem("Select font...");
         menuOptsFont.setMnemonic(KeyEvent.VK_F);
-        menuOptsRenderTime = new JCheckBoxMenuItem("Display render time");
-        menuOptsRenderTime.setMnemonic(KeyEvent.VK_R);
-        menuOptsRenderTime.setSelected(DisplayFrame.DRAW_RENDER_TIME);
         menuOptsThumbnail = new JCheckBoxMenuItem("Preview window");
         menuOptsThumbnail.setMnemonic(KeyEvent.VK_T);
         menuOptsThumbnail.setSelected(DisplayFrame.GENERATE_THUMBNAIL);        
@@ -780,11 +777,7 @@ public class ControlFrame extends JFrame {
                 cc.getDisplayFrame().setFont(fontName);
             }
         });
-        
-        menuOptsRenderTime.addActionListener((ActionEvent e) -> {
-            DisplayFrame.DRAW_RENDER_TIME = menuOptsRenderTime.isSelected();
-        });
-        
+               
         menuOptsThumbnail.addActionListener((ActionEvent e) -> {
             DisplayFrame.GENERATE_THUMBNAIL = menuOptsThumbnail.isSelected();
             cc.getThumbnailFrame().setVisible(menuOptsThumbnail.isSelected());
@@ -811,7 +804,6 @@ public class ControlFrame extends JFrame {
         menuOpts.add(menuOptsBanner);
         menuOpts.add(new JSeparator());
         menuOpts.add(menuOptsAppearances);
-        menuOpts.add(menuOptsRenderTime);
         
         //</editor-fold>
 

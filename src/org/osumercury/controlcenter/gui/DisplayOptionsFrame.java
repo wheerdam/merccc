@@ -1,5 +1,5 @@
 /*
-    Copyright 2017 Wira Mulia
+    Copyright 2017-2018 Wira Mulia
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -340,6 +340,10 @@ public class DisplayOptionsFrame extends JFrame {
                 if(tokens.length == 2) {
                     if(tokens[0].equals("systemfont")) {
                         cc.getDisplayFrame().setFont(tokens[1]);
+                    } else if(tokens[0].equals("rendertime")) {
+                        DisplayFrame.DRAW_RENDER_TIME = tokens[1].equals("1");
+                    } else if(tokens[0].equals("refreshdelay")) {
+                        cc.getRefreshThread().setDelay(Long.parseLong(tokens[1]));
                     } else {
                         entries.put(tokens[0], tokens[1]);
                     }
